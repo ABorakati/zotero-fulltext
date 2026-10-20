@@ -1,0 +1,4 @@
+<!-- research/04 section 4.3: go.openathens.net/redirector/... first request, 200 text/html. The inline JS HEAD-polls every 2500 ms. -->
+<html><head><title>OpenAthens / Please wait...</title></head><body><p>Please wait while we redirect you.</p>
+<script>var n=0;function poll(){var x=new XMLHttpRequest();x.open('HEAD',location.href);x.timeout=2500;
+x.onload=function(){if(x.status==201){location.href=x.getResponseHeader('location')}else{setTimeout(poll,2500)}};x.send();}poll();</script></body></html>

@@ -1,0 +1,19 @@
+[package]
+name = "fulltext-engine"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+license = "MIT"
+description = "Sans-IO async engine for zotero-fulltext: executor, scheduler, login gate, per-item pipeline"
+
+[dependencies]
+fulltext-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+# alloc-only combinators (FuturesUnordered, select_biased!). No std-only pieces, no threads, no timers.
+# `async-await-macro` adds `select_biased!` / `join!` (compile-time proc macro only; no runtime or size cost).
+futures-util = { workspace = true, features = ["async-await-macro"] }
+
+[lints]
+workspace = true

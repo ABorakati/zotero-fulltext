@@ -1,0 +1,523 @@
+== zotero-oa__gold.json
+   URL: https://services.zotero.org/oa/search
+   -> 200 application/json 911B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== zotero-oa__green.json
+   URL: https://services.zotero.org/oa/search
+   -> 200 application/json 493B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== zotero-oa__arxiv.json
+   URL: https://services.zotero.org/oa/search
+   -> 200 application/json 2B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== zotero-oa__medrxiv.json
+   URL: https://services.zotero.org/oa/search
+   -> 200 application/json 181B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== zotero-oa__paywalled.json
+   URL: https://services.zotero.org/oa/search
+   -> 200 application/json 2B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== zotero-oa__nonexistent.json
+   URL: https://services.zotero.org/oa/search
+   -> 200 application/json 2B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== unpaywall__gold.json
+   URL: https://api.unpaywall.org/v2/10.1371/journal.pmed.1000097?email=zotero-fulltext-fixtures@example.org
+   -> 200 application/json 7006B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: Heroku
+== unpaywall__green.json
+   URL: https://api.unpaywall.org/v2/10.1038/nature12373?email=zotero-fulltext-fixtures@example.org
+   -> 200 application/json 5405B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: Heroku
+== unpaywall__arxiv-404.html
+   URL: https://api.unpaywall.org/v2/10.48550/arXiv.1706.03762?email=zotero-fulltext-fixtures@example.org
+   -> 404 text/html; charset=utf-8 207B
+   HTTP/1.1 404 Not Found
+   Content-Type: text/html; charset=utf-8
+   Server: Heroku
+== unpaywall__medrxiv.json
+   URL: https://api.unpaywall.org/v2/10.1101/2023.05.31.23290770?email=zotero-fulltext-fixtures@example.org
+   -> 200 application/json 2504B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: Heroku
+== unpaywall__paywalled.json
+   URL: https://api.unpaywall.org/v2/10.1097/SLA.0000000000005603?email=zotero-fulltext-fixtures@example.org
+   -> 200 application/json 6889B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: Heroku
+== unpaywall__nonexistent-404.html
+   URL: https://api.unpaywall.org/v2/10.9999/zft.nonexistent.000001?email=zotero-fulltext-fixtures@example.org
+   -> 404 text/html; charset=utf-8 207B
+   HTTP/1.1 404 Not Found
+   Content-Type: text/html; charset=utf-8
+   Server: Heroku
+== unpaywall__error-no-email.json
+   URL: https://api.unpaywall.org/v2/10.1038/nature12373
+   -> 422 application/json 142B
+   HTTP/1.1 422 Unprocessable Entity
+   Content-Type: application/json
+   Server: Heroku
+== unpaywall__error-test-example-email.json
+   URL: https://api.unpaywall.org/v2/10.1038/nature12373?email=test@example.com
+   -> 422 application/json 154B
+   HTTP/1.1 422 Unprocessable Entity
+   Content-Type: application/json
+   Server: Heroku
+== unpaywall__error-invalid-doi-404.html
+   URL: https://api.unpaywall.org/v2/not-a-doi?email=zotero-fulltext-fixtures@example.org
+   -> 404 text/html; charset=utf-8 207B
+   HTTP/1.1 404 Not Found
+   Content-Type: text/html; charset=utf-8
+   Server: Heroku
+== openalex__gold.json
+   URL: https://api.openalex.org/works/doi:10.1371/journal.pmed.1000097
+   -> 200 application/json 33486B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0
+   X-RateLimit-Credits-Used: 0
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 999
+   X-RateLimit-Remaining-USD: 0.0999
+   X-RateLimit-Reset: 38098
+== openalex__green.json
+   URL: https://api.openalex.org/works/doi:10.1038/nature12373
+   -> 200 application/json 31550B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0
+   X-RateLimit-Credits-Used: 0
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 999
+   X-RateLimit-Remaining-USD: 0.0999
+   X-RateLimit-Reset: 38097
+== openalex__arxiv.json
+   URL: https://api.openalex.org/works/doi:10.48550/arXiv.1706.03762
+   -> 200 application/json 24580B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0
+   X-RateLimit-Credits-Used: 0
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 999
+   X-RateLimit-Remaining-USD: 0.0999
+   X-RateLimit-Reset: 38097
+== openalex__medrxiv.json
+   URL: https://api.openalex.org/works/doi:10.1101/2023.05.31.23290770
+   -> 200 application/json 30544B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0
+   X-RateLimit-Credits-Used: 0
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 999
+   X-RateLimit-Remaining-USD: 0.0999
+   X-RateLimit-Reset: 38096
+== openalex__paywalled.json
+   URL: https://api.openalex.org/works/doi:10.1097/SLA.0000000000005603
+   -> 200 application/json 47287B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0
+   X-RateLimit-Credits-Used: 0
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 999
+   X-RateLimit-Remaining-USD: 0.0999
+   X-RateLimit-Reset: 38095
+== openalex__nonexistent-404.html
+   URL: https://api.openalex.org/works/doi:10.9999/zft.nonexistent.000001
+   -> 404 text/html; charset=utf-8 207B
+   HTTP/1.1 404 Not Found
+   Content-Type: text/html; charset=utf-8
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0
+   X-RateLimit-Credits-Used: 0
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 999
+   X-RateLimit-Remaining-USD: 0.0999
+   X-RateLimit-Reset: 38094
+== openalex__by-pmid.json
+   URL: https://api.openalex.org/works/pmid:19621072
+   -> 200 application/json 33486B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0
+   X-RateLimit-Credits-Used: 0
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 999
+   X-RateLimit-Remaining-USD: 0.0999
+   X-RateLimit-Reset: 38094
+== openalex__by-pmcid-404.html
+   URL: https://api.openalex.org/works/pmcid:4221854
+   -> 404 text/html; charset=utf-8 207B
+   HTTP/1.1 404 Not Found
+   Content-Type: text/html; charset=utf-8
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0
+   X-RateLimit-Credits-Used: 0
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 988
+   X-RateLimit-Remaining-USD: 0.0988
+   X-RateLimit-Reset: 37487
+== openalex__filter-doi-select.json
+   URL: https://api.openalex.org/works?filter=doi:10.1371/journal.pmed.1000097|10.1038/nature12373|10.1097/SLA.0000000000005603&select=id,doi,open_access,best_oa_location,primary_location,locations,ids
+   -> 200 application/json 26629B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0.0001
+   X-RateLimit-Credits-Used: 1
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 998
+   X-RateLimit-Remaining-USD: 0.0998
+   X-RateLimit-Reset: 38092
+== openalex__title-search.json
+   URL: https://api.openalex.org/works?search=Attention%20Is%20All%20You%20Need&per_page=3&select=id,doi,title,open_access,best_oa_location,ids
+   -> 200 application/json 3784B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0.001
+   X-RateLimit-Credits-Used: 10
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 988
+   X-RateLimit-Remaining-USD: 0.0988
+   X-RateLimit-Reset: 38091
+== europepmc__gold.json
+   URL: https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%2210.1371/journal.pmed.1000097%22&resultType=core&format=json
+   -> 200 application/json;charset=UTF-8 8617B
+   HTTP/1.1 200 
+   Content-Type: application/json;charset=UTF-8
+== europepmc__green.json
+   URL: https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%2210.1038/nature12373%22&resultType=core&format=json
+   -> 200 application/json;charset=UTF-8 7435B
+   HTTP/1.1 200 
+   Content-Type: application/json;charset=UTF-8
+== europepmc__medrxiv.json
+   URL: https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%2210.1101/2023.05.31.23290770%22&resultType=core&format=json
+   -> 200 application/json;charset=UTF-8 4293B
+   HTTP/1.1 200 
+   Content-Type: application/json;charset=UTF-8
+== europepmc__paywalled.json
+   URL: https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%2210.1097/SLA.0000000000005603%22&resultType=core&format=json
+   -> 200 application/json;charset=UTF-8 13008B
+   HTTP/1.1 200 
+   Content-Type: application/json;charset=UTF-8
+== europepmc__nonexistent.json
+   URL: https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%2210.9999/zft.nonexistent.000001%22&resultType=core&format=json
+   -> 200 application/json;charset=UTF-8 201B
+   HTTP/1.1 200 
+   Content-Type: application/json;charset=UTF-8
+== europepmc__by-pmcid.json
+   URL: https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=PMCID:PMC2707599&resultType=core&format=json
+   -> 200 application/json;charset=UTF-8 8632B
+   HTTP/1.1 200 
+   Content-Type: application/json;charset=UTF-8
+== europepmc__by-extid-pmid.json
+   URL: https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:19621072%20AND%20SRC:MED&resultType=lite&format=json
+   -> 200 application/json;charset=UTF-8 1078B
+   HTTP/1.1 200 
+   Content-Type: application/json;charset=UTF-8
+== europepmc__fulltext-xml-gold.xml
+   URL: https://www.ebi.ac.uk/europepmc/webservices/rest/PMC2707599/fullTextXML
+   -> 200 application/xml 88924B
+   HTTP/1.1 200 
+   Content-Type: application/xml
+== ncbi-idconv__gold-green-paywalled.json
+   URL: https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/?ids=10.1371/journal.pmed.1000097,10.1038/nature12373,10.1097/SLA.0000000000005603&format=json&tool=zotero-fulltext-research&versions=no
+   -> 200 application/json 835B
+   HTTP/1.1 200 OK
+   Server: istio-envoy
+   content-type: application/json
+== ncbi-idconv__pmid.json
+   URL: https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/?ids=19621072&idtype=pmid&format=json&tool=zotero-fulltext-research
+   -> 200 application/json 419B
+   HTTP/1.1 200 OK
+   Server: istio-envoy
+   content-type: application/json
+== ncbi-idconv__nonexistent.json
+   URL: https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/?ids=10.9999/zft.nonexistent.000001&format=json&tool=zotero-fulltext-research
+   -> 200 application/json 495B
+   HTTP/1.1 200 OK
+   Server: istio-envoy
+   content-type: application/json
+== ncbi-pmc-oa__retired-404.html
+   URL: https://www.ncbi.nlm.nih.gov/pmc/utils/oa/oa.fcgi?id=PMC2707599
+   -> 404 text/html; charset=ISO-8859-1 1584B
+   HTTP/1.1 404 Not Found
+   Server: Apache
+   Content-Type: text/html; charset=ISO-8859-1
+== arxiv__export-api.xml
+   URL: https://export.arxiv.org/api/query?id_list=1706.03762
+   -> 200 application/atom+xml; charset=utf-8 2965B
+   HTTP/1.1 200 OK
+   server: Google Frontend
+   content-type: application/atom+xml; charset=utf-8
+== arxiv__export-api-nonexistent.xml
+   URL: https://export.arxiv.org/api/query?id_list=9999.99999
+   -> 200 application/atom+xml; charset=utf-8 694B
+   HTTP/1.1 200 OK
+   content-type: application/atom+xml; charset=utf-8
+   server: Google Frontend
+== datacite__arxiv.json
+   URL: https://api.datacite.org/dois/10.48550/arXiv.1706.03762
+   -> 200 application/json; charset=utf-8 15812B
+   HTTP/1.1 200 OK
+   Content-Type: application/json; charset=utf-8
+   Server: nginx/1.24.0 + Phusion Passenger(R) 6.1.2
+== biorxiv-api__medrxiv-details.json
+   URL: https://api.biorxiv.org/details/medrxiv/10.1101/2023.05.31.23290770/na/json
+   -> 200 application/json 2840B
+   HTTP/1.1 200 OK
+   server: Apache/2.4.62 (Red Hat Enterprise Linux) OpenSSL/3.5.8 mod_fcgid/2.3.9 mod_wsgi/4.7.1 Python/3.9
+   content-type: application/json
+== biorxiv-api__medrxiv-pubs.json
+   URL: https://api.biorxiv.org/pubs/medrxiv/10.1101/2024.02.26.24303409/na/json
+   -> 200 application/json 2701B
+   HTTP/1.1 200 OK
+   server: Apache/2.4.62 (Red Hat Enterprise Linux) OpenSSL/3.5.8 mod_fcgid/2.3.9 mod_wsgi/4.7.1 Python/3.9
+   content-type: application/json
+== biorxiv-api__nonexistent.json
+   URL: https://api.biorxiv.org/details/medrxiv/10.1101/2099.01.01.99999999/na/json
+   -> 200 application/json 67B
+   HTTP/1.1 200 OK
+   server: Apache/2.4.62 (Red Hat Enterprise Linux) OpenSSL/3.5.8 mod_fcgid/2.3.9 mod_wsgi/4.7.1 Python/3.9
+   content-type: application/json
+== semanticscholar__gold.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/DOI:10.1371/journal.pmed.1000097?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 200 application/json 490B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== semanticscholar__green.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/DOI:10.1038/nature12373?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 200 application/json 450B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== semanticscholar__arxiv.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/DOI:10.48550/arXiv.1706.03762?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 404 application/json 66B
+   HTTP/1.1 404 Not Found
+   Content-Type: application/json
+== semanticscholar__medrxiv.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/DOI:10.1101/2023.05.31.23290770?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 404 application/json 68B
+   HTTP/1.1 404 Not Found
+   Content-Type: application/json
+== semanticscholar__paywalled.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/DOI:10.1097/SLA.0000000000005603?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 200 application/json 410B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== semanticscholar__nonexistent.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/DOI:10.9999/zft.nonexistent.000001?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 404 application/json 71B
+   HTTP/1.1 404 Not Found
+   Content-Type: application/json
+== semanticscholar__by-arxiv-id.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/ARXIV:1706.03762?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 429 application/json 174B
+   HTTP/1.1 429 
+   Content-Type: application/json
+== semanticscholar__by-pmid.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/PMID:19621072?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 429 application/json 174B
+   HTTP/1.1 429 
+   Content-Type: application/json
+== semanticscholar__by-pmcid.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/PMCID:4221854?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 429 application/json 174B
+   HTTP/1.1 429 
+   Content-Type: application/json
+== core__search-no-key-500.json
+   URL: https://api.core.ac.uk/v3/search/works/?q=doi:%2210.1038/nature12373%22&limit=2
+   -> 500 application/json 62B
+   HTTP/1.1 500 Internal Server Error
+   Content-Type: application/json
+   Server: cloudflare
+   x-ratelimit-limit: 10
+   x-ratelimit-remaining: 10
+   x-ratelimit-retry-after: 2026-10-20T13:35:08+0000
+== core__discover-green-no-key.json
+   URL: https://api.core.ac.uk/v3/discover
+   -> 200 application/json 179B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   x-ratelimit-limit: 10
+   x-ratelimit-remaining: 10
+   x-ratelimit-retry-after: 2026-10-20T13:25:55+0000
+== crossref__gold.json
+   URL: https://api.crossref.org/works/10.1371/journal.pmed.1000097
+   -> 200 application/json 13693B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   server: Jetty(9.4.40.v20210413)
+   x-rate-limit-limit: 5
+   x-rate-limit-interval: 1s
+   x-concurrency-limit: 1
+   x-api-pool: public-single
+== crossref__green.json
+   URL: https://api.crossref.org/works/10.1038/nature12373
+   -> 200 application/json 13647B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   server: Jetty(9.4.40.v20210413)
+   x-rate-limit-limit: 5
+   x-rate-limit-interval: 1s
+   x-concurrency-limit: 1
+   x-api-pool: public-single
+== crossref__paywalled.json
+   URL: https://api.crossref.org/works/10.1097/SLA.0000000000005603
+   -> 200 application/json 20353B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   server: Jetty(9.4.40.v20210413)
+   x-rate-limit-limit: 5
+   x-rate-limit-interval: 1s
+   x-concurrency-limit: 1
+   x-api-pool: public-single
+== crossref__medrxiv.json
+   URL: https://api.crossref.org/works/10.1101/2023.05.31.23290770
+   -> 200 application/json 13886B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   server: Jetty(9.4.40.v20210413)
+   x-rate-limit-limit: 5
+   x-rate-limit-interval: 1s
+   x-concurrency-limit: 1
+   x-api-pool: public-single
+== crossref__nonexistent-404.txt
+   URL: https://api.crossref.org/works/10.9999/zft.nonexistent.000001
+   -> 404 text/plain 19B
+   HTTP/1.1 404 Not Found
+   Content-Type: text/plain
+   server: Jetty(9.4.40.v20210413)
+   x-rate-limit-limit: 5
+   x-rate-limit-interval: 1s
+   x-concurrency-limit: 1
+   x-api-pool: public-single
+== doaj__gold.json
+   URL: https://doaj.org/api/search/articles/doi:10.1371/journal.pmed.1000097
+   -> 200 application/json 1187B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+== doaj__paywalled.json
+   URL: https://doaj.org/api/search/articles/doi:10.1097/SLA.0000000000005603
+   -> 200 application/json 246B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+== europepmc-web__pdf-render-cloudflare-challenge.html  URL: https://europepmc.org/articles/PMC2707599?pdf=render -> 403 cf-mitigated: challenge
+== pmc-web__pdf-pow-interstitial.html  URL: https://pmc.ncbi.nlm.nih.gov/articles/PMC2707599/pdf/pmed.1000097.pdf -> 200 text/html (PoW interstitial, cookie cloudpmc-viewer-pow)
+== medrxiv-web__pdf-403-cloudflare.html  URL: https://www.medrxiv.org/content/10.1101/2023.05.31.23290770v1.full.pdf -> 403 (Cloudflare)
+== medrxiv-web__pdf-403-block.html  URL: https://www.medrxiv.org/content/10.1101/2023.05.31.23290770v1.full.pdf -> 403 Cloudflare WAF block 'Sorry, you have been blocked' (intermittent: cache HITs return 200 PDF). IP redacted.
+== semanticscholar__batch.json
+   URL: https://api.semanticscholar.org/graph/v1/paper/batch?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes
+   -> 200 application/json 1309B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+== core__discover-paywalled-no-key.json
+   URL: https://api.core.ac.uk/v3/discover
+   -> 200 application/json 181B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   x-ratelimit-limit: 10
+   x-ratelimit-remaining: 9
+   x-ratelimit-retry-after: 2026-10-20T13:35:10+0000
+== core__discover-gold-no-key.json
+   URL: https://api.core.ac.uk/v3/discover
+   -> 200 application/json 179B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   x-ratelimit-limit: 10
+   x-ratelimit-remaining: 10
+   x-ratelimit-retry-after: 2026-10-20T13:35:11+0000
+== openalex__by-pmcid-filter.json
+   URL: https://api.openalex.org/works?filter=ids.pmcid:4221854&select=id,doi,ids,best_oa_location
+   -> 200 application/json 871B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0.0001
+   X-RateLimit-Credits-Used: 1
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 987
+   X-RateLimit-Remaining-USD: 0.0987
+   X-RateLimit-Reset: 37486
+== openalex__green-select.json
+   URL: https://api.openalex.org/works/doi:10.1038/nature12373?select=id,doi,ids,open_access,best_oa_location,primary_location,locations,has_content,content_urls
+   -> 200 application/json 8073B
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   Server: cloudflare
+   X-RateLimit-Cost-USD: 0
+   X-RateLimit-Credits-Used: 0
+   X-RateLimit-Limit: 1000
+   X-RateLimit-Limit-USD: 0.1
+   X-RateLimit-Onetime-Remaining: 0
+   X-RateLimit-Prepaid-Remaining-USD: 0
+   X-RateLimit-Remaining: 987
+   X-RateLimit-Remaining-USD: 0.0987
+   X-RateLimit-Reset: 37484
+== openalex-content__no-key.json  URL: https://content.openalex.org/works/W4399394003.pdf (no api_key)
+== core__output-green-no-key.json URL: https://api.core.ac.uk/v3/outputs/28948651 ; core__output-paywalled-hit-no-key.json URL: https://api.core.ac.uk/v3/outputs/1000181892
+== semanticscholar__batch-other-ids.json  URL: POST https://api.semanticscholar.org/graph/v1/paper/batch?fields=title,externalIds,isOpenAccess,openAccessPdf,publicationTypes body ids=[ARXIV:1706.03762,PMID:19621072,PMCID:4221854,DOI:10.1097/SLA.0000000000005603,DOI:10.1101/2023.05.31.23290770]
+
+== europepmc__batch-or-lite.json
+   URL: https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%2210.1371/journal.pmed.1000097%22%20OR%20DOI:%2210.1038/nature12373%22%20OR%20DOI:%2210.1097/SLA.0000000000005603%22%20OR%20DOI:%2210.1101/2023.05.31.23290770%22&resultType=lite&format=json&pageSize=100
+   -> 200 application/json;charset=UTF-8

@@ -1,0 +1,6 @@
+<!-- research/04 sections 4.4 and 6.5: auth.elsevier.com/ShibAuth/institutionLogin answers 200 with an auto-POST form to /SHIRE/Login. -->
+<html><head><title>Redirecting</title></head><body onload="document.forms[0].submit()">
+<form method="POST" action="https://auth.elsevier.com/SHIRE/Login?SAMLDS=1&amp;entityID=https%3A%2F%2Fkclidp.kcl.ac.uk%2Fidp%2Fshibboleth">
+<input type="hidden" name="samlRequest" value="PHNhbWxwOkF1dGhuUmVxdWVzdA==">
+<input type="hidden" name="RelayState" value="https://linkinghub.elsevier.com/retrieve/pii/S0140673620301835">
+<noscript><input type="submit" value="Continue"></noscript></form></body></html>

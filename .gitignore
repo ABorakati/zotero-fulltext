@@ -1,0 +1,26 @@
+# build output
+/target/
+/dist/
+**/target/
+/plugin/content/fulltext.wasm
+*.xpi
+*.profraw
+
+# third-party reference material and scratch
+/.ref/
+node_modules/
+/tools/zotero-harness/out/
+/tools/sso-spike/results/
+/spikes/*/out/
+/spikes/**/zig-out/
+/spikes/**/.zig-cache/
+/spikes/**/*.wasm
+# full, untrimmed third-party pages used only by the throwaway spike (the real fixtures live in /fixtures, trimmed)
+/spikes/*/fixtures/
+/tools/**/*.wasm
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

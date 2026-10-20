@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uresolver_content>
+  <context_object>
+    <keys>
+      <key id="rft_id">info:doi/10.1371/journal.pmed.1000097</key>
+    </keys>
+    <context_services>
+      <context_service context_service_id="61300000010006881" service_type="getFullTxt">
+        <keys>
+          <key id="package_public_name"><![CDATA[Free E-journals & open archives]]></key>
+          <key id="Availability">Available from 2004.</key>
+          <key id="Is_free">1</key>
+          <key id="proxy_enabled">false</key>
+          <key id="resolution_url">https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=61300000010006881&amp;institutionId=6881&amp;customerId=6880</key>
+        </keys>
+      </context_service>
+    </context_services>
+  </context_object>
+</uresolver_content>

@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "Zotero Full Text (wasm spike)",
+  "version": "0.0.1",
+  "description": "Spike: Rust/wasm core loaded by a bootstrap plugin",
+  "applications": {
+    "zotero": {
+      "id": "fulltext-spike@example.invalid",
+      "update_url": "https://example.invalid/update.json",
+      "strict_min_version": "7.0",
+      "strict_max_version": "10.0.*"
+    }
+  }
+}

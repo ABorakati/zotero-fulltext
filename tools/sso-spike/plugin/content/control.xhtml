@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!-- sso-spike manual-mode control panel. The person signs in; this window only drives the
+     steps and runs the checks. -->
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        id="ssp-control-window"
+        windowtype="sso-spike:control"
+        title="zotero-fulltext SSO spike (throwaway Zotero)"
+        width="760" height="720">
+  <script src="chrome://ssospike/content/control.js"/>
+  <html:div style="padding:12px 14px;font:13px system-ui,sans-serif;overflow:auto;height:100%;box-sizing:border-box;">
+    <html:h2 style="margin:0 0 6px 0;font-size:16px;">SSO spike: sign-in inside Zotero</html:h2>
+    <html:p style="margin:4px 0;">This is a throwaway Zotero with an empty profile. Your real Zotero is not touched.
+      For each step: press <html:b>Start</html:b>, sign in yourself in the window that opens
+      (KCL username, password and MFA), wait until the article page or PDF appears, then press
+      <html:b>Finished signing in: run checks</html:b>. The report holds no passwords, no cookie values and no page text.</html:p>
+    <html:p style="margin:4px 0;">Only type your password into a window whose bar or title shows
+      <html:code>https://login.microsoftonline.com</html:code> (or a KCL/OpenAthens host). The Zotero viewer window
+      (steps marked "viewer") shows no address bar: check the window title instead, or skip that step.</html:p>
+    <html:label style="display:block;margin:8px 0;">
+      <html:input type="checkbox" id="ssp-clear" checked="checked"/>
+      Clear all cookies before each step (each step then needs a fresh sign-in; untick to test silent re-use)
+    </html:label>
+    <html:table id="ssp-steps" style="border-collapse:collapse;width:100%;margin:6px 0;"></html:table>
+    <html:div style="display:flex;gap:8px;margin:10px 0;flex-wrap:wrap;">
+      <html:button id="ssp-finish" disabled="disabled">Finished signing in: run checks</html:button>
+      <html:button id="ssp-abandon" disabled="disabled">Abandon this step (sign-in failed)</html:button>
+      <html:button id="ssp-quit">Write report and quit</html:button>
+    </html:div>
+    <html:div style="margin:4px 0;">Notes for this step (optional, saved in the report, e.g. "MFA push approved", "blocked: browser not supported"):</html:div>
+    <html:textarea id="ssp-note" rows="2" style="width:100%;box-sizing:border-box;"></html:textarea>
+    <html:div style="margin:8px 0 4px 0;font-weight:bold;">Log</html:div>
+    <html:textarea id="ssp-log" rows="16" readonly="readonly" style="width:100%;box-sizing:border-box;font:12px monospace;"></html:textarea>
+  </html:div>
+</window>

@@ -1,0 +1,6 @@
+# Keep LF everywhere: tests compare fixture bytes exactly, and the XPI build must be reproducible.
+* text=auto eol=lf
+*.wasm binary
+*.pdf binary
+*.xpi binary
+*.png binary

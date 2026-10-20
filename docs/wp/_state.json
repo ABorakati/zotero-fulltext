@@ -1,0 +1,379 @@
+{
+ "remaining": [
+  {
+   "id": "core-integration",
+   "title": "Cross-module e2e through the wire form, totality/fuzz-lite tests, fixtures through the real wasm, size budget",
+   "owns_files": [
+    "crates/fulltext-core/tests/e2e.rs",
+    "crates/fulltext-core/tests/totality.rs",
+    "tests/js/core-wasm-fixtures.test.mjs"
+   ],
+   "depends_on": [
+    "core-ids-oa",
+    "core-page",
+    "core-pdf-urls-inspect",
+    "core-wasm-xtask"
+   ],
+   "spec_path": "C:\\Users\\abora\\zotero-fulltext\\docs\\wp\\core-integration.md",
+   "acceptance": [
+    "cargo test -p fulltext-core --test e2e --test totality",
+    "cargo xtask build",
+    "node --test tests/js/core-wasm-fixtures.test.mjs tests/js/abi.test.mjs",
+    "cargo clippy --workspace --all-targets -- -D warnings",
+    "cargo clippy -p fulltext-core -p fulltext-wasm --target wasm32-unknown-unknown -- -D warnings",
+    "cargo test --workspace",
+    "git grep --no-index -n -E \"SKELETON|not implemented:|todo!|unimplemented!\" -- crates/fulltext-core crates/fulltext-wasm xtask  (must print nothing)"
+   ],
+   "area": "core"
+  },
+  {
+   "id": "engine-pipeline",
+   "title": "Per-item pipeline (OA path): precheck, discovery, attempts and hedging, landing, save, item flow, outcome rows",
+   "owns_files": [
+    "crates/fulltext-engine/src/pipeline/mod.rs",
+    "crates/fulltext-engine/src/pipeline/item.rs",
+    "crates/fulltext-engine/src/pipeline/precheck.rs",
+    "crates/fulltext-engine/src/pipeline/pool.rs",
+    "crates/fulltext-engine/src/pipeline/requests.rs",
+    "crates/fulltext-engine/src/pipeline/oa.rs",
+    "crates/fulltext-engine/src/pipeline/attempt.rs",
+    "crates/fulltext-engine/src/pipeline/landing.rs",
+    "crates/fulltext-engine/src/pipeline/save.rs",
+    "crates/fulltext-engine/src/pipeline/pure.rs",
+    "crates/fulltext-engine/src/l10n.rs"
+   ],
+   "depends_on": [
+    "engine-executor-ops",
+    "engine-sched-login"
+   ],
+   "spec_path": "C:\\Users\\abora\\zotero-fulltext\\docs\\wp\\engine-pipeline.md",
+   "acceptance": [
+    "cargo test -p fulltext-engine pipeline:: l10n::",
+    "cargo clippy -p fulltext-engine --all-targets -- -D warnings",
+    "cargo check -p fulltext-engine --target wasm32-unknown-unknown"
+   ],
+   "area": "engine"
+  },
+  {
+   "id": "engine-inst",
+   "title": "Institutional route (Alma, direct, OpenAthens redirector, EZproxy, login gate use, stop signals) and hand-off links",
+   "owns_files": [
+    "crates/fulltext-engine/src/pipeline/inst.rs",
+    "crates/fulltext-engine/src/pipeline/handoff.rs"
+   ],
+   "depends_on": [
+    "engine-executor-ops",
+    "engine-sched-login"
+   ],
+   "spec_path": "C:\\Users\\abora\\zotero-fulltext\\docs\\wp\\engine-inst.md",
+   "acceptance": [
+    "cargo test -p fulltext-engine pipeline::inst pipeline::handoff",
+    "cargo clippy -p fulltext-engine --all-targets -- -D warnings",
+    "cargo check -p fulltext-engine --target wasm32-unknown-unknown"
+   ],
+   "area": "engine"
+  },
+  {
+   "id": "engine-run-sim",
+   "title": "Run manager, simulation invariants, failure-catalogue scenarios, property tests, final dead-code cleanup",
+   "owns_files": [
+    "crates/fulltext-engine/src/run.rs",
+    "crates/fulltext-engine/src/sim/invariants.rs",
+    "crates/fulltext-engine/src/sim/scenarios/**",
+    "crates/fulltext-engine/tests/golden/**",
+    "crates/fulltext-engine/src/lib.rs (only the crate-level allow(dead_code, unused_imports) line, removed last)"
+   ],
+   "depends_on": [
+    "engine-executor-ops",
+    "engine-sched-login",
+    "engine-pipeline",
+    "engine-inst"
+   ],
+   "spec_path": "C:\\Users\\abora\\zotero-fulltext\\docs\\wp\\engine-run-sim.md",
+   "acceptance": [
+    "cargo test -p fulltext-engine",
+    "cargo clippy --workspace --all-targets -- -D warnings",
+    "cargo check -p fulltext-engine --target wasm32-unknown-unknown",
+    "cargo test --workspace"
+   ],
+   "area": "engine"
+  }
+ ],
+ "done": [
+  {
+   "id": "js-runs",
+   "status": "done",
+   "contract_changes": [
+    "All declared signatures are unchanged. Additive: ZFT.runs also exports MAX_ITEMS_PER_RUN (5000) and REPORTS_KEPT (20); the load.test API manifest still passes.",
+    "ZFT.runs.init(overrides) test seam is documented in runs.js: {state, items, config, progress, login, pdfCapture, net, browser, translators, zoteroOa, save, confirm, wasmHost ({get, shutdown}) or host, bodies (a store instance), createRunner, services, timers, clock, random}. Only the call that builds the controller uses them.",
+    "runs.startRun: mode defaults to 'full' and interactive defaults to false (the menu passes true explicitly). It also re-sends Configure in the same send as start_run when the prefs changed and no run is active, so a pane that forgot reconfigure() cannot leave stale settings. With runs active the change waits (pendingReconfigure) and is applied when the last run finishes. The controller keeps its own needConfigure flag (set at init and by onEngineFailure) and does not depend on how Runner.needsConfigure is maintained.",
+    "runs.shutdown: after the header steps it also calls state.dispose() as its last step, and resolves the done promise of any run the engine did not finish with a RunReport whose items are Outcome::Cancelled{by: shutdown} (so no caller waits forever). A concurrent init() during shutdown waits for it and then rebuilds.",
+    "runs only sends validated commands (u32 ids, known user-action kinds): one malformed command would make serde reject the whole StepIn and fail every run. Invalid cancelRun/cancelItem/userAction arguments are logged and dropped.",
+    "items.snapshot: lone surrogates in any string are replaced (serde_json rejects them); title is clipped by code point, not UTF-16 unit; library kinds other than group/feed (incl. 'publications') map to 'user'; an unknown library is reported files_editable:false. snapshot() throws if the attachment queries of a regular item fail, and snapshotAll turns that into a not-regular stub (skipped) instead of guessing 'no PDF'. snapshotAll drops entries that are not items (no integer id) with a log line. watchDeletions returns a no-op if observer registration fails.",
+    "state.js: the debounce timer is armed by the first unsaved change and is NOT pushed back by later ones, so a change reaches disk at most FLUSH_DEBOUNCE_MS (2000 ms) after it is made. sweepTmp keeps registrations for paths in opts.keep and for removals that failed (so the next sweep retries) rather than clearing the whole list, and counts only directories that actually existed. Malformed single ledger/halt/ezproxy/alma entries are dropped with a log instead of quarantining the whole file (serde would reject them on Configure); wrong top-level shapes still go to state.json.bad. set() ignores non-object values. registerTmpDir, nextRunId, getPersisted, dataDir and tmpRoot throw before init(); set, flush, reset, unregisterTmpDir and sweepTmp are quiet no-ops before init or after dispose."
+   ],
+   "known_gaps": [
+    "runs.js is tested only against a fake Runner/host/services. ZFT.effects (effects.js), progress.js, login-controller.js, pdf-capture.js and bodies.js belong to other packages and were still skeletons in this tree; the real Runner integration (createRunner deps shape, send/pump/whenQuiet/dispose/onRunFinished/onEngineFailure behaviour) is untested and belongs to the integration pass.",
+    "The built plugin/content/fulltext.wasm still answers Engine::step with not_implemented, so engine acceptance of the commands was verified only at the serde (deserialisation) level, not behaviourally.",
+    "state.js is tested only with the in-memory fake IOUtils/PathUtils. Not verified against real Zotero 10 IOUtils: IOUtils.getChildren(path, {ignoreAbsent}) and move(..., {noOverwrite:false}) are assumed available. writeJSON is called with {tmpPath} only (no fsync flush option, as specified), so process-crash safe but not power-loss durable.",
+    "A progress window that fails to open (progress.open throws) is logged and the run still starts; the spec did not say which is better. Menu/UI code must show runs.startRun errors itself (message is an l10n id, optional error.reason is the {$reason} argument of the start-failed message).",
+    "Full-suite failures outside this package, not touched: tests/js/translators.test.mjs (charset case 'iso-8859-1' vs 'ISO-8859-1' in parsePage) and tests/js/wasm-host.test.mjs (6 cases that need the real core/engine wasm to be implemented)."
+   ]
+  },
+  {
+   "id": "js-zotero-io",
+   "status": "done",
+   "contract_changes": [
+    "All changes are additive; every name in tests/js/helpers/api-manifest.mjs is still exported.",
+    "net.js: RESPONSE_HEADERS gains 'akamai-grn', which the core classifier needs.",
+    "net.js: the file sink's JS backstop is an inactivity timer, re-armed on every onProgress (timeout_ms + 2000 of silence). Zotero's download() only bounds connect time and inactivity, so a total-time backstop would kill healthy 100 MB downloads. The memory sink keeps a total backstop of timeout_ms + 2000.",
+    "net.js: with successCodes:false, Zotero resolves a transport failure with xhr.status 0. net.js turns that into OpError tls or network and never returns it as a response.",
+    "pdf-capture.js: Capture gains pdfUrl() (the PDF's channel name), which browser.js uses as final_url when a PDF was captured.",
+    "pdf-capture.js: a second PDF in an already-satisfied capture is swallowed (onContent returns true). Only unknown browsers get false. capture() can throw OpError 'unsupported' (no MIMETypeHandler) or 'internal' (bad browser, or one that already has a capture).",
+    "browser.js: about:neterror, about:blocked and about:certerror end the load as OpError network, network and tls. The browser module's ordering is: PDF captured, error page, URL stable and not held, timeout.",
+    "zotero-oa.js: LOOKUP_BACKSTOP_MS is a new export (LOOKUP_TIMEOUT_MS + 7000). The completion is [{url, page_url, version}]. The frozen proto.rs ZoteroOaHit has a required url: String, so an entry with only a pageURL is emitted with url: \"\", never null or missing.",
+    "save.js: isStorableUrl refuses every host equal to or under the configured EZproxy suffix, a superset of the spec's first-label-contains-'-' rule. Reason: the login host and plain name.<suffix> hosts are proxy-internal too. It reads ZFT.config.getPref('institution.ezproxy_suffix').",
+    "save.js: after a successful save, or after cleanup on failure, the staged body record from ctx.bodies.get(handle) is mutated: consumed = true, dir = null, path = null. BodyStore.release must tolerate dir === null (no IO for it). get() must return the live record, not a copy, for this to take effect.",
+    "save.js: every save failure removes the staged temp dir, including validation failures such as already_has_pdf. The scope is checked up to the last validation; after that the save is not cancellable.",
+    "save.js: trim_prefix is verified to point at '%PDF-' after trimming. If not, it fails 'internal' and no attachment is created. Files over 512 MiB fail 'io'.",
+    "translators.js: the page is decoded through a Blob type with a charset. The charset comes from the contentType argument, else a <meta charset> sniff of the first 2 KiB, else utf-8. Without Zotero.Utilities.Internal.blobToHTMLDocument, a DOMParser + Zotero.HTTP.wrapDocument fallback is used. parsePage(bytes, url, contentType) is unchanged. The body is retained for the whole run, and release is awaited in a finally.",
+    "No new FTL ids. attachFile uses Zotero's own 'pane.item.attachments.select' string."
+   ],
+   "known_gaps": [
+    "Only the real-Zotero harness can confirm these (nothing here ran against real Gecko):",
+    "net.js: whether the xhr 'progress' event fires for arraybuffer responses (the post-completion size check backs it up); whether failed channels expose securityInfo.errorCode or make HTTP.checkSecurity throw; whether the fetch() reader cancel frees the socket; whether fetch() accepts a User-Agent header for Ua::Plain downloads.",
+    "browser.js: that Gecko reports error pages to onLocationChange as about:neterror?..., that hb.currentURI is the document URL when a PDF is captured, the getPageData result shape, and that nsISupportsWeakReference listeners stay alive through the closure reference.",
+    "pdf-capture.js: the nsILoadContext.topFrameElement routing on real channels. If another component removes its own PDF handler while ours is registered, Zotero's removeHandlers can delete ours too. That cannot be detected here, so the caller's timeout ends the load.",
+    "save.js: Zotero.File.rename returning the final name, getFileBaseNameFromItem being synchronous, and the Ci/Cc availability in the plugin sandbox for the file picker. attachFile uses raw nsIFilePicker via Cc/Ci (with a Components.* fallback), per the spec.",
+    "Cross-package items for the owners of those files (I did not edit them):",
+    "BodyStore.release (js-host-effects) must tolerate dir === null (see contract_changes).",
+    "The engine (core-ids-oa) must treat an empty ZoteroOaHit.url as 'no direct URL' (landing page only).",
+    "BrowserRaw.pdf is a Blob. The runner must store it through ZFT.bodies.putBlobAsPdf, and when an HttpReq or BrowserReq `ua` is plain the host is expected to pass it through unchanged. ZFT.items.getItem (js-runs) must return the live Zotero.Item. The effects runner must give browser.load ctx.host with urlClass.",
+    "Environment: the C: drive filled up (about 30 to 300 MB free of 919 GB) while I worked, almost certainly from parallel cargo target directories. A mutation-test script of mine was writing plugin/content/browser.js at that moment and left it empty (0 bytes). I rewrote it from my own source and re-ran everything green. The other five owned source files were checked by line count, tail and the full test run. Other agents' files could also have been hit by the full disk."
+   ]
+  },
+  {
+   "id": "js-host-effects",
+   "status": "done",
+   "contract_changes": [
+    "ADDITIVE, bodies.js: BodyStore.stageFile(path, len?) stages a streamed file that is not in the store yet (reads only head 4096 + tail 2048 via IOUtils.read offset/maxBytes; stats the file when len is missing); BodyStore.discardSlot(slot) removes and unregisters a slot that never became a body. allocPdfSlot returns exactly {dir, path}. Freeing tolerates info.dir === null (save.js marks a consumed body that way). deps also accepts attachments and pathUtils.",
+    "ADDITIVE, wasm-host.js: WasmInstance.reset() (guarded fx_reset), .abi/.generation/.traps fields; Host opts: timers {setTimeout, clearTimeout}, workerFactory(), workerUrl, url (also the wasm URL sent to the worker), and load() opt fetch(url). Worker-recycling policy: a worker that is recycled twice in a row without ever sending 'ready' (or cannot be created) switches the host to the main thread for good; a worker that never became ready is not charged an attempt against the request it held.",
+    "ADDITIVE, effects.js: Runner.reset() clears the failed flag; opts.disposeWaitMs (default 3000) bounds dispose(). While runner.failed is set, send() ignores every command EXCEPT 'configure', and a 'configure' command clears the flag and needsConfigure (this is how ZFT.runs resumes after onEngineFailure: it sends [configure, start_run]). pump() is inert while failed.",
+    "SEMANTICS the engine/js-ui/js-runs authors should know: login_window ops are parented on the RUN scope (cancel_item of the item that opened the shared window does not close it; cancel_run / Cancel{op} do). login_update: the fresh op is completed at once with ok {}, and login.update(windowOp, waiting) is called with the id(s) of the currently open login_window op(s); if the id given IS a live window op it is not completed. save_pdf: once the handler has started its scope is detached; engine Cancel{op}, cancel_item, cancel_run and run_finished do not cancel it (only engine failure or dispose do). Every op is answered exactly once: a JS-initiated cancel answers err.kind 'cancelled' immediately and the handler's late result (and any body it made) is dropped and released. Bodies carried by a completion the engine lists in StepOut.ignored are released by the runner. Stall check interval is stallMs/3: two consecutive stalled checks send DumpState once, the third fails the run(s) with Error('engine stalled'). run_finished cancels what is left of the run's scope (windows, hidden browsers) and forgets the run.",
+    "No frozen file touched; proto.rs / model.rs / wasm ABI unchanged. The helper files in tests/js/helpers were not modified (the effects test kit is duplicated inline in effects.test.mjs and effects-failure.test.mjs because a test file may not import another)."
+   ],
+   "known_gaps": [
+    "The two real-wasm Engine::step tests (Configure/StepOut shape, 1000-step memory growth) skip against the skeleton wasm currently in plugin/content/fulltext.wasm (Engine::step returns not_implemented). Re-run after the engine packages land and 'cargo xtask build'. Likewise the real-wasm assertions on core's classification (PDF verdict truth, IdP/EZproxy URL class) are shape-only on purpose: those are core's contract and the skeleton returns placeholders.",
+    "A real Rust panic (fx_last_panic through the real panic hook, poisoned real instance) is not exercised by my tests: it needs the separate debug-panic wasm build (cargo xtask build --debug-panic), which I did not build (the C: drive hit 0 bytes free during this session). The trap/poison/reinstantiate/lastPanic logic is tested against a hand-assembled stub module whose fx_last_panic mimics the real contract; core's tests/js/abi-recovery.test.mjs covers the real panic once its module exists. Integration should run it.",
+    "ChromeWorker behaviour is verified only through fake workers and the real inspect-worker.js running in an in-process vm 'worker' global. Unverified in Gecko: new ChromeWorker('chrome://zotero-fulltext/content/inspect-worker.js') availability in the bootstrap scope, and fetch(chrome://...) inside the worker. Both failure modes fall back to the main-thread pure instance (tested), so the plugin still works; the harness run (cargo xtask harness) should confirm diagnostics().pure === 'worker'.",
+    "Environment: the C: drive filled completely mid-session (0 bytes free; one Edit and several tool outputs failed with ENOSPC, later recovered). All four plugin files and four test files were re-verified afterwards (node --check, endings intact, full acceptance run green). Someone should free disk space before the parallel cargo builds continue.",
+    "Not mine, observed: tests/js/login.test.mjs (js-ui) has a regex literal containing unescaped slashes at line 652 (SyntaxError), which makes a whole-suite run report one failure; core's 'fx_inspect: a 2 MiB body goes through every spec' test fails against the current skeleton wasm."
+   ]
+  },
+  {
+   "id": "core-pdf-urls-inspect",
+   "status": "done",
+   "contract_changes": [
+    "ADDITIVE pub items: pdf::MAGIC (b\"%PDF-\"), inspect::MAX_BODY_BYTES (16 MiB), inspect::state_of(&PageClass) -> LoginState (spec'd), urls::OPENATHENS_HOST, urls::DEFAULT_EZPROXY_LOGIN_HOST. No existing signature changed. text.rs is unchanged apart from added tests.",
+    "urls::parse_http and urls::resolve (FINAL signatures kept) now return None up front for a non-ASCII host, including percent-encoded ones. They also trim all C0 controls and whitespace and delete tab, CR and LF the way the URL parser does. The workspace pins idna_adapter 1.0.0, which already rejects every non-ASCII host, so results are unchanged. The point is a debug_assert! in that adapter that fires for an ASCII upper-case letter before a non-ASCII one (https://Xe.com/ with an accented e); it panicked in debug builds on hostile input. Release/wasm builds were never affected.",
+    "pdf::looks_html skips up to 4 leading <!-- --> comments after the BOM and whitespace. Needed because fixtures/html/akamai__access-denied.html begins with a comment and the spec requires looks_html == true for every html fixture.",
+    "pdf::verdict: len = max(resp.body_len, staged length). If head_len is >= the body, the head is the whole body and its last 1024 bytes serve as the tail. Unsplit bodies search %%EOF in the last 1024 bytes only.",
+    "inspect::inspect: Probe on PDF bytes returns Probe { class: Pdf { junk_prefix } } before calling the classifier, so the module-doc table holds regardless of core-page. Pdf-spec error bodies count as text when the first 512 bytes have no control characters other than tab, LF, FF and CR.",
+    "inspect::login_state: sends content-type text/html with a supplied document and cuts it at 2 MiB (truncated=true). A document that maps to Landed while the URL is still an IdP, redirector, EZproxy-login or publisher-SSO hop is reported as Pending. An empty document counts as no document.",
+    "urls::handoff: a landing URL that is not http(s) is skipped in favour of ids.url. The LibKey link percent-encodes the DOI per path segment (identical to the unencoded form for ordinary DOIs, safe for SICI-style DOIs). Whitespace-only DOI, domain or URL inputs count as absent.",
+    "urls::unproxify: a rebuilt host that does not parse (junk learned value) returns the input unchanged as NotProxied. Hosts that parse but are not real, such as www.thieme..connect.de, are still Ambiguous."
+   ],
+   "known_gaps": [
+    "Full `cargo test -p fulltext-core` and `cargo clippy -p fulltext-core --all-targets -- -D warnings` do not pass on the shared tree. The cause is other packages' in-progress files: 3 failing core-page lib tests, rank.rs:198 nonminimal_bool, and tests/oa_fixtures.rs not compiling. My seven files pass their own tests and clippy. These two commands need a re-run once core-page and core-ids-oa finish.",
+    "Behaviour that needs the real classifier is not covered here and belongs to core-integration: Probe classes on non-PDF bodies, inspect on HTML fixtures end to end, and login_state with real IdP/EZproxy/OpenAthens documents. My tests only assert dispatch, tags and the state_of mapping.",
+    "The Landed -> Pending override at SSO-looking URLs and the added content-type header in login_state go beyond the spec text. They are harmless if the classifier is right, but core-integration should confirm no fixture expects Landed at an SSO-looking URL.",
+    "While core-page's page/ module was broken I verified clippy and the full suite in a throwaway copy with page/ stubbed. That copy is deleted. The final pass on the shared tree covered the three acceptance test files and clippy on lib plus those files, not the stubbed comparison."
+   ]
+  },
+  {
+   "id": "engine-executor-ops",
+   "status": "done",
+   "contract_changes": [
+    "proto.rs, error.rs, lib.rs and Cargo.toml are unchanged. proto.rs is still the verbatim copy of the contract, with no additive changes.",
+    "Executor: spawn, run, cancel_where and wake_all are implemented as the spec describes. New `Executor::sweep_pending()` and `ReadyQueue::sweep_pending()`. `RunStats.more` is also true while a wake_all sweep has not yet been applied.",
+    "Reactor/ops: new `Reactor::drop_op(op) -> Dropped { Waiting | Completed(Vec<u32>) | Unknown }`. `Reactor::cancel` keeps its signature and now wraps it. `OpFuture::drop` on a slot that is already Done but never polled (item cancelled in the step that delivered the answer) now pushes `Release` for every body handle (`body`, `pdf`, `page`) in the payload, so JS handles are no longer leaked. Previously it pushed nothing.",
+    "Typed op wrappers: `Cx::decode` is now a method. A payload that cannot be decoded still becomes `OpErrKind::Internal`, and it now also emits `Release` for the body handles it carried.",
+    "`Timeout` drops the losing inner future when the timer wins, not when the Timeout value is dropped. `Cancel` is therefore emitted in the same poll that returns TimedOut, and polling again keeps answering TimedOut.",
+    "Engine::step follows the 9 phases. `not_configured` applies to StartRun only. CancelRun, CancelItem, UserAction, DumpState and Shutdown are accepted before Configure, because they ignore unknown runs. The stall sweep round gets its own POLL_BUDGET. `Stats.lost_wakes` is cumulative on `Engine`. The reentry error is sticky for the life of the engine. When the task table is full, a SpawnReq is dropped and an Error-level `Log` effect starting with 'executor full' is emitted.",
+    "sim: new `SimHost::{answer(op, Reply), pending_where(matcher), finish()}`, new public fields `ignored` and `steps`, and `sim::effect_op`. `Reply` and `Responder` keep their signatures. LoginUpdate completions are scheduled at the current time and are not registered in `pending`. Invariant failures return `EngineError { code: \"invariant\", .. }` (const `INVARIANT_CODE`). `run_until_idle` returns `sim_livelock` after 50,000 steps. `SimHost::finish()` runs `Invariant::finish` and run-sim's `run_scenario` should call it at the end.",
+    "sim/fixtures: new builders `browser_ok(final_url, &Inspection, pdf, page)`, `login_ok(result, final_url, &Inspection, pdf, page)`, `translators_ok(Option<(url, mime)>)`, `api_found(Source, Vec<Candidate>)`, `page_inspection(PageClass, Vec<Candidate>)`, `body(handle, len)`, `candidate(url, kind, source, tier)`, `http_req(url)`, `browser_req(url)` and `login_req(entry_url)`. Existing builders and `ScriptResponder` are unchanged.",
+    "cx.rs gained a test module only (no behaviour change)."
+   ],
+   "known_gaps": [
+    "The acceptance command as written (`cargo test -p fulltext-engine executor:: ops:: engine:: sim::`) cannot run, because cargo accepts one filter before `--`. Use `-- executor:: ops:: engine:: sim::`. docs/wp/engine-executor-ops.md and docs/wp/engine-run-sim.md should be fixed.",
+    "`cargo clippy ... -D warnings` and `cargo test --workspace` are not green today because of other packages: core rank.rs:204 (nonminimal_bool), sched/policy.rs:210 (assertions_on_constants), sched/mod.rs:625 (unused variable `w`), the sched/acquire.rs:198 doctest, and core `page_fixtures` (refused_urls_are_reported_with_stable_reasons). None of these files are mine. Core and sched were mid-edit while I worked and failed to compile several times, so I retried until they built.",
+    "run.rs is still the skeleton at the time of my last run. Engine::step calls run::{start_run, cancel_run, cancel_item, user_action, dump_state, shutdown, collect_done, finish_runs} correctly, but a StartRun that really runs items is untested. My test only checks that the error is not `not_configured`. The run-manager paths (cancel, shutdown) are unexercised end to end until engine-run-sim lands.",
+    "The crate-level `#![allow(dead_code, unused_imports)]` is kept, as instructed. Items that only tests use today: `Reactor::cancel`, `Reactor::waiting`, `Executor::owners`, `Cx::sleep_until`, `Cx::with_ids`, `SimHost::pending_where`, `SimHost::answer`, `SimHost::finish`. The package that removes the allow must give them callers or delete them.",
+    "I could not run the engine inside real wasm. `cargo check --target wasm32-unknown-unknown` passes, but behaviour of the Mutex/Arc-based ready queue on wasm32 is untested. The design assumes the non-atomic lowering is fine.",
+    "There is no sim test for livelock (`sim_livelock`, 50,000 steps), because it would take too long to run.",
+    "Environment incident: the disk (C:) hit 0 bytes free for roughly 10 minutes while several agents built in parallel and the user's kache wrapper was active. One Edit failed with ENOSPC. I re-checked afterwards that all my files were intact (line counts and tails) and finished the edit once space returned. Free space is back to about 17 GB, but parallel builds can fill the disk again. I deleted and rebuilt only my own target dir (target/engine-executor-ops)."
+   ]
+  },
+  {
+   "id": "core-ids-oa",
+   "status": "done",
+   "contract_changes": [
+    "Published signatures are unchanged. Additions are all inside owned files: oa::license_slug and oa::is_browser_walled (both pub), plus private oa/util.rs and oa/xml.rs. Nothing was added to model.rs.",
+    "rank::rank is a pure function of the SET of candidates. The final tie-break is URL, then source, not arrival order. This is deliberate: the spec's 'original index' tie-break would contradict its own shuffled-input test, and arrival order depends on which concurrent API call finishes first. rank(rank(x)) == rank(x) holds.",
+    "rank::rank also merges arXiv versions of one id (/pdf/X, /pdf/XvN, /abs/X) into the unversioned /pdf/X. It rewrites legacy PMC URLs but keeps any path after the id (.../PMC1/pdf/a.pdf stays a PDF path). rank::merge does not rewrite or drop anything, it only merges by canonical_key.",
+    "Found means at least one candidate. Two exceptions: the NCBI ID converter (Found when it learned an id) and bioRxiv pubs (Found when it carries published_doi:<doi> in note). A record that exists but offers nothing is Empty, with learned and oa_status still filled. Example: an OpenAlex closed work is Empty and still learns its PMID.",
+    "Notes are short fixed codes the engine can match on: published_doi:<doi> (bioRxiv), merged_record:<doi> (OpenAlex, when the work DOI differs from the request), bad_email (Unpaywall 422), no_pdf, not_held, unverified (CORE discover), doi_mismatch, no_match, no_results, not_in_pmc, no_such_key, plus http_<status> from gate. Notes never echo a body.",
+    "learned.doi is only offered when the request had no DOI (OpenAlex, Europe PMC, PMC, Crossref, Unpaywall, S2, CORE). OpenAlex also learns arxiv, pmid and pmcid from the PMC, PubMed and arXiv locations' own ids, as long as the request lacks them.",
+    "A list answer (OpenAlex results[], Europe PMC, ID converter) with several records and none matching the request returns Empty (no_match), not 'the first'. The spec said 'else the first'. I kept 'first' only when the request names no DOI, PMID or PMCID, and 'the only result' when the list has one entry.",
+    "Alma candidates use signal alma:<package_public_name>. CORE discover unwraps the redirect (fullTextLink?url=) to the https://core.ac.uk/reader/<id> landing page and drops the redirect key. Semantic Scholar's openAccessPdf.url is a Landing when it is not a file URL (the PLOS case returns doi.org)."
+   ],
+   "known_gaps": [
+    "Spec/fixture mismatch: the spec says openalex gold should give a Landing at journals.plos.org and no Pdf. In fixtures/oa/openalex__gold.json, journals.plos.org appears only in the RePEc location, which has is_oa=false. The spec also says to use only is_oa=true entries. There is also a Pdf at iris.unimore.it. I followed the is_oa rule and asserted what the file actually contains: a Landing at https://doi.org/10.1371/journal.pmed.1000097 (Publisher, cc-by, Published). Anything downstream that expects journals.plos.org from OpenAlex gold will not find it; core-page has to get it from doi.org.",
+    "Disk space: the C: drive was full for a while (ENOSPC), which blocked several tool calls. I deleted my own target dir and temp copies to recover. Nothing of other agents was touched. target/core-ids-oa is left in place.",
+    "oa::host_kind is a heuristic. It uses curated lists of publisher, aggregator and repository hosts, plus an academic-domain rule (.ac.uk, .edu, .ac.*) for Repository. Unknown hosts are Other and tier as DIRECT_REPOSITORY. The lists are not exhaustive; extend them in oa/mod.rs if hosts are misranked.",
+    "I could not check Alma against a real CTO response (the research doc only describes the shape). The parser accepts resolution_url as an element or as a key and falls back to a generic signal if package_public_name is missing; the hand-made tests/data/oa/alma-*.xml follow research/04 section 4.5.",
+    "Pre-existing, not mine: ids::clean_doi stops at '<' and '>', so SICI-style DOIs containing them are truncated. I kept that behaviour as the spec asked. I added control characters as DOI terminators and made trim_trailing linear-time without changing its results."
+   ]
+  },
+  {
+   "id": "core-wasm-xtask",
+   "status": "partial",
+   "contract_changes": [
+    "ABI v1 is unchanged: the seven pinned exports and the additive fx_login_state keep their signatures. One test-only export, fx_debug_panic(code: u32) -> u32, exists behind the new cargo feature `debug-panic` (off by default). The shipped module must not export it, and `cargo xtask build` fails if it does.",
+    "New xtask command `check`; `harness` gained `--dry-run` and `build` gained `--debug-panic`. The env var ZFT_PLUGIN_DIR (default `plugin`, relative paths resolved against the repo root) is honoured by build, xpi and harness. ZOTERO_EXE overrides the Zotero binary for the harness.",
+    "`cargo xtask build` now verifies the wasm and fails the command on a violation: it must have no imports, exactly the 11 documented exports, no builder path fragments, and be at most 700 KiB raw (it warns above 450 KiB). It verifies before staging, so a bad module is never copied into plugin/. The staging copy is atomic (temp file plus rename).",
+    "`cargo xtask test` and `check` run the Node tests as `node --test \"tests/js/*.test.mjs\"` with ZFT_DEBUG_WASM set, because Node 24 rejects a bare directory. `test` builds the debug-panic module first.",
+    "Remap flags now also remap the cargo target directory to /target. A panic message from the built module reads like `panicked at crates\\fulltext-wasm\\src\\abi.rs:129:14`, with no absolute builder path.",
+    "abi-recovery.test.mjs finds the debug module via $ZFT_DEBUG_WASM, then $CARGO_TARGET_DIR/xtask/fulltext-debug.wasm, then <repo>/target/xtask/fulltext-debug.wasm, and skips with an explanation when none exists. The `harness` command creates a fresh run root under <target>/xtask/harness/ (with a unique name) and passes it to run.ps1 as -RunsRoot, with -RunName run.",
+    "No change to model.rs or proto.rs."
+   ],
+   "known_gaps": [
+    "Workspace clippy gate fails because of another package: crates/fulltext-engine/src/sched/policy.rs:210 (constant assertion, engine-sched-login). `cargo xtask test` and `check` therefore stop at the clippy step until that is fixed. During this run fulltext-core and fulltext-engine also had transient compile errors from in-progress edits (page/classify.rs, rank.rs); they cleared by themselves.",
+    "Wasm size is 707,106 B raw (about 258 KB deflated). That is above the 450 KiB warning budget (the design budget was about 420 KB) and only about 9 KB below the 700 KiB hard limit. The growth comes from other packages, since the skeleton was 305 KB. `cargo xtask build` will start failing once it crosses 716,800 B, so core-integration needs to look at size (or the limit needs a deliberate decision).",
+    "`cargo xtask check` runs `cargo fmt --all --check`, and the workspace is not rustfmt-clean outside my crates (hundreds of diffs, plus parse errors in crates/fulltext-core/src/page/extract.rs test strings). There is no rustfmt.toml at the root and the existing code uses roughly 120 columns. My own crates are formatted with default rustfmt and pass `cargo fmt -p fulltext-wasm -p xtask --check`. The core-integration pass should either run `cargo fmt` once or add a rustfmt.toml.",
+    "The engine-state half of the two-instances-independent test (using start_run -> not_configured as the oracle) passes with the current partial engine. If a future engine build answers configure with not_implemented, that half downgrades to a t.diagnostic note instead of failing. Instance memory independence (a SHA-256 of A's whole linear memory is unchanged while B runs and resets) is always asserted.",
+    "`cargo xtask harness` was only exercised with --dry-run, the missing-binary path, and a stub run.ps1 in a unit test (pwsh required) that checks argument passing, -Headless:$false for --gui, and exit-code relay. I did not start a real throwaway Zotero. The run.ps1 parameters and the 0/2/3 exit codes are taken from its README and source.",
+    "Disk C: hit 0 MB free mid-run (LNK1140, os error 112), which blocked cargo for every agent for several minutes. I deleted only my own target/core-wasm-xtask/debug, built with CARGO_INCREMENTAL=0 and CARGO_PROFILE_DEV_DEBUG=0, and messaged the main session. The disk recovered to a few GB on its own, but it is the user's concern: C:\\dev\\cache is 32 GB, C:\\Users\\abora\\.cache 39 GB, kache 13.6 GB.",
+    "`node --test \"tests/js/*.test.mjs\"` over the whole JS area shows 2 failures outside my files (tests/js/harness.test.mjs expects the 'prefpane' check list without 'prefpane_ui', plus one more). JS-area owners need to handle them.",
+    "The debug-panic build removes cargo's default output name (release/fulltext_wasm.wasm) after copying, so the test build can never be mistaken for the plugin build. The next normal build recreates it. A reader who copies release/fulltext_wasm.wasm by hand right after `build --debug-panic` will find it missing."
+   ]
+  },
+  {
+   "id": "core-page",
+   "status": "done",
+   "contract_changes": [
+    "All frozen signatures kept (inspect_page, classify_response, Facts, classify, PageCtx, Extraction, page_ids, extract, RuleCtx, rule_for, RULES, parse, Doc and its accessors). Only additive changes, all in files this package owns.",
+    "page::html::Element gained `pub in_refs: bool` (the element sat inside a reference-list region). Doc gained `pub marks: Vec<Mark>`, and Mark is a new type for the access-hint marker elements. New Doc helpers: meta_contains, metas_named, input_by_id, anchor_by_id, links_with, marks_with, has_script_src. New Element helpers: has_class_ci, has_token, has_attr. New constants: MAX_TITLE_TEXT, MAX_ANCHOR_TEXT, MAX_MARK_TEXT. Every collected list and text now has a cap; the caps are not public.",
+    "page::rules::Rule gained `pub needs_browser: bool` and derives Debug. RULES has the 10 rules from the spec table. A few host keys were added: nature-com, biomedcentral-com, springeropen-com, bmj-com. rule_for also matches a key preceded by '-' (subdomains such as bmjopen-bmj-com or society Wiley hosts) in addition to the proxified prefix match.",
+    "page::classify gained pub fn reader_rewrite(&Url) -> Option<String> and pub fn has_article_signals(&Doc) -> bool. Both are usable by other packages.",
+    "Candidate conventions the engine and rank can rely on: kind Pdf, source Extractor, https only, landing_url = the page URL, record_doi = the page DOI. Scores: rule 100 for the primary and 99 or lower for alternates, citation_pdf_url 90, alternate link 80, other metas 75, JSON state 70, anchors 40-70, frames 30. Signals are `rule:<id>:<what>`, `meta:<name>`, `link:alternate`, `json:pdfDownload`, `anchor:#id` or `anchor:.class`, `frame:<tag>`, `reader_rewrite`. needs_browser is set for sciencedirect, lww and walled-misc (Thieme, MDPI, PMC) same-site candidates and for pmc.ncbi.nlm.nih.gov.",
+    "Extraction.rejected `why` vocabulary: the 8 spec strings (other_doi, supplement, citation_export, reader_shell, non_http, image, captcha_variant, javascript_href) plus 4 additive ones: other_format (.xml, .epub, .txt, type=manuscript, office files), reference_link (/servlet/linkout), reference_list (anchor inside a reference region), off_host (PDF link to another site that does not mention the page's own DOI or PII). Refused URLs are reported as the page wrote them (http is not upgraded), truncated to 512 chars. The list holds at most 100 entries, of which at most 25 are the noisy kinds (off_host, reference_list, other_doi, reference_link).",
+    "Deliberate refinements of the written classifier rules, documented in the classify.rs module docs. (1) A Cloudflare challenge or block is also recognised when the server header is ABSENT and the body has Cloudflare-only markers, because the OA-side fixtures carry only a content-type; a different server value still rules Cloudflare out. (2) A 200 from the EZproxy login path with an EMPTY body is EzproxyNeedLogin, because JS settle probes send no body; EzproxyError needs a body without the login form. (3) The Silverchair phrase 'experiencing unusual traffic' is RateLimited at any status. (4) LicenceStop text and the ScienceDirect 'Preparing your download' text only count on pages that carry no article metadata, so articles that quote those phrases stay Landing. (5) Response header names are lower-cased defensively if the host forgot.",
+    "Access hints are keyed on the publisher rule matched by HOST, not on whether the rule produced a candidate (springer-nature, sciencedirect, silverchair incl. JAMA free-access, wiley, atypon, highwire). Other hosts report Unknown."
+   ],
+   "known_gaps": [
+    "Hand-made test inputs (tests/data/page) for EZproxy errors (suspend and needhost bodies), the licence-stop page, the Silverchair unusual-traffic page, the OpenAthens pages and the Entra pages copy the SHAPES described in research/04 and research/06. The real KCL bodies for EzproxyError and the licence-stop page were never observed, so those rules rest on the documented shapes only.",
+    "Cambridge's slug-less PDF alternate (rule open-misc, score 95) is built from the brief's observation that the trailing slug is cosmetic. It was not fetched live, so it is a lower-ranked fallback behind the verified citation_pdf_url and anchor URLs.",
+    "login.openathens.net is IdpLogin only for paths under /auth/ (as specified). Its /saml/... hop endpoints classify as Redirect when probed with a Location, or Html otherwise. inspect::login_state still treats those URLs as Pending through urls::url_class when there is no document.",
+    "rules sciencedirect and lww rely on needs_browser rather than special-casing signed pdf.sciencedirectassets.com URLs. The rules never emit such URLs, and generic scoring does not treat them specially.",
+    "Environmental, not a code gap: C: hit 0 bytes free several times while parallel agents were building, so two Edit calls failed with ENOSPC. Both were re-applied and every owned file was checked complete (tail and line counts). One transient compile failure came from another package's in-progress rank.rs and cleared by itself. Nothing outside my owned files was edited or deleted.",
+    "The wasm size impact of the page code was not measured (cargo xtask build is owned by core-wasm-xtask and core-integration). The code type-checks and passes clippy on wasm32-unknown-unknown."
+   ]
+  },
+  {
+   "id": "js-shell",
+   "status": "done",
+   "contract_changes": [
+    "FTL MUST BE ASCII-ONLY (found with the real harness): Zotero 10.0.6 registerLocales hands the FTL text to L10nFileSource.createMock, which needs byte strings. One U+2026 ellipsis made Zotero.Plugins.init() stop before calling the plugin's startup, silently, with nothing in the log. The 5 existing lines with an ellipsis or middle dot now use Fluent escapes written as a quoted placeable with a backslash-u code (see the lines for menu-signin, menu-prefs, action-attach-file, progress-header, report-summary). tests/js/ftl.test.mjs has a new gate (ASCII only, no BOM, escapes well-formed). Every package that appends to the FTL must keep it ASCII.",
+    "FTL ids appended under '## Preferences pane: control texts and messages (js-shell)': zotero-fulltext-prefs-show-secret, -hide-secret, -unavailable, -clear-state-confirm, -state-cleared, -institution-restored. No id renamed or removed.",
+    "Additive API (api-manifest.mjs and harness.MODULES updated): config.{LIMITS, parseList, problems}, menu.{TARGETS, registeredKeys}, harness.{MODULES, CHECKS, TIMEOUTS}, plugin.{paneID, tasks}. ZFT.config.problems(get?) = validate(buildEngineConfig(get)) plus the login timeout that clamping hides; the pane uses it.",
+    "EngineConfig builder rules beyond the spec: institution.ezproxy is null when login host OR suffix is empty; hosts also lose a pasted scheme/path/trailing dot; alma.base loses trailing slashes; unpaywall email validity is /^[^\\s@]+@[^\\s@]+$/; setPref coerces to the key type. Ranges live in ZFT.config.LIMITS and are shared by the builder and the pane inputs (item_concurrency 1-8, pdf_max_mb 1-500, login_timeout_sec 30-1800, batch_max >=1, caps >=0).",
+    "Menu: onCommand/Tools handlers return a promise that never rejects (Zotero ignores it, tests await it); a thrown Error whose message is a zotero-fulltext-* id is localised as the {reason}; the start-failed id uses error.reason (js-runs convention); the Tools group starts with a separator and the sign-in entry is disabled while inst.enabled is false. The registration keys are the namespaced, CSS-escaped ones registerMenu returns (e.g. zotero-fulltext\\@aborakati-zft-item-menu) and unregister uses exactly those.",
+    "Preferences pane: prefs-pane.js publishes window.ZoteroFullTextPrefs (a top-level var stays in Zotero's pane sandbox, the inline onload runs in the window). prefs.xhtml gained class=main-section, a #zft-prefs-status line and an html:style block. Secret rows (*_key) are password inputs with Show/Hide.",
+    "Harness: only the pref extensions.zotero-harness.resultFile activates it (ZOTERO_HARNESS_RESULT_FILE is deliberately ignored so a stray variable can never make a real session quit). Checks are ZFT.harness.CHECKS = modules, wasm, prefs, menu, menu_ui, prefpane, prefpane_ui, ftl, windows. The ftl check probes zotero-fulltext-prefs-title because the menu messages carry only a .label attribute, so formatValueSync cannot resolve them. The wasm check Configures a private Host so the engine used by real runs is never touched. menu_ui and prefpane_ui drive the real main/preferences windows and are new.",
+    "Test helper name clash: tests/js/helpers/fake-dom.mjs belongs to js-ui (it overwrote my first version mid-task). The shell's DOM fake is helpers/pane-dom.mjs; the loader/fakes for shell tests are helpers/shell-env.mjs; helpers/ftl-ids.mjs lists FTL ids."
+   ],
+   "known_gaps": [
+    "WINDOWS PATH LENGTH (integration hazard): a plugin directory under a path of roughly 300 characters (the Claude scratch dir) was silently never started by Zotero 10.0.6 (no 'Calling bootstrap method' line); the same code from a short path starts fine. Run cargo xtask harness / unpacked installs from a short path.",
+    "The 2 s preload (ZFT.runs.init) is covered by fake-timer unit tests only: the harness writes its result and quits about 0.6 s after UI ready, so the real wasm/state preload path was not exercised in real Zotero by this package. No real run (download) was exercised either; that is the integration H-series.",
+    "Pane layout and the CSS in prefs.xhtml were verified structurally (46 controls built, translated, edit works in real Zotero) but not visually (headless only; no screenshot).",
+    "The 'clear state' button resets state.json through ZFT.state.reset(); proto.rs has no engine command to forget the in-memory ledger, so the licence counters are fully reset only after a restart (the confirm and status texts say so).",
+    "In the headless harness Zotero folds our two item-menu entries into its 'more' submenu (short popup, small screen); menu_ui opens that submenu to read them. On a normal screen they show directly.",
+    "The windows check opens progress.xhtml and login.xhtml with an empty args object. It passes with the current js-ui scripts; any future script that throws on missing window.arguments will fail that check (which is the intent).",
+    "bootstrap.js, manifest.json, prefs.js, namespace.js and util.js needed no change (bootstrap verified end to end by a vm test with the real LOAD_ORDER and by the real-Zotero run).",
+    "Orchestration note for the user's question (why slow, why one agent): this package has no dependencies and ran as one agent while js-host-effects, js-runs, js-zotero-io and js-ui files were being written in parallel (seen: another package overwrote tests/js/helpers/fake-dom.mjs, edited the shared FTL, and browser.js was briefly empty). Most of this package's wall time went to a silent real-Zotero startup failure that no unit test could show (long path, then non-ASCII FTL), found by bisecting with the harness at 8-20 s per run."
+   ]
+  },
+  {
+   "id": "js-ui",
+   "status": "done",
+   "contract_changes": [
+    "Window argument hand-over: the object passed to Services.ww.openWindow is the args object itself with args.wrappedJSObject === args (the idiom the sso-spike validated), instead of a holder {wrappedJSObject: {...}}. holder.wrappedJSObject.model etc. still resolve, and the window scripts read window.arguments[0].wrappedJSObject (|| the argument), so it works whether XPConnect passes the original object or a wrapper. Real-Zotero verified. Applies to progress and login windows.",
+    "ProgressModel listeners are now called fn(model, item): item is the changed item id, or null when the report was stored (additive; old (model) listeners still work). New additive members: ProgressModel.rowFor(item), actionL10n(action), per-entry 'actions' (row actions + hand-off links, de-duplicated by URL) and 'group' in groups() entries; ZFT.progress.GROUP_ORDER/GROUP_L10N/ACTION_L10N; ZFT.login.LINGER_MS.",
+    "setReport(): a row that is still queued/working/waiting when the report arrives (engine failure -> synthetic report from effects.js) is replaced by a fallback terminal row derived from the outcome (e.g. NeedsUser{engine_restarted} -> attention + zotero-fulltext-status-engine-restarted). Terminal rows are never replaced. Needed because effects.js does not emit Progress rows for the synthetic report.",
+    "LoginOk details the engine can rely on: final_url carries the full URL only for 'landed' and 'pdf' and is scheme://host/path (no query/hash/userinfo) for closed_by_user/handoff/timeout/ca_blocked ('' if the window never started); ca_error is omitted when the refused state has no code; 'landed' with an unreadable page gives no 'page' and inspect {expect:'none'}; a captured PDF that cannot be stored rejects OpError 'io'; a second concurrent open for the same realm rejects OpError 'internal'; a non-http(s) entry_url never opens a window and returns closed_by_user. The window stays up LINGER_MS (1500 ms) after ca_blocked (and, for the Tools-menu warm-up, after landing) so the user can read the page. ZFT.login.warmUp obtains the classifier through ZFT.wasmHost.get() and still works (user-driven only) if that fails.",
+    "confirm.ask yields one macrotask (ZFT.util.idle) before opening the modal so the runner finishes dispatching the other effects of the same StepOut; default button is Continue for large_batch and 'Open access only' for group_library (Enter never saves publisher PDFs into a shared library). Flags use the documented BUTTON_TITLE_IS_STRING * BUTTON_POS_n idiom with the real nsIPromptService values as fallback (verified against Zotero's Services.prompt constants).",
+    "Progress 'header' args: done = counts().finished (all terminal rows, including 'attention'), working, waiting = counts().waiting. After the report the header shows zotero-fulltext-report-summary computed from the grouped sections. No new FTL ids were needed; the FTL was not touched."
+   ],
+   "known_gaps": [
+    "Button order on the 3-button confirmations follows the spec exactly (index 0/1/2 = yes/oa_only/cancel). Mozilla's confirmEx returns button index 1 when a multi-button dialog is closed with Esc or the X (the reason Zotero's own code puts Cancel at position 1), so dismissing the dialog is likely to read as 'oa_only' rather than 'cancel'. I could not exercise the real modal headless. Swapping positions 1 and 2 (and the two CHOICES entries) in confirm.js would make dismissal a cancel; this needs the spec owner's decision.",
+    "A Retry / Sign in button on a row only reaches ZFT.runs.userAction(run, ...) as specified. After RunFinished the engine has no live item to restart, so Retry on a finished report only clears the engine's gate state; it does not re-run the item. A proper 'run this item again' (new run for one item) is not part of this package.",
+    "Not verifiable headless / not covered: the real modal Services.prompt.confirmEx dialog, Copy diagnostics writing to the system clipboard (the clipboard helper service was only checked for existence, to avoid overwriting the user's clipboard), the HTTPS 'Secure connection' bar text (the local test server is http, so only 'Connection NOT secure' was seen), and visual layout/screenshots of the two windows (computed text-overflow:ellipsis and all text/state were checked, not pixels). The pdf capture path of the login window uses a faked ZFT.pdfCapture in tests because pdf-capture.js belongs to js-zotero-io.",
+    "Integration expectations I could only code against fakes for: ZFT.bodies.putMemory(bytes, {kind:'page', run}) / putBlobAsPdf(blob, run) / stageForInspect(handle), ZFT.save.attachFile(itemID, parentWin), ZFT.runs.userAction/cancelItem/cancelRun, ZFT.wasmHost.get() and Host.loginState/inspect. All match the declared signatures in the skeleton headers; the full-stack check belongs to the integration step.",
+    "Environment note: the C: drive hit 100% full (0 bytes free) during my session; one Edit failed with ENOSPC and was retried successfully. I verified that no file was truncated (all tests pass, tails intact). This will also affect other agents' cargo builds, and the 30+ target dirs under C:\\Users\\abora\\zotero-fulltext\\target may be worth cleaning when the work packages are done."
+   ]
+  },
+  {
+   "id": "engine-sched-login",
+   "status": "done",
+   "contract_changes": [
+    "No frozen signature changed. Every pipeline-facing item in sched/acquire.rs and login.rs keeps its signature (Cx::acquire_*, reserve_licence, halt_inst, ua_for, session_* and challenge_window, Permit, InstPermit, LedgerTicket, Admission, SessionVerdict, ProbeResult, LoginRequest). Additions only.",
+    "ADDED on Cx (acquire.rs): disable_api(src) and disable_api_for(src, ms) switch an OA API off (refuses with HostSkipped); block_host(key, for_ms) persists a block on a publisher family or OA host; wall_host(host, reason) walls an OA host for 30 min at once (F7 hard block, which had no entry point); host_skipped(host).",
+    "BEHAVIOUR: Permit::report(ok) now also drives two breakers. 5 failures in a row wall an OA host for 30 min (policy::HOST_WALL_TTL_MS); 3 in a row switch an OA API off for 5 min. acquire_oa_host, note_challenge and HostBook normalise host keys (lower-case, one leading www. dropped). HostBook::note_outcome_at, note_challenge_at, is_skipped_at and wall_at carry the monotonic clock. The old clock-less methods stay and never expire.",
+    "BEHAVIOUR: Limiter::release applies max(gap_ms, spec.min_gap_ms), so InstHost (2 s) and OaHost (1 s) specs carry their gap. A grant wakes the new head. Limiter gained check/take/park/set_spec/all_wakers; poll/release/forget/waiting keep their signatures.",
+    "BEHAVIOUR: Ledger::commit stamps the entry with the reservation's wall time (capped at the commit wall), not the commit time, so no window can ever exceed its cap. The estimate of one reservation is clamped to the MB/hour cap. A cap of 0 is an immediate hit with reset_at = wall + 24 h. When several caps bind, the hit names the one that frees last (ties: hourly, daily, MB/hour).",
+    "BEHAVIOUR: AcquireInst joins the global queue only once its own family gate would grant, so items waiting out a family gap never block other families.",
+    "ADDED on Sched: refusal(), inst_gap_ms(), begin_shutdown(), is_shutting_down(), gate_wakers(), inst_wakers(), halts_effect(), dump(wall). Added policy items PROBE_STALE_MS, LOGIN_ENGINE_GRACE_MS, API_FAIL_LIMIT, API_COOLDOWN_MS, HOST_WALL_TTL_MS, clamp_item_concurrency(), pdf_gap_ms().",
+    "ADDED on login.rs: LoginGate.shutdown field and LoginGate::dump(); InteractiveGate keeps held_by and queue and gains a private next_ticket plus enqueue/try_take/release; RealmState keeps its pub(crate) fields and gains private ones. waiting_user() now counts parked session_admit callers too, so the stall detector stays quiet while the engine waits on a probe or a SignInNow.",
+    "BEHAVIOUR: on_shutdown also marks the scheduler as shutting down (later acquire and reserve calls resolve ShuttingDown) and wakes challenge windows queued on the gate. session_admit checks realm-wide Refused/Halted first, then lets a working session (SignedIn) serve every run, and only then applies a run's block. The prompt cap (MAX_PROMPTS_PER_REALM) limits opening windows per run; joining an open window is always allowed. A decline or timeout is tagged on every run with a parked caller (login and admit). A dropped window driver cleans up the realm (DriverGuard) and tags the waiting runs TimedOut. The engine-side login timer is login_timeout_sec plus a 5 s grace, so JS's own Timeout result normally wins.",
+    "crates/fulltext-engine/src/sched/mod.rs also holds a #[cfg(test)] testkit (World, a manual executor, Flag waker, Lcg) and four tests that drive the real Engine. Nothing outside the seven owned files was edited."
+   ],
+   "known_gaps": [
+    "The acceptance line `cargo test -p fulltext-engine sched:: login::` cannot run as written, because cargo takes one filter. Use `cargo test -p fulltext-engine -- sched:: login::` (163 tests) or run the two filters separately.",
+    "Not yet wired by other packages, so not exercised end-to-end: run.rs must forward Command::UserAction to login::on_user_action, Shutdown to login::on_shutdown, and call LoginGate::on_run_gone when a run ends. In the current skeleton run::user_action and run::shutdown are no-ops, so SignInNow, SkipSignIn and KeepWaiting are tested only by calling login::on_user_action directly. Pipeline callers of wall_host, disable_api and report(false) do not exist yet.",
+    "Once the crate-level #![allow(dead_code, unused_imports)] is removed, unused additions will be flagged (for example Cx::disable_api, block_host, Sched::dump, LoginGate::dump, HostBook::wall). They are an integration API and nothing calls them yet. Remove the ones that stay unused rather than allowing them.",
+    "Gate keys are in-memory and unbounded in number: one Limiter per distinct OA host or family, never pruned. This is fine for a session; not a leak concern at library scale.",
+    "Per-host UA stickiness (pin_plain_ua) is exact-host and never expires. This is unchanged from the skeleton and matches the cf_clearance UA-binding rationale.",
+    "InstKey::for_host does not unproxify EZproxy host labels (for example onlinelibrary-wiley-com.kcl.idm.oclc.org gets its own gate). Callers must pass the publisher host, as the skeleton doc already said. The family table was extended with the publishers in fixtures/html plus about a dozen common ones.",
+    "While I worked another process edited ledger.rs: it rewrote the property test, citing a module-doc precondition that does not exist. I reverted it. Nothing else of mine was changed by anyone, as far as I could tell from file timestamps. Core (fulltext-core) failed to compile for a few minutes mid-session, so I iterated in a scratch stand-in workspace, then re-ran every acceptance command in the real workspace once core compiled again."
+   ]
+  }
+ ],
+ "notes": [
+  "[from js] xtask: Node 24 rejects a bare directory, so `node --test tests/js` fails with MODULE_NOT_FOUND. Use `node --test \"tests/js/*.test.mjs\"` (the glob must be quoted so Node expands it). tests/js/abi.test.mjs needs the built wasm, so run `cargo xtask build` before the JS tests.",
+  "[from js] engine/l10n: plugin/locale/en-US/zotero-fulltext.ftl now defines every id in crates/fulltext-engine/src/l10n.rs. A new engine id must get an FTL line in the same change, or tests/js/ftl.test.mjs fails (it scans every quoted \"zotero-fulltext-...\" literal in crates/**/*.rs). RowAction::OpenBrowser.url must be http(s); JS refuses other schemes.",
+  "[from js] engine/proto semantics JS implements: `barrier:true` on Http/BrowserLoad means JS awaits all earlier Persist writes before starting the op (reserve-then-commit ledger on disk first). The ZoteroOa completion `ok` is a JSON array of ZoteroOaHit (empty = none). LoginUpdate is completed immediately with ok {} (ignore it if you no longer track it). Engine Cancel{op} cancels the op and drops its completion silently.",
+  "[from js] engine: Configure may arrive more than once per engine instance (after a prefs change or after an engine trap, when JS calls fx_reset and re-sends it with the persisted state). Replace the config and keep the ledger. On EngineTrap/EngineError/stall JS fails the run: it builds a synthetic RunReport with NeedsUser{engine_restarted} for unfinished items and engine_restarts=1, and does not replay.",
+  "[from js] core: JS stages binary bodies for fx_inspect as head 4096 B + tail 2048 B with RespMeta.head_len=4096 and the full body_len (head_len null when the whole file is sent); text bodies are cut at 2 MiB with truncated=true and the real body_len. For browser settle detection JS calls fx_inspect with InspectSpec::Probe, an empty body and RespMeta{status:200, final_url, body_len:0}, so IdP, EZproxy-login and publisher-SSO URLs must classify from the URL alone. The OpenAthens redirector URL host test is the only URL rule kept in JS. Core's fx_login_state(url, html) is used as-is (it is a REQUIRED export in wasm-host.js).",
+  "[from js] orchestration note on the user's question (why slow, why one agent): the JS skeleton was a single architect step, and core and engine were seen writing crates in parallel meanwhile. The 5 JS work packages have empty depends_on and disjoint files, so they can all run at once; the only serial step is the integration pass after merge (`cargo xtask build`, the glob JS test command, `cargo xtask xpi`, then `cargo xtask harness`).",
+  "[from core] PARALLELISM (answers 'why only one agent'): core-ids-oa, core-page, core-pdf-urls-inspect and core-wasm-xtask have empty depends_on and touch disjoint files, so all four can run at the same time, each with its own CARGO_TARGET_DIR=C:\\Users\\abora\\zotero-fulltext\\target\\<package-id>. Only core-integration must wait for them. Cargo runs are the slow part (first build ~50 s per target dir, wasm release ~30 s); do not share a target dir between agents.",
+  "[from core] ENGINE: for InspectSpec::Page and InspectSpec::Pdf the pure instance returns whatever the bytes actually are: Inspection::Pdf for PDF bytes under a Page spec, Inspection::Page for HTML bytes under a Pdf spec (so challenge/login/landing pages get classified). Handle both variants for both specs (response-shape rule, crates/fulltext-core/src/inspect.rs module docs).",
+  "[from core] ENGINE: oa::parse signature is parse(&RespMeta, &[u8], &Ids) (not a bare status) so Retry-After and the final URL are available. Crossref metadata is reported as Source::Doi (the frozen Source enum has no Crossref variant). bioRxiv/medRxiv preprint->published mapping is in ApiInspection.note as 'published_doi:<doi>'. Alma CTO responses arrive as Source::Alma (Found = held, Empty = not held).",
+  "[from core] ENGINE: call fulltext_core directly as an rlib (ids::normalise, ids::apply_learned, rank::{merge,rank,tier::*}, urls::{redirector_url, ezproxy_login_url, proxify, unproxify, handoff, url_class, canonical_key}, oa::*). Candidate.tier is set by rank::rank (1 PMC S3 .. 9 paid API; 0 = unranked); sort attempts by (tier, -score). Pure functions that need institution config take it as arguments (urls::ProxyConf / HandoffConf) because InspectMeta carries no Institution; page::classify hard-codes the KCL hosts.",
+  "[from core] ENGINE: fx_step serializes EngineError via e.to_err_body() into Envelope::Err; Engine::new() and Engine::step(StepIn) -> Result<StepOut, EngineError> are the only engine symbols the wasm crate uses. Engine must never panic (panic=abort poisons the instance); a trap fails the current run in JS.",
+  "[from core] JS GLUE: ABI v1 is documented in crates/fulltext-wasm/src/lib.rs and docs/design/core.md section 4. Exports: fx_abi_version, fx_alloc, fx_free, fx_inspect(meta_ptr,meta_len,body_ptr,body_len)->u64, fx_step(in_ptr,in_len)->u64, fx_reset, fx_last_panic()->u64, plus ADDITIVE fx_login_state(url_ptr,url_len,html_ptr,html_len)->u64 (html_len 0 = no document) returning Envelope<LoginState> for the login-window poll. All pointers/lengths are u32; results are (ptr<<32)|len BigInt; JS must copy bytes out then fx_free(ptr,len) EVERY result (also fx_last_panic, where fx_free is a safe no-op). Input buffers passed to fx_inspect/fx_step/fx_login_state are freed by the callee: never free them in JS. Re-create Uint8Array views after every call (memory grows). fx_alloc(0) returns a non-null dangling pointer; fx_alloc returns 0 only on OOM. Instantiate the same WebAssembly.Module twice (pure + engine); on WebAssembly.RuntimeError mark that instance poisoned, read fx_last_panic, re-instantiate; an engine trap fails the run. No other exports exist (wasm-ld also exports __data_end and __heap_base, harmless).",
+  "[from core] JS GLUE: HTML/response bodies: stage text up to 2 MiB as raw UTF-8 bytes (set RespMeta.truncated when cut); stage binary bodies as head(1024)++tail(1024) with RespMeta.head_len=1024 and RespMeta.body_len = full length. RespMeta.headers must be lower-case names and should include content-type, server, location, retry-after, cf-mitigated, akamai-grn for the classifier. For no-follow probes send the request URL as final_url and the Location header.",
+  "[from core] JS/BUILD: `cargo xtask build` stages plugin/content/fulltext.wasm (gitignored; user's global CARGO_TARGET_DIR/kache are handled via cargo metadata). `cargo xtask xpi` needs plugin/manifest.json with a semver 'version' and writes dist/zotero-fulltext-<version>.xpi deterministically. tests/js/abi.test.mjs, abi-recovery.test.mjs and core-wasm-fixtures.test.mjs belong to the core area; the rest of tests/js is the JS area's. BrowserReq.hold_while is not served by the wasm ABI: either mirror the small host/path table in fulltext_core::urls::url_class in JS or call fx_login_state(url) and treat 'pending' as 'still in SSO'.",
+  "[from core] WORKSPACE: root Cargo.toml, .cargo/config.toml, clippy.toml, .gitignore, crates/fulltext-core/{Cargo.toml,src/lib.rs,src/model.rs,tests/common,tests/model_contract.rs,tests/fixture_inventory.rs} are skeleton-owned (no work package edits them); ask the core architect for changes. Workspace lints deny unwrap_used, expect_used, panic, indexing_slicing, string_slice, unreachable, todo, unimplemented in non-test code (clippy.toml re-allows in tests; integration-test files need a file-level #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::indexing_slicing)]). MSRV is 1.88 (let chains). fulltext-core is #![forbid(unsafe_code)]; the only unsafe is crates/fulltext-wasm/src/abi.rs. Release profile is opt-level z, fat LTO, panic=abort, strip.",
+  "[from core] MODEL: model.rs in fulltext-core is a verbatim copy of docs/design/contracts/model.rs (no additive changes made); proto.rs stays the engine architect's. LoginState is produced by fulltext_core::inspect::login_state, not by Inspection. UrlClassKind is produced by urls::url_class.",
+  "[from core] BEHAVIOUR TO KNOW: the HTML tokenizer ignores <noscript> bodies (html5gum naive state switching treats them as raw text), so LWW/ScienceDirect/Europe PMC false-positive noscript meta-refreshes never reach the extractor; Zotero's own DOMParser-based getHTMLMetaRefreshURL does NOT do this, so any JS path that runs Zotero translators on the same page must strip <noscript> first (research/SUMMARY.md section a).",
+  "[from engine] ORCHESTRATOR (answers 'why is it slow and why only one agent'): the dependency graph is the cause, not the work volume. Only engine-executor-ops and engine-sched-login have no dependencies, so only two engine agents can run at first; pipeline and inst wait for both, run-sim waits for all four. All signatures are frozen in the skeleton, so every package can START coding immediately. depends_on only gates the final async-test run. To get five agents at once, start all five now and re-run the acceptance commands after executor-ops and sched-login land. engine-run-sim's run.rs and invariants.rs need only the skeleton. The real critical path is engine-executor-ops (executor, Engine::step, SimHost). A cheaper split is to hand SimHost to a separate agent.",
+  "[from engine] WASM/HOST (fx_step): `Engine::new()` then `step(StepIn) -> Result<StepOut, EngineError>`; on Err use `EngineError::to_err_body()` (the wasm crate already does). Re-entry in the engine surfaces as an EngineError with code `reentered`, never a trap. The engine leaves `Stats.mem_hint_kb` at 0; the wasm crate may fill it. When `StepOut.more` is true, call fx_step again soon with empty input. `next_timer` is an absolute value on JS's monotonic clock.",
+  "[from engine] JS EFFECT RUNNER, protocol interpretations that docs/design/plugin-js.md already matches: (1) `barrier: true` on Http/BrowserLoad means a persist barrier: await earlier `Persist{flush:true}` writes first; the engine pushes the ledger Persist BEFORE the barrier fetch in the same StepOut. (2) `Release{handle}` is idempotent and is emitted for every BodyRef the engine received, including after SavePdf completes; bodies in completions listed in `StepOut.ignored` must be released by JS. (3) `LoginUpdate.op` is a FRESH op id, never the LoginWindow's id; JS completes it immediately and it lands in `ignored`. Completing the window's op id instead would end the window early. (4) `Cancel{op}` on a LoginWindow closes the window; on SavePdf it is ignored if the save has started (saving items are not cancelled). (5) `ZoteroOa` completion is a JSON array of ZoteroOaHit. (6) `Configure` may be re-sent; `persisted` is applied only by the first one per instance. (7) `retain` is Page for landing pages, Pdf for PDF fetches, None otherwise. (8) Effect order inside a StepOut is meaningful.",
+  "[from engine] JS/FTL: every `ProgressRow.l10n` and `RowAction::OpenBrowser.l10n` id is a literal in crates/fulltext-engine/src/l10n.rs (modules `id` and `action`). Row actions AttachFile, SignIn, Retry and CancelItem carry no id, so JS labels them. The terminal-row mapping table is in docs/wp/engine-pipeline.md. The ids `zotero-fulltext-action-open-redirector`, `-open-ezproxy` and `-open-doi` were added to l10n.rs and must be in the FTL.",
+  "[from engine] CORE (needed by engine-pipeline and engine-inst, currently skeleton or unimplemented in core): `urls::proxify`, `urls::unproxify`, `urls::url_class`, `urls::strip_tracking` (used by pipeline/pure.rs storable_url and inst), `oa::alma::parse` (Found = held, Empty = not held, each getFullTxt service a Landing candidate), `oa::crossref::parse` (reported as Source::Doi), `rank::merge` and `rank::rank` (pool.rs delegates to them), `ids::normalise` (should fill Ids.url), and the `published_doi:<doi>` note on ApiInspection. The engine accepts both Inspection::Pdf and Inspection::Page for either spec. `urls::handoff` is skeleton: engine-inst may delegate to it once implemented; pipeline/handoff.rs already builds links from core's implemented builders and passes its test.",
+  "[from engine] XTASK/ROOT: crates/fulltext-engine/Cargo.toml uses workspace.package and workspace deps and adds the `async-await-macro` feature to futures-util for `select_biased!` and `join!`. It is a proc macro only, with no wasm size or import impact. Cargo.lock gained futures-macro and its proc-macro deps. The crate has a crate-level `#![allow(dead_code, unused_imports)]` that engine-run-sim removes last; until then a workspace clippy gate must not be tightened beyond what passes today.",
+  "[from engine] SIM/TEST: sim/ is `#[cfg(test)]` only. Test hooks are `Engine::spawn_test` and `Engine::with_runner`. Golden effect traces go in crates/fulltext-engine/tests/golden. Regenerate them only with ZFT_UPDATE_GOLDEN=1.",
+  "[from engine] LICENCE POLICY: the numbers in sched/policy.rs (30/h, 80/24h, 300 MB/h, 20 institutional items per run, 2 global and 1 per publisher family, 5 s + jitter PDF gap) are research-derived ceilings. Prefs can only lower the caps and only raise the gaps. KCL Library has not confirmed them."
+ ]
+}

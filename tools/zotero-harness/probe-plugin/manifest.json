@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "zotero-fulltext runtime probe",
+  "version": "0.1.0",
+  "description": "Throwaway probe of the Zotero runtime (WebAssembly, plugin APIs, prefs). Only for the zotero-harness.",
+  "author": "zotero-fulltext",
+  "applications": {
+    "zotero": {
+      "id": "probe@zotero-fulltext.local",
+      "update_url": "https://127.0.0.1/zotero-fulltext-probe/never-used.json",
+      "strict_min_version": "6.999",
+      "strict_max_version": "10.*"
+    }
+  }
+}

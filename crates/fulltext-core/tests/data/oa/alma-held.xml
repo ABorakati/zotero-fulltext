@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<uresolver_content xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="uresolver_content.xsd">
+  <context_object>
+    <keys>
+      <key id="rft.genre">article</key>
+      <key id="rft_id">info:doi/10.1038/nature12373</key>
+      <key id="rft.atitle">Nanometre-scale thermometry in a living cell</key>
+    </keys>
+    <context_services>
+      <context_service context_service_id="61207000530006881" service_type="getFullTxt">
+        <keys>
+          <key id="package_pid">61207000540006881</key>
+          <key id="package_public_name">Nature</key>
+          <key id="interface_name">Nature Publishing Group</key>
+          <key id="Availability">Available from 1869 volume: 1 issue: 1.</key>
+          <key id="Is_free">0</key>
+          <key id="proxy_enabled">false</key>
+          <key id="proxy_selected">false</key>
+          <key id="parser_program">NPG::Nature</key>
+          <key id="portfolio_PID">53207000530006881</key>
+        </keys>
+        <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=61207000530006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+      </context_service>
+      <context_service context_service_id="61207000560006881" service_type="getFullTxt">
+        <keys>
+          <key id="package_public_name">ProQuest Central UK/Ireland</key>
+          <key id="Availability">Available from 1986. Most recent 12 months not available.</key>
+          <key id="Is_free">0</key>
+          <key id="proxy_enabled">false</key>
+        </keys>
+        <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=61207000560006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+      </context_service>
+      <context_service context_service_id="61207000570006881" service_type="getHoldings">
+        <keys>
+          <key id="package_public_name">Holdings only, not a full text service</key>
+        </keys>
+        <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=61207000570006881</resolution_url>
+      </context_service>
+    </context_services>
+  </context_object>
+</uresolver_content>

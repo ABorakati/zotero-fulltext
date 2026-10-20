@@ -1,0 +1,6 @@
+# Panic-family lints are denied workspace-wide (Cargo.toml [workspace.lints.clippy]) because the shipped wasm
+# aborts on panic. Tests may use them freely.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true

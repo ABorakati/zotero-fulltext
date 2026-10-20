@@ -1,0 +1,57 @@
+[
+ {
+  "id": "core-integration",
+  "status": "partial",
+  "gaps": [
+   "Wasm size is over the hard limit, so `cargo xtask build` fails: 1,109,872 B raw vs 716,800 B (700 KiB), with the warn level at 450 KiB. The orchestrator must decide whether to raise the limit in xtask/src/wasm.rs (about 1.06 MiB; the xpi deflates to a fraction of that) or to have the engine area shrink. Until then plugin/content/fulltext.wasm cannot be refreshed through the official path, and the JS acceptance only proves the older 708 KB module.",
+   "Engine area still broken, as above: 3 clippy errors in pipeline/attempt.rs and 7 failing engine unit tests. `cargo clippy --workspace --all-targets`, the wasm-target clippy and `cargo test --workspace` will not pass until the engine agent fixes them. The engine agent was editing landing.rs, attempt.rs and save.rs while I ran, so those results may already be stale. Re-run the three commands after the engine settles.",
+   "I cannot confirm that the full acceptance list passes together. Items 2, 4, 5 and 6 fail for reasons outside my three files. Items 1, 3 and 7 pass, and the subset runs for core, wasm and xtask are green.",
+   "Debug-build time allowance in totality.rs: `budget()` allows a flat 2 s plus 20 microseconds per byte above 256 KiB. This is because html5gum is compiled at opt-level 0 and 2 MiB of '<' or NULs costs 3-5 s in debug, while the shipped release build takes 0.2-0.35 s. Fixtures and their mutations stay on the strict 2 s. This deviates from the spec's flat 2 s and is documented in the file.",
+   "Not done: `cargo xtask check` (runs `cargo fmt --all --check`, and the workspace is not rustfmt-clean outside the wasm and xtask crates; no rustfmt.toml exists, per the core-wasm-xtask note), and `cargo xtask harness`, which would need a real throwaway Zotero. Neither is in this package's acceptance list.",
+   "Earlier known gap, unchanged: the OpenAlex gold fixture yields a doi.org landing, not journals.plos.org. e2e asserts what the file contains and expects the doi.org landing to reach the extractor."
+  ],
+  "contract_changes": [
+   "None. I edited no files. The three owned files already existed in complete form (e2e.rs 1061 lines, totality.rs 790 lines, core-wasm-fixtures.test.mjs 439 lines, no truncation). I re-ran everything instead of trusting earlier reports. No cross-module seam needed a fix, so there are no small fixes in other core files to list.",
+   "Public API vs docs/design/core.md section 3.1: every listed name and signature matches. Divergences for the doc: (1) urls::proxify, unproxify, url_class, strip_tracking and handoff are marked 'to do' but are implemented; (2) additive public items not in the table: oa::is_browser_walled, oa::license_slug, oa::zotero_oa::candidates_from_hit, pdf::MAGIC, pdf::SNIFF_WINDOW, inspect::MAX_BODY_BYTES, inspect::state_of, urls::{OPENATHENS_HOST, DEFAULT_EZPROXY_LOGIN_HOST, ProxyConf, HandoffConf, UnproxyKind, Unproxied}, page::classify::{has_article_signals, reader_rewrite}, page::rules::Rule.needs_browser, and several Doc/Element helpers in page::html."
+  ]
+ },
+ {
+  "id": "engine-pipeline",
+  "status": "done",
+  "gaps": [
+   "The code for this package already existed in full (earlier agents); this pass was making it compile, fixing 17 failing tests (mostly test-fixture bugs) and one real bug (offline handling). Nothing is stubbed.",
+   "The acceptance command line 'cargo test -p fulltext-engine pipeline:: l10n::' in docs/wp/_state.json and engine-pipeline.md is invalid for cargo; it needs `--` before the filters. I did not edit those files.",
+   "run.rs (engine-run-sim) is still a skeleton: claim_inst_slot always returns NotAllowed, wait_admitted always says Go and collect_done drops State::done. So the Full-mode path into inst::run_institutional is not exercised end-to-end here (OA-exhausted Full items end NotFound{OaOnly} in the Rig), and the item_runner test polls the future by hand instead of going through Engine::step. Re-check item.rs `institutional` once engine-run-sim lands.",
+   "The test DOI '10.1/x' used by sim/fixtures.rs and l10n.rs is not a valid DOI for core (registrant must be 4-9 digits), so pipeline tests that compare DOIs use '10.1234/x'. fixtures.rs tests are unaffected; not changed because the file is not mine.",
+   "cargo fmt --check shows diffs across the crate (no rustfmt.toml; code is hand-formatted wide). Not enforced by acceptance; left alone."
+  ],
+  "contract_changes": [
+   "None to any frozen signature (fetch_candidate, extract_landing, save_pdf_blob, pool and pure APIs, FetchEnd, LandingPage, PdfBlob are unchanged; clippy's result_large_err was fixed by making the private Fetch::reserve return Result<(), Refused>).",
+   "Behaviour change: an OpErrKind::Offline (or Cancelled) failure is no longer reported to the OA API or OA host circuit breaker (oa.rs report_failure, attempt.rs report_host). Before, the offline retry loop tripped the 3-failure API breaker, the retried discovery came back as Skipped, and an offline item ended NotFound instead of Failed{offline}.",
+   "Test harness only: pipeline::testkit::Rig::run now allows one virtual hour (was ten minutes) so tests that park for longer can run."
+  ]
+ },
+ {
+  "id": "engine-inst",
+  "status": "done",
+  "gaps": [
+   "Alma getFullTxt service candidates (Source::Alma, Landing) are not fetched: the route only uses held / not-held from the CTO answer. The 4-fetch budget leaves little room and the spec's numbered steps do not ask for them.",
+   "EZproxy (step 5) is skipped when no publisher host is known: a DOI-only item whose direct fetch is a bare 403/AccessDenied (no page URL) and whose redirector step does not reveal the host never reaches EZproxy, even though doi.org is in ezproxy_hosts. Deliberate (avoids a pointless second sign-in prompt); one-line change in Inst::publisher_host if the target host should be the last fallback.",
+   "Integration through item::run_item, the real GroupConsent answer, UserAction::KeepWaiting/SignInNow and RunReport.halted/ledger are untested here because run.rs is still a skeleton (engine-run-sim). The F-number sim scenarios under sim/scenarios are not written by this package.",
+   "Hard-block counting borrows the 3-failures-in-a-row breaker of the OA API gate for Source::Extractor (engine-wide, not per run; the counter resets only after it trips). Behaviour is tested (2 blocks -> Blocked, 3rd -> Halted) but a block signal days ago still counts toward the next one within the same engine instance.",
+   "The OA-phase pool is only read for the Crossref (Source::Doi) PDF links and a publisher-host hint; the route uses a fresh pool for its own page visits, as designed. The literal acceptance command line for the test step is not valid cargo syntax (see acceptance_results); the equivalent form passes."
+  ],
+  "contract_changes": [
+   "No change to frozen contracts (model.rs, proto.rs) or to any other file's API. handoff.rs was already complete (delegates to fulltext_core::urls::handoff, 7 tests) and is unchanged.",
+   "inst.rs behaviour fixes found by the new tests: (1) same_host lower-cased after trimming 'www.', so 'WWW.bmj.com' != 'bmj.com'; fixed. (2) A PDF that arrives on a Landing-kind fetch (doi.org answering with the file) had no licence ticket, so it was saved without being counted; finish_blob now takes a ticket when the blob has none (a spent cap then returns Deferred instead of saving). (3) sign_in in hand-off mode / non-interactive runs left the realm in Probing for 150 s (PROBE_STALE_MS) so the items behind it stalled; it now reports ProbeResult::Failed first. (4) Miss ordering is now Other < Network < Timeout < NotKnown < NoPdfLink < Challenge < Denied, and try_pdfs only records NoPdfLink when its own walk met nothing more specific, so a bot check or timeout is no longer overwritten by 'no PDF link' (a lone bot check now ends NeedsUser{Challenge}). (5) ezproxy_configured: the cached answer (what the proxy last said) now beats the static ezproxy_hosts list. (6) Failed(openathens_wait) from a plain fetch is a Timeout miss. (7) Removed the duplicate per-fetch trace step (attempt::fetch_inner already traces each fetch) together with the end_name/via_name helpers.",
+   "Cross-area notes for the orchestrator: run.rs claim_inst_slot() is still the skeleton (always NotAllowed) and ItemCx::group_consent() still resolves false, so item::run_item cannot reach the institutional route yet; inst tests drive run_institutional/run_with directly (group consent and save are scripted through the private Collab trait). attempt.rs sends a Landing-kind candidate with Retain::Page and a 4 MiB cap, so a doi.org URL that serves a PDF larger than 4 MiB comes back TooLarge in the direct step (small PDFs work and are now counted); engine-pipeline may want to lift that cap when a Page request returns a PDF."
+  ]
+ },
+ {
+  "id": "engine-run-sim",
+  "status": "stopped during final warning cleanup",
+  "gaps": [
+   "cargo test -p fulltext-engine --lib: 572 passed, 0 failed at 20:37 UTC; it was removing unused-import warnings (pipeline/attempt.rs, sched/mod.rs) when stopped; its acceptance list in _state.json was not fully re-verified"
+  ]
+ }
+]

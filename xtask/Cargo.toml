@@ -1,0 +1,15 @@
+[package]
+name = "xtask"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Build, test, package and harness commands: cargo xtask <build|test|xpi|harness>."
+
+[dependencies]
+serde_json.workspace = true
+# Pure-Rust deflate (zlib-rs): no C toolchain, no Node, reproducible archives.
+zip.workspace = true
+
+[lints]
+workspace = true

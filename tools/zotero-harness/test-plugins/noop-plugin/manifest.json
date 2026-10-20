@@ -1,0 +1,7 @@
+{
+  "manifest_version": 2,
+  "name": "zotero-harness noop (timeout test)",
+  "version": "0.0.1",
+  "description": "Never writes a result file; used to test the harness timeout/kill path.",
+  "applications": { "zotero": { "id": "noop@zotero-fulltext.local", "update_url": "https://127.0.0.1/never-used.json", "strict_min_version": "6.999", "strict_max_version": "10.*" } }
+}

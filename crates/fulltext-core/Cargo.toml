@@ -1,0 +1,18 @@
+[package]
+name = "fulltext-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish.workspace = true
+description = "Pure, total, I/O-free logic of the zotero-fulltext plugin: identifiers, OA parsers, page classification, PDF-link extraction, proxy URLs."
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+url.workspace = true
+html5gum.workspace = true
+# Held only to pin idna_adapter = 1.0.0 in Cargo.lock (see the workspace Cargo.toml). Never imported.
+idna_adapter.workspace = true
+
+[lints]
+workspace = true

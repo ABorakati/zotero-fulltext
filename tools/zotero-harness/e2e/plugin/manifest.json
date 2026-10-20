@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "zotero-fulltext e2e driver",
+  "version": "0.1.0",
+  "description": "Throwaway end-to-end driver for zotero-fulltext. Only for tools/zotero-harness/e2e.ps1, never for a real profile.",
+  "author": "zotero-fulltext",
+  "applications": {
+    "zotero": {
+      "id": "e2e@zotero-fulltext.local",
+      "update_url": "https://127.0.0.1/zotero-fulltext-e2e/never-used.json",
+      "strict_min_version": "6.999",
+      "strict_max_version": "10.*"
+    }
+  }
+}

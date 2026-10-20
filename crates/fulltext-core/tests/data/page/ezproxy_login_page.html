@@ -1,0 +1,10 @@
+<!-- research/04 section 2.2 (and 6.5 row EzproxyNeedLogin b): the unauthenticated EZproxy login page.
+     200 OK, Server: EZproxy, Content-Type: text/html, Cache-Control: no-store. SAMLRequest shortened. -->
+<html><head><title>Shibboleth Authentication Request</title></head><body onload='EZproxyCheckBack()'>
+<form name='EZproxyForm' method='POST' action='https://login.microsoftonline.com/8370cf14-16f3-4c16-b83c-724071654356/saml2'>
+<input type='hidden' name='RelayState' value='ezp.2cjAkaHR0cHM6Ly9kb2kub3JnLzEwLjEwMzgvbmF0dXJlMTIzNzM-'>
+<input type='hidden' name='SAMLRequest' value='PD94bWwgdmVyc2lvbj0iMS4wIj8+'>
+</form>
+<form name='EZproxyTrack' method='POST' action='/track'><input type='hidden' name='t' value='1'></form>
+<script>function EZproxyCheckBack() { document.EZproxyForm.submit(); }</script>
+</body></html>

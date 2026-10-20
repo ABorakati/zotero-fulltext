@@ -1,0 +1,235 @@
+{
+  "_doc": "Oracle for the Rust HTML->PDF extractor. base_url = URL the HTML was served from (resolve relative hrefs against it). kind: landing | challenge | blocked | redirect. via: which signal yields expected_pdf_url. verified: live_pdf_magic = GET on 2026-10-20 returned %PDF- bytes; archived_only = URL read from archived HTML, not fetched (publisher behind Cloudflare/Akamai from a plain HTTP client); rule = URL built by a per-publisher rule, not present verbatim in the HTML. See README.md for sources.",
+  "fixtures": [
+    {
+      "file": "plos__article-oa.html", "publisher": "PLOS", "kind": "landing",
+      "base_url": "https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1004377",
+      "expected_pdf_url": "https://journals.plos.org/plosmedicine/article/file?id=10.1371/journal.pmed.1004377&type=printable",
+      "alternates": [], "via": "citation_pdf_url", "verified": "live_pdf_magic",
+      "must_not_select": [
+        "https://journals.plos.org/plosmedicine/article/file?type=printable&id=10.1371/journal.pmed.1004449",
+        "https://journals.plos.org/plosmedicine/article/file?id=10.1371/journal.pmed.1004377&type=manuscript",
+        "https://www.ema.europa.eu/en/documents/variation-report/eliquis-h-c-2148-x-0004-g-epar-assessment-report-extension_en.pdf"
+      ]
+    },
+    {
+      "file": "biomedcentral__redirected-to-springerlink-oa.html", "publisher": "BioMed Central (now served by Springer Link)", "kind": "landing",
+      "base_url": "https://link.springer.com/article/10.1186/s12893-023-02300-3",
+      "expected_pdf_url": "https://link.springer.com/content/pdf/10.1186/s12893-023-02300-3.pdf",
+      "alternates": [], "via": "citation_pdf_url", "verified": "live_pdf_magic",
+      "must_not_select": ["https://citation-needed.springer.com/v2/references/10.1186/s12893-023-02300-3?format=refman&flavour=citation"]
+    },
+    {
+      "file": "springer__article-paywalled.html", "publisher": "Springer Link", "kind": "landing",
+      "base_url": "https://link.springer.com/article/10.1007/s00464-025-11552-4",
+      "expected_pdf_url": "https://link.springer.com/content/pdf/10.1007/s00464-025-11552-4.pdf",
+      "alternates": [], "via": "citation_pdf_url", "verified": "live_returns_html",
+      "notes": "citation_pdf_url is emitted even without entitlement; without access the PDF URL 302s back to /article/10.1007/s00464-025-11552-4 (text/html). No a[data-article-pdf] download button is present: use its absence as a 'no access' hint, and always sniff %PDF-.",
+      "must_not_select": ["https://media.springernature.com/original/springer-static/esm/art%3A10.1007%2Fs00464-025-11552-4/MediaObjects/464_2025_11552_MOESM1_ESM.doc"]
+    },
+    {
+      "file": "nature__scirep-oa.html", "publisher": "Nature Portfolio", "kind": "landing",
+      "base_url": "https://www.nature.com/articles/s41598-024-73565-8",
+      "expected_pdf_url": "https://www.nature.com/articles/s41598-024-73565-8.pdf",
+      "alternates": [], "via": "citation_pdf_url", "verified": "live_pdf_magic",
+      "must_not_select": ["https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41598-024-73565-8/MediaObjects/41598_2024_73565_MOESM1_ESM.pdf"]
+    },
+    {
+      "file": "frontiers__article-oa.html", "publisher": "Frontiers", "kind": "landing",
+      "base_url": "https://www.frontiersin.org/journals/surgery/articles/10.3389/fsurg.2025.1537318/full",
+      "expected_pdf_url": "https://www.frontiersin.org/journals/surgery/articles/10.3389/fsurg.2025.1537318/pdf",
+      "alternates": ["https://www.frontiersin.org/articles/10.3389/fsurg.2025.1537318/pdf"], "via": "citation_pdf_url", "verified": "live_pdf_magic",
+      "must_not_select": ["https://public-pages-files-2025.frontiersin.org/journals/surgery/articles/10.3389/fsurg.2025.1537318/bibTex"]
+    },
+    {
+      "file": "cambridge__article-oa.html", "publisher": "Cambridge Core", "kind": "landing",
+      "base_url": "https://www.cambridge.org/core/journals/bjpsych-open/article/community-clozapine-initiation-practice/2524DD3DAA8E8B68A1197E18196D5CB8",
+      "expected_pdf_url": "https://www.cambridge.org/core/services/aop-cambridge-core/content/view/2524DD3DAA8E8B68A1197E18196D5CB8/S2056472424006483a.pdf/div-class-title-community-clozapine-initiation-practice-div.pdf",
+      "alternates": ["https://www.cambridge.org/core/services/aop-cambridge-core/content/view/2524DD3DAA8E8B68A1197E18196D5CB8/S2056472424006483a.pdf/community-clozapine-initiation-practice.pdf"],
+      "via": "citation_pdf_url", "verified": "live_pdf_magic", "must_not_select": []
+    },
+    {
+      "file": "pmc__article-oa.html", "publisher": "PubMed Central", "kind": "landing",
+      "base_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2707599/",
+      "expected_pdf_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2707599/pdf/pmed.1000097.pdf",
+      "alternates": ["https://europepmc.org/articles/PMC2707599?pdf=render"], "via": "citation_pdf_url", "verified": "live_returns_html",
+      "notes": "A plain HTTP GET of the PMC PDF URL returns a 200 text/html proof-of-work page (see pmc__pdf-proof-of-work-interstitial.html). The Europe PMC alternate (302 -> https://europepmc.org/api/getPdf?pmcid=PMC2707599) returned %PDF- on 2026-10-20.",
+      "must_not_select": ["http://www.cihr-irsc.gc.ca/e/documents/rct_reg_e.pdf"]
+    },
+    {
+      "file": "pmc__pdf-proof-of-work-interstitial.html", "publisher": "PubMed Central", "kind": "challenge",
+      "base_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2707599/pdf/pmed.1000097.pdf",
+      "expected_pdf_url": null, "via": "none", "verified": "live_returns_html",
+      "notes": "Detect as challenge: <title>Preparing to download ...</title>, script src .../pow-*.js, inline POW_CHALLENGE."
+    },
+    {
+      "file": "thieme__bot-challenge-interstitial.html", "publisher": "Thieme", "kind": "challenge",
+      "base_url": "https://www.thieme-connect.de/DOI/DOI?10.1055/a-2459-0064",
+      "expected_pdf_url": null, "via": "none", "verified": "live_returns_html",
+      "notes": "HTTP 200 with <title>Please wait</title> and /products/assets/challenge-*.js."
+    },
+    {
+      "file": "oup__bjs-article-abstract.html", "publisher": "Oxford Academic (BJS)", "kind": "landing",
+      "base_url": "https://academic.oup.com/bjs/article-abstract/100/1/38/6138546",
+      "expected_pdf_url": "https://academic.oup.com/bjs/article-pdf/100/1/38/59424930/bjs8990.pdf",
+      "alternates": [], "via": "citation_pdf_url", "verified": "archived_only",
+      "notes": "DOI is the Wiley-era 10.1002/bjs.8990, which now resolves to academic.oup.com. The numeric segment 59424930 is an internal file id: the URL cannot be built from the DOI.",
+      "must_not_select": []
+    },
+    {
+      "file": "wiley__wjs-article.html", "publisher": "Wiley Online Library", "kind": "landing",
+      "base_url": "https://onlinelibrary.wiley.com/doi/full/10.1002/wjs.12026",
+      "expected_pdf_url": "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/wjs.12026",
+      "alternates": ["https://onlinelibrary.wiley.com/doi/pdf/10.1002/wjs.12026", "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1002/wjs.12026?download=true"],
+      "via": "rule(citation_pdf_url /pdf/ -> /pdfdirect/)", "verified": "archived_only",
+      "must_not_select": ["https://onlinelibrary.wiley.com/doi/epdf/10.1002/wjs.12026"]
+    },
+    {
+      "file": "tandf__article-no-citation-pdf-url.html", "publisher": "Taylor & Francis", "kind": "landing",
+      "base_url": "https://www.tandfonline.com/doi/full/10.1080/07853890.2016.1186828",
+      "expected_pdf_url": "https://www.tandfonline.com/doi/pdf/10.1080/07853890.2016.1186828",
+      "alternates": ["https://www.tandfonline.com/doi/pdf/10.1080/07853890.2016.1186828?download=true"],
+      "via": "anchor(text 'Download PDF') / rule /doi/pdf/<doi>", "verified": "archived_only",
+      "notes": "No citation_pdf_url on T&F pages; DOI comes from <meta name=dc.Identifier scheme=doi>.",
+      "must_not_select": ["https://www.tandfonline.com/doi/epdf/10.1080/07853890.2016.1186828?needAccess=true"]
+    },
+    {
+      "file": "sage__article-ereader-only.html", "publisher": "SAGE", "kind": "landing",
+      "base_url": "https://journals.sagepub.com/doi/full/10.1177/2050312118807624",
+      "expected_pdf_url": "https://journals.sagepub.com/doi/pdf/10.1177/2050312118807624",
+      "alternates": ["https://journals.sagepub.com/doi/pdf/10.1177/2050312118807624?download=true"],
+      "via": "rule /doi/pdf/<dc.Identifier doi>", "verified": "rule",
+      "notes": "No citation_pdf_url and no direct PDF anchor; only the /doi/reader/ eReader link.",
+      "must_not_select": ["https://journals.sagepub.com/doi/reader/10.1177/2050312118807624", "http://www.apa.org/pi/women/programs/abortion/mental-health.pdf"]
+    },
+    {
+      "file": "karger__article.html", "publisher": "Karger (Silverchair)", "kind": "landing",
+      "base_url": "https://karger.com/crg/article/1/1/21/87289/Peptic-Ulcer-Perforation-as-the-First",
+      "expected_pdf_url": "https://karger.com/crg/article-pdf/1/1/21/2505605/000104224.pdf",
+      "alternates": ["https://karger.com/article-pdf/doi/10.1159/000104224"], "via": "citation_pdf_url", "verified": "archived_only",
+      "notes": "The alternate is the DOI-based form seen in Crossref link metadata for Karger (karger.com/article-pdf/doi/<doi>); untested.",
+      "must_not_select": ["https://karger.com/Citation/Download?resourceId=87289&resourceType=3&citationFormat=0"]
+    },
+    {
+      "file": "thieme__article-html.html", "publisher": "Thieme", "kind": "landing",
+      "base_url": "https://www.thieme-connect.com/products/ejournals/html/10.1055/a-0495-1582",
+      "expected_pdf_url": "https://www.thieme-connect.com/products/ejournals/pdf/10.1055/a-0495-1582.pdf",
+      "alternates": ["http://www.thieme-connect.com/products/ejournals/pdf/10.1055/a-0495-1582.pdf"], "via": "citation_pdf_url (http upgraded to https)", "verified": "archived_only",
+      "must_not_select": ["https://thomas-hochstein.de/download/rechtliche-aspekte-transportverweigerung.pdf", "https://www.thieme-connect.com/products/ejournals/ris/10.1055/a-0495-1582/BIB"]
+    },
+    {
+      "file": "jama__article-free.html", "publisher": "JAMA Network (Silverchair)", "kind": "landing",
+      "base_url": "https://jamanetwork.com/journals/jama/fullarticle/1760318",
+      "expected_pdf_url": "https://jamanetwork.com/journals/jama/articlepdf/1760318/jsc130006.pdf",
+      "alternates": [], "via": "citation_pdf_url / a#pdf-link[data-article-url]", "verified": "archived_only",
+      "notes": "a#pdf-link has href=\"javascript:;\"; the URL is in data-article-url.",
+      "must_not_select": []
+    },
+    {
+      "file": "bmj__article-oa.html", "publisher": "BMJ", "kind": "landing",
+      "base_url": "https://www.bmj.com/content/372/bmj.n71",
+      "expected_pdf_url": "https://www.bmj.com/content/bmj/372/bmj.n71.full.pdf",
+      "alternates": ["https://www.bmj.com/content/372/bmj.n71.full.pdf"], "via": "citation_pdf_url (alternate from <link rel=alternate type=application/pdf>)", "verified": "archived_only",
+      "must_not_select": ["https://www.bmj.com/highwire/citation/1045551/ris", "https://www.bmj.com/content/372/bmj.n71.full.txt"]
+    },
+    {
+      "file": "nejm__article-free.html", "publisher": "NEJM", "kind": "landing",
+      "base_url": "https://www.nejm.org/doi/full/10.1056/NEJMoa2002032",
+      "expected_pdf_url": "https://www.nejm.org/doi/pdf/10.1056/NEJMoa2002032",
+      "alternates": ["https://www.nejm.org/doi/pdf/10.1056/NEJMoa2002032?download=true"], "via": "anchor(.btn--pdf) / rule /doi/pdf/<doi>", "verified": "archived_only",
+      "notes": "No citation_pdf_url.",
+      "must_not_select": [
+        "https://www.nejm.org/doi/suppl/10.1056/NEJMoa2002032/suppl_file/nejmoa2002032_protocol.pdf",
+        "https://www.nejm.org/doi/suppl/10.1056/NEJMoa2002032/suppl_file/nejmoa2002032_appendix.pdf",
+        "https://www.nejm.org/doi/suppl/10.1056/NEJMoa2002032/suppl_file/nejmoa2002032_disclosures.pdf"
+      ]
+    },
+    {
+      "file": "sciencedirect__article-preloaded-state.html", "publisher": "Elsevier ScienceDirect", "kind": "landing",
+      "base_url": "https://www.sciencedirect.com/science/article/pii/S1743919121000406",
+      "expected_pdf_url": "https://www.sciencedirect.com/science/article/pii/S1743919121000406/pdfft?md5=b6d8b093900d49eecaf3e85a8799af17&pid=1-s2.0-S1743919121000406-main.pdf",
+      "alternates": ["https://www.sciencedirect.com/science/article/pii/S1743919121000406/pdfft?download=true", "https://www.sciencedirect.com/science/article/pii/S1743919121000406/pdfft?isDTMRedir=true&download=true"],
+      "via": "json_state (window.__PRELOADED_STATE__.article.pdfDownload.urlMetadata)", "verified": "archived_only",
+      "notes": "No citation_pdf_url; the 'View PDF' anchor has no href. pdfft then answers with an intermediate page or redirect to pdf.sciencedirectassets.com (signed, short-lived) or with the JS challenge in sciencedirect__pdfft-js-challenge-interstitial.html.",
+      "must_not_select": []
+    },
+    {
+      "file": "sciencedirect__pdfft-js-challenge-interstitial.html", "publisher": "Elsevier ScienceDirect", "kind": "challenge",
+      "base_url": "https://www.sciencedirect.com/science/article/pii/S0140673600023941/pdfft",
+      "expected_pdf_url": null, "via": "none", "verified": "archived_only",
+      "notes": "'Preparing your download'; the <noscript> meta refresh goes back to the article page (?ref=cra_js_challenge&fr=njs) and must not be followed as if it were a PDF redirect."
+    },
+    {
+      "file": "lancet__article-free.html", "publisher": "The Lancet (Elsevier Health/Atypon)", "kind": "landing",
+      "base_url": "https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(20)30183-5/fulltext",
+      "expected_pdf_url": "https://www.thelancet.com/pdfs/journals/lancet/PIIS0140-6736(20)30183-5.pdf",
+      "alternates": ["https://www.thelancet.com/action/showPdf?pii=S0140-6736%2820%2930183-5"], "via": "citation_pdf_url", "verified": "archived_only",
+      "must_not_select": [
+        "https://www.thelancet.com/servlet/linkout?suffix=e_1_5_1_2_3_2&dbid=4&doi=10.1016%2FS0140-6736%2820%2930183-5&key=10.1016%2FS0140-6736%2803%2913967-0&cf=pdf&site=lancet-site",
+        "https://www.thelancet.com/cms/10.1016/S0140-6736(20)30183-5/attachment/d5332ca1-83d8-4c4c-bc57-00a390bf0396/mmc1.pdf"
+      ]
+    },
+    {
+      "file": "cell__article-free.html", "publisher": "Cell Press", "kind": "landing",
+      "base_url": "https://www.cell.com/cell/fulltext/S0092-8674(20)30229-4",
+      "expected_pdf_url": "https://www.cell.com/cell/pdf/S0092-8674(20)30229-4.pdf",
+      "alternates": ["https://www.cell.com/action/showPdf?pii=S0092-8674%2820%2930229-4"], "via": "citation_pdf_url", "verified": "archived_only",
+      "must_not_select": ["https://www.cell.com/pb-assets/Cell/common/CP-RecruitmentKit-US-2018-LowRes-1712070648.pdf"]
+    },
+    {
+      "file": "mdpi__article-oa.html", "publisher": "MDPI", "kind": "landing",
+      "base_url": "https://www.mdpi.com/2077-0383/9/4/1225",
+      "expected_pdf_url": "https://www.mdpi.com/2077-0383/9/4/1225/pdf?version=1587732386",
+      "alternates": ["https://www.mdpi.com/2077-0383/9/4/1225/pdf"], "via": "citation_pdf_url (= fulltext_pdf = link rel=alternate type=application/pdf)", "verified": "archived_only",
+      "must_not_select": ["https://www.mdpi.com/2077-0383/9/4/1225/pdf-with-cover", "https://www.mdpi.com/2077-0383/9/4/1225/epub"]
+    },
+    {
+      "file": "lww__annals-of-surgery-article.html", "publisher": "Wolters Kluwer LWW (Annals of Surgery)", "kind": "landing",
+      "base_url": "https://journals.lww.com/annalsofsurgery/fulltext/2023/01000/prediction_of_abdominal_aortic_aneurysm_growth.51.aspx",
+      "expected_pdf_url": "https://journals.lww.com/annalsofsurgery/_layouts/15/oaks.journals/downloadpdf.aspx?trckng_src_pg=Other&an=00000658-202301000-00051",
+      "alternates": [], "via": "meta wkhealth_pdf_url", "verified": "archived_only",
+      "notes": "No citation_pdf_url. The <noscript> meta refresh to /_layouts/1033/OAKS.Journals/Error/JavaScript.html is a false positive.",
+      "must_not_select": ["https://journals.lww.com/_layouts/1033/OAKS.Journals/Error/JavaScript.html", "https://cdn-tp2.mozu.com/16833-m1/cms/files/Author-Document.pdf?_mzts=636519775710000000"]
+    },
+    {
+      "file": "lww__ijs-article-oa.html", "publisher": "Wolters Kluwer LWW (International Journal of Surgery, OA)", "kind": "landing",
+      "base_url": "https://journals.lww.com/international-journal-of-surgery/fulltext/2024/01000/a_commentary_on__minimally_invasive_versus_open.70.aspx",
+      "expected_pdf_url": "https://journals.lww.com/international-journal-of-surgery/_layouts/15/oaks.journals/downloadpdf.aspx?trckng_src_pg=Other&an=01279778-202401000-00070",
+      "alternates": [], "via": "meta wkhealth_pdf_url", "verified": "archived_only",
+      "must_not_select": ["https://journals.lww.com/_layouts/1033/OAKS.Journals/Error/JavaScript.html"]
+    },
+    {
+      "file": "europepmc__spa-shell.html", "publisher": "Europe PMC", "kind": "landing",
+      "base_url": "https://europepmc.org/article/MED/19621072",
+      "expected_pdf_url": null, "alternates": ["https://europepmc.org/articles/PMC2707599?pdf=render"], "via": "none (client-rendered SPA; use the REST API)", "verified": "live_pdf_magic(alternate)",
+      "notes": "The <noscript> meta refresh to ?javascript_support=no is not a PDF link.",
+      "must_not_select": ["https://europepmc.org/article/MED/19621072?javascript_support=no"]
+    },
+    {
+      "file": "elsevier-linkinghub__redirect-S0140673620301835.html", "publisher": "Elsevier linkinghub", "kind": "redirect",
+      "base_url": "https://linkinghub.elsevier.com/retrieve/pii/S0140673620301835",
+      "expected_pdf_url": null, "next_url": "https://www.thelancet.com/retrieve/pii/S0140673620301835", "via": "input#redirectURL (url-decoded, http upgraded) or 2 s meta refresh with single-quoted URL", "verified": "live"
+    },
+    {
+      "file": "elsevier-linkinghub__redirect-S1743919121000406.html", "publisher": "Elsevier linkinghub", "kind": "redirect",
+      "base_url": "https://linkinghub.elsevier.com/retrieve/pii/S1743919121000406",
+      "expected_pdf_url": null, "next_url": "https://www.sciencedirect.com/science/article/pii/S1743919121000406?via%3Dihub", "via": "input#redirectURL (url-decoded)", "verified": "live"
+    },
+    {
+      "file": "cloudflare__managed-challenge.html", "publisher": "Cloudflare (OUP, LWW, Karger, Wiley, T&F, SAGE, ScienceDirect, Lancet, Cell, JAMA, NEJM, Europe PMC)", "kind": "challenge",
+      "base_url": "https://academic.oup.com/bjs/article/doi/10.1093/bjs/znaf176/8240140",
+      "expected_pdf_url": null, "via": "none", "verified": "live",
+      "notes": "HTTP 403 + 'cf-mitigated: challenge'. <meta http-equiv=refresh content=360> has no URL: ignore it."
+    },
+    {
+      "file": "cloudflare__blocked-attention-required.html", "publisher": "Cloudflare WAF block (BMJ)", "kind": "blocked",
+      "base_url": "https://bmjopen.bmj.com/lookup/doi/10.1136/bmjopen-2025-107142",
+      "expected_pdf_url": null, "via": "none", "verified": "live"
+    },
+    {
+      "file": "akamai__access-denied.html", "publisher": "Akamai edge block (MDPI)", "kind": "blocked",
+      "base_url": "https://www.mdpi.com/2077-0383/13/5/1296",
+      "expected_pdf_url": null, "via": "none", "verified": "live"
+    }
+  ]
+}

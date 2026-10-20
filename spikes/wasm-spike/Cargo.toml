@@ -1,0 +1,39 @@
+[workspace]
+resolver = "3"
+members = ["crates/core", "crates/ladder", "crates/bindgen-demo", "xtask"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.85"
+
+[workspace.lints.clippy]
+# The wasm build uses panic = "abort": a panic is an unrecoverable trap.
+# Forbid the common panic sources in library code (tests may still use them).
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "warn"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+arithmetic_side_effects = "allow"
+
+# Size-oriented release profile (the one the plugin ships).
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false
+incremental = false
+
+# Same, but opt-level "s" (for the s-vs-z comparison).
+[profile.release-s]
+inherits = "release"
+opt-level = "s"
+
+# Speed-oriented, for comparison only.
+[profile.release-o3]
+inherits = "release"
+opt-level = 3

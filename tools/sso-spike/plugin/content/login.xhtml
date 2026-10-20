@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!-- sso-spike custom login window: a plain XUL window with one content <browser>.
+     No messagemanagergroup, so Zotero's ExternalLinkHandler actor does not attach and link
+     clicks stay in this window. The bar shows the real origin and TLS state, because the
+     user types credentials here. -->
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        id="ssp-login-window"
+        windowtype="sso-spike:login"
+        title="Sign in (sso-spike custom window)"
+        width="1000" height="780"
+        style="min-width: 700px; min-height: 500px;">
+  <script src="chrome://ssospike/content/login.js"/>
+  <vbox flex="1">
+    <html:div id="ssp-bar" style="display:flex;gap:10px;align-items:center;padding:6px 10px;border-bottom:1px solid #888;font:13px system-ui,sans-serif;">
+      <html:span id="ssp-secure" style="font-weight:bold;min-width:90px;"></html:span>
+      <html:span id="ssp-origin" style="flex:1;font-family:monospace;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;"></html:span>
+      <html:span id="ssp-popups" style="color:#a00;"></html:span>
+    </html:div>
+    <browser id="ssp-browser"
+             type="content"
+             flex="3"
+             remote="false"
+             maychangeremoteness="true"
+             disableglobalhistory="true"/>
+    <vbox id="ssp-popup-box" flex="2" hidden="true" style="border-top:3px solid #a00;"/>
+  </vbox>
+</window>

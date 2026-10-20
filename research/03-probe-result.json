@@ -1,0 +1,3653 @@
+{
+  "_about": {
+    "description": "Empirical probe of the Zotero 10.0.6 plugin runtime (Gecko 140.17.0 ESR, Windows 11), collected by tools/zotero-harness/probe-plugin in throwaway profiles. Top-level fields = the primary run (packed XPI, headless, full probe incl. local cookie/attach simulation). otherRuns = comparison runs.",
+    "primaryRun": "run06-headless-xpi-full",
+    "harness": "C:/Users/abora/zotero-fulltext/tools/zotero-harness/run.ps1",
+    "rawRunDirs": "C:/Users/abora/zotero-fulltext/.ref/harness-runs/<run>/ (result.json, logs/zotero-stdout.log, result.zotero-debug.txt, harness-summary.json)",
+    "generatedAt": "2026-10-20T13:57:44.380Z"
+  },
+  "schema": "zotero-fulltext/runtime-probe/v1",
+  "meta": {
+    "plugin": {
+      "id": "probe@zotero-fulltext.local",
+      "version": "0.1.0",
+      "rootURI": "jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/",
+      "reason": 1,
+      "startupParamKeys": [
+        "id",
+        "version",
+        "rootURI"
+      ]
+    },
+    "startupCalledAt": "2026-10-20T13:54:37.193Z",
+    "app": {
+      "zoteroVersion": "10.0.6",
+      "appVersion": "10.0.6",
+      "appBuildID": "20261007153950",
+      "platformVersion": "140.17.0",
+      "platformBuildID": "20261001165425",
+      "OS": "WINNT",
+      "XPCOMABI": "x86_64-msvc",
+      "processType": 0,
+      "inSafeMode": false,
+      "env_MOZ_HEADLESS": "1",
+      "profileDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\profile",
+      "zoteroDataDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\data",
+      "zoteroInitialized": true
+    },
+    "startupInfoMsFromProcessStart": {
+      "process": 0,
+      "start": 28,
+      "main": 126,
+      "selectProfile": 132,
+      "afterProfileLocked": 147,
+      "startupCrashDetectionBegin": 217,
+      "firstPaint2": 1657,
+      "createTopLevelWindow": 489,
+      "firstLoadURI": 1802,
+      "startupCalled": 2997
+    },
+    "chromeRegistered": true,
+    "finishReason": "complete",
+    "finishedAt": "2026-10-20T13:55:25.692Z",
+    "elapsedMsSinceStartup": 48499,
+    "resultFile": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\result.json"
+  },
+  "bootstrapScope": {
+    "loadSubScript.wasmTests.chromeURL": {
+      "ok": true,
+      "ms": 1,
+      "value": "function"
+    },
+    "globals": {
+      "WebAssembly": "object",
+      "fetch": "function",
+      "Response": "function",
+      "Request": "function",
+      "Headers": "function",
+      "TextEncoder": "function",
+      "TextDecoder": "function",
+      "URL": "function",
+      "URLSearchParams": "function",
+      "AbortController": "undefined",
+      "AbortSignal": "undefined",
+      "crypto": "object",
+      "DOMParser": "function",
+      "XMLHttpRequest": "function",
+      "XMLSerializer": "function",
+      "Blob": "function",
+      "File": "function",
+      "FileReader": "function",
+      "atob": "function",
+      "btoa": "function",
+      "structuredClone": "undefined",
+      "queueMicrotask": "undefined",
+      "setTimeout": "function",
+      "requestIdleCallback": "function",
+      "SharedArrayBuffer": "function",
+      "Atomics": "object",
+      "BigInt": "function",
+      "ReadableStream": "undefined",
+      "WritableStream": "undefined",
+      "IOUtils": "object",
+      "PathUtils": "object",
+      "ChromeUtils": "object",
+      "Services": "object",
+      "Components": "object",
+      "Cc": "object",
+      "Ci": "object",
+      "Cu": "object",
+      "Zotero": "function",
+      "Worker": "function",
+      "ChromeWorker": "function",
+      "importScripts": "undefined",
+      "postMessage": "undefined",
+      "window": "undefined",
+      "document": "undefined",
+      "globalThis": "object",
+      "console": "undefined",
+      "dump": "function",
+      "Localization": "function",
+      "crypto.subtle": "object",
+      "globalThis.toString": "[object Object]",
+      "WebAssemblyKeys": "CompileError,Exception,Global,Instance,JSTag,LinkError,Memory,Module,RuntimeError,Table,Tag,compile,compileStreaming,instantiate,instantiateStreaming,validate"
+    },
+    "functional": {
+      "DOMParser": {
+        "ok": true,
+        "ms": 0,
+        "value": {
+          "p": "hi",
+          "citation_pdf_url": "https://x.test/a.pdf"
+        }
+      },
+      "TextEncoderDecoder": {
+        "ok": true,
+        "ms": 0,
+        "value": {
+          "encodedLen": 6,
+          "roundTrip": "héllo"
+        }
+      },
+      "URL": {
+        "ok": true,
+        "ms": 0,
+        "value": {
+          "host": "login.ezproxy.example.ac.uk",
+          "url": "https://doi.org/10.1/x"
+        }
+      },
+      "AbortController.inSandbox": {
+        "ok": false,
+        "ms": 0,
+        "error": "ReferenceError: AbortController is not defined @bootstrap.js:666",
+        "stack": "probeBootstrapFunctional/<@jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/bootstrap.js:666:14 | attempt@jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/bootstrap.js:34:19 | probeBootstrapFunctional@jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/bootstrap.js:665:9"
+      },
+      "AbortController.fromMainWindowOrHiddenWindow": {
+        "ok": true,
+        "ms": 1,
+        "value": {
+          "via": "mainWindow",
+          "aborted": true
+        }
+      },
+      "crypto.subtle.digest": {
+        "ok": true,
+        "ms": 36,
+        "value": "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+      },
+      "fetch.dataURL": {
+        "ok": true,
+        "ms": 46,
+        "value": {
+          "status": 200,
+          "json": {
+            "a": 1
+          }
+        }
+      },
+      "ResponseCtor": {
+        "ok": true,
+        "ms": 0,
+        "value": {
+          "type": "object",
+          "ct": "application/wasm"
+        }
+      },
+      "Cc_Ci_Cu": {
+        "ok": true,
+        "ms": 0,
+        "value": {
+          "Cc": "object",
+          "Ci": "object",
+          "Cu": "object",
+          "Components": "object"
+        }
+      },
+      "IOUtils.PathUtils": {
+        "ok": true,
+        "ms": 0,
+        "value": {
+          "IOUtils": "object",
+          "writeUTF8": "function",
+          "read": "function",
+          "tempDir": "C:\\Users\\abora\\AppData\\Local\\Temp"
+        }
+      }
+    }
+  },
+  "prefs": {
+    "wasmChildList": {
+      "javascript.options.wasm": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_baselinejit": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_branch_hinting": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_caching": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_call_ref_inlining": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_call_ref_inlining_percent": {
+        "type": "int",
+        "value": 40,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": 40
+      },
+      "javascript.options.wasm_direct_inlining": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_disable_huge_memory": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_exnref": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_gc": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_inlining_level": {
+        "type": "int",
+        "value": 5,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": 5
+      },
+      "javascript.options.wasm_js_promise_integration": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_js_string_builtins": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_lazy_tiering": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_lazy_tiering_for_gc": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_lazy_tiering_level": {
+        "type": "int",
+        "value": 5,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": 5
+      },
+      "javascript.options.wasm_lazy_tiering_synchronous": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_memory64": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_memory_control": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_moz_intgemm": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_multi_memory": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_optimizingjit": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_relaxed_simd": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_simd_avx": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_tail_calls": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_test_serialization": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_trace_api": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_trustedprincipals": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_unroll_factor": {
+        "type": "int",
+        "value": 3,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": 3
+      },
+      "javascript.options.wasm_unroll_loops": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.wasm_verbose": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      }
+    },
+    "selected": {
+      "javascript.options.wasm": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_trustedprincipals": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_baselinejit": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_optimizingjit": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "javascript.options.wasm_verbose": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "javascript.options.shared_memory": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "network.cookie.cookieBehavior": {
+        "type": "int",
+        "value": 5,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": 5
+      },
+      "network.cookie.cookieBehavior.pbmode": {
+        "type": "int",
+        "value": 5,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": 5
+      },
+      "network.cookie.sameSite.laxByDefault": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "network.cookie.sameSite.noneRequiresSecure": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "privacy.firstparty.isolate": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "privacy.partition.network_state": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "network.http.referer.XOriginPolicy": {
+        "type": "int",
+        "value": 0,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": 0
+      },
+      "security.allow_eval_with_system_principal": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "security.allow_eval_in_parent_process": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "security.allow_parent_unrestricted_js_loads": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": false
+      },
+      "extensions.zotero.httpServer.enabled": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": true,
+        "locked": false,
+        "defaultValue": true
+      },
+      "extensions.zotero.dataDir": {
+        "type": "string",
+        "value": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\data",
+        "hasUserValue": true,
+        "locked": false,
+        "defaultValue": ""
+      },
+      "extensions.zotero.useDataDir": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": true,
+        "locked": false,
+        "defaultValue": false
+      },
+      "extensions.zotero.automaticScraperUpdates": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": true,
+        "locked": false,
+        "defaultValue": true
+      },
+      "extensions.zotero.findPDFs.resolvers": {
+        "type": "string",
+        "value": "[]",
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": "[]"
+      },
+      "extensions.zotero.downloadAssociatedFiles": {
+        "type": "bool",
+        "value": true,
+        "hasUserValue": false,
+        "locked": false,
+        "defaultValue": true
+      },
+      "xpinstall.signatures.required": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": true,
+        "locked": false,
+        "defaultValue": false
+      },
+      "extensions.autoDisableScopes": {
+        "type": "int",
+        "value": 0,
+        "hasUserValue": true,
+        "locked": false,
+        "defaultValue": 15
+      },
+      "app.update.auto": {
+        "type": "bool",
+        "value": false,
+        "hasUserValue": true,
+        "locked": false,
+        "defaultValue": true
+      }
+    },
+    "zoteroFindPDFsPrefs": [
+      "extensions.zotero.findPDFs.resolvers"
+    ]
+  },
+  "apis": {
+    "Zotero.version": "10.0.6",
+    "Zotero.platformVersion": "140.17.0",
+    "Zotero.isWin": true,
+    "Zotero.MenuManager": {
+      "type": "object",
+      "ownKeys": [
+        "_menuManager",
+        "registerMenu",
+        "unregisterMenu",
+        "updateMenuPopup"
+      ],
+      "protoKeys": [
+        "__defineGetter__",
+        "__defineSetter__",
+        "__lookupGetter__",
+        "__lookupSetter__",
+        "__proto__",
+        "hasOwnProperty",
+        "isPrototypeOf",
+        "propertyIsEnumerable",
+        "toLocaleString",
+        "toSource",
+        "toString",
+        "valueOf"
+      ]
+    },
+    "Zotero.MenuManager.registerMenu": {
+      "type": "function",
+      "length": 1,
+      "name": "registerMenu",
+      "src": "registerMenu(options) {\n      return this._menuManager.register(options);\n    }"
+    },
+    "Zotero.MenuManager.unregisterMenu": {
+      "type": "function",
+      "length": 1,
+      "name": "unregisterMenu",
+      "src": "unregisterMenu(paneID) {\n      return this._menuManager.unregister(paneID);\n    }"
+    },
+    "Zotero.PreferencePanes": {
+      "type": "object",
+      "ownKeys": [
+        "_ensureObserverAdded",
+        "_refreshPreferences",
+        "builtInPanes",
+        "pluginPanes",
+        "register",
+        "unregister"
+      ],
+      "protoKeys": [
+        "__defineGetter__",
+        "__defineSetter__",
+        "__lookupGetter__",
+        "__lookupSetter__",
+        "__proto__",
+        "hasOwnProperty",
+        "isPrototypeOf",
+        "propertyIsEnumerable",
+        "toLocaleString",
+        "toSource",
+        "toString",
+        "valueOf"
+      ]
+    },
+    "Zotero.PreferencePanes.register": {
+      "type": "function",
+      "length": 1,
+      "name": "register",
+      "src": "async function (options) {\n    if (!options.pluginID || !options.src) {\n      throw new Error('pluginID and src must be provided');\n    }\n    if (options.id && (this.builtInPanes.some((p) => p.id === options.id) ||\n    this.pluginPanes.some((p) => p.id === options.id))) {\n      throw new Error(`Pane"
+    },
+    "Zotero.ProgressWindow": {
+      "type": "function",
+      "length": 0,
+      "name": "",
+      "src": "function (options = {}) {\n  var _window = options.window || null;\n  var _closeOnClick = typeof options.closeOnClick == 'undefined' ? true : options.closeOnClick;\n  var self = this,\n    _progressWindow = null,\n    _windowLoaded = false,\n    _windowLoading = false,\n    _timeoutID = false,\n    _closing"
+    },
+    "Zotero.ProgressWindow.prototypeKeys": [
+      "ItemProgress",
+      "Translation",
+      "addDescription",
+      "addLines",
+      "changeHeadline",
+      "close",
+      "show",
+      "startCloseTimer"
+    ],
+    "Zotero.HTTP": {
+      "type": "object",
+      "ownKeys": [
+        "BrowserOfflineException",
+        "CancelledException",
+        "CasePreservingHeaders",
+        "CookieBlocker",
+        "Location",
+        "RequestModifier",
+        "SecurityException",
+        "TimeoutException",
+        "UnexpectedStatusException",
+        "Window",
+        "_requestInternal",
+        "browserIsOffline",
+        "checkSecurity",
+        "disableErrorRetry",
+        "doGet",
+        "doHead",
+        "doOptions",
+        "doPost",
+        "download",
+        "getChannelAuthorization",
+        "getDisplayURI",
+        "getHTMLMetaRefreshURL",
+        "isWriteMethod",
+        "newCookieContext",
+        "processDocuments",
+        "promise",
+        "request",
+        "triggerProxyAuth",
+        "wrapDocument"
+      ],
+      "protoKeys": []
+    },
+    "Zotero.HTTP.request": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "async function (method, url, options = {}) {\n    return _retryOnServerError(\n      () => this._requestInternal(...arguments),\n      url,\n      options\n    );\n  }"
+    },
+    "Zotero.HTTP.processDocuments": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "async function (urls, processor, options = {}) {\n    // Handle old signature: urls, processor, onDone, onError, dontDelete, cookieSandbox\n    if (arguments.length > 3) {\n      Zotero.debug(\"Zotero.HTTP.processDocuments() now takes only 3 arguments -- update your code\");\n      var onDone = arguments["
+    },
+    "Zotero.Attachments.addFileFromURLs": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "async function (item, urlResolvers, options = {}) {\n    var tmpDir;\n    var tmpFile;\n    var attachmentItem = false;\n    try {\n      tmpDir = (await this.createTemporaryStorageDirectory()).path;\n      tmpFile = OS.Path.join(tmpDir, 'file.tmp');\n      let { title, mimeType, url, props } = await this."
+    },
+    "Zotero.Attachments.downloadFirstAvailableFile": {
+      "type": "function",
+      "length": 3,
+      "name": "",
+      "src": "async function (urlResolvers, path, options) {\n    const maxURLs = 6;\n    const schemeRE = /^(http:)?\\/\\//;\n\n    // Operate on copy, since we might change things\n    urlResolvers = [...urlResolvers];\n\n    // Don't try the same normalized URL more than once\n    var triedURLs = new Set();\n    function"
+    },
+    "Zotero.Attachments.addAvailableFile": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "async function (item, options = {}) {\n    Zotero.debug(\"Looking for available files\");\n    return this.addFileFromURLs(item, this.getFileResolvers(item, options.methods));\n  }"
+    },
+    "Zotero.Attachments.addAvailableFiles": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "async function (items, options = {}) {\n    const MAX_CONSECUTIVE_DOMAIN_FAILURES = 5;\n    const SAME_DOMAIN_REQUEST_DELAY = options.sameDomainRequestDelay || 1000;\n    var queue;\n\n    var domains = new Map();\n    function getDomainInfo(domain) {\n      var domainInfo = domains.get(domain);\n      if ("
+    },
+    "Zotero.Attachments.addAvailablePDF": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "function (item, options) {\n    Zotero.warn('Zotero.Attachments.addAvailablePDF() is deprecated -- use addAvailableFile()');\n    return this.addAvailableFile(item, options);\n  }"
+    },
+    "Zotero.Attachments.getFileResolvers": {
+      "type": "function",
+      "length": 3,
+      "name": "",
+      "src": "function (item, methods, automatic) {\n    if (!methods) {\n      methods = ['doi', 'url', 'oa', 'custom'];\n    }\n\n    var useDOI = methods.includes('doi');\n    var useURL = methods.includes('url');\n    var useOA = methods.includes('oa');\n    var useCustom = methods.includes('custom');\n\n    var resolv"
+    },
+    "Zotero.Attachments.getPDFResolvers": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "function (item, methods) {\n    Zotero.warn('Zotero.Attachments.getPDFResolvers() is deprecated -- use getFileResolvers()');\n    return this.getFileResolvers(item, methods);\n  }"
+    },
+    "Zotero.Attachments.importFromURL": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "async function (options) {\n    var libraryID = options.libraryID;\n    var url = options.url;\n    var parentItemID = options.parentItemID;\n    var collections = options.collections;\n    var title = options.title;\n    var fileBaseName = options.fileBaseName;\n    var renameIfAllowedType = options.renam"
+    },
+    "Zotero.Attachments.downloadFile": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "async function (url, path, options = {}) {\n    Zotero.debug(`Downloading file from ${url}`);\n\n    try {\n      let headers = {};\n      if (options.referrer) {\n        headers.Referer = options.referrer;\n      }\n      await Zotero.HTTP.download(\n        url,\n        path,\n        {\n          headers,\n"
+    },
+    "Zotero.Attachments.canFindFileForItem": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "function (item) {\n    return item.isRegularItem() &&\n    !item.isFeedItem && (\n    !!item.getField('DOI') || !!item.getField('url') || !!item.getExtraField('DOI') || !!item.getField('PMCID')) &&\n    this.FIND_AVAILABLE_FILE_TYPES.every((type) => item.numFileAttachmentsWithContentType(type) == 0);\n  "
+    },
+    "Zotero.Attachments.linkFromURL": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "async function (options) {\n    Zotero.debug('Linking attachment from URL');\n\n    var url = options.url;\n    var parentItemID = options.parentItemID;\n    var contentType = options.contentType;\n    var title = options.title;\n    var collections = options.collections;\n    var saveOptions = options.save"
+    },
+    "Zotero.Attachments.importFromFile": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "async function (options) {\n    Zotero.debug('Importing attachment from file');\n\n    var libraryID = options.libraryID;\n    var file = Zotero.File.pathToFile(options.file);\n    var path = file.path;\n    var leafName = file.leafName;\n    var parentItemID = options.parentItemID;\n    var title = options"
+    },
+    "Zotero.Attachments.cleanAttachmentURI": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "function (uri, tryHttp) {\n    Zotero.warn(\"Zotero.Attachments.cleanAttachmentURI() is deprecated -- use Zotero.Utilities.cleanURL\");\n    return Zotero.Utilities.cleanURL(uri, tryHttp);\n  }"
+    },
+    "Zotero.Attachments.getRenamedFileBaseNameIfAllowedType": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "async function (parentItem, file) {\n    var contentType = file.endsWith('.pdf')\n    // Don't bother reading file if there's a .pdf extension\n    ? 'application/pdf' :\n    await Zotero.MIME.getMIMETypeFromFile(file);\n    if (!this.isRenameAllowedForType(contentType, parentItem.libraryID)) {\n      ret"
+    },
+    "Zotero.Attachments.relevantKeys": [
+      "FIND_AVAILABLE_FILE_TYPES",
+      "InvalidPDFException",
+      "LINK_MODE_IMPORTED_URL",
+      "LINK_MODE_LINKED_URL",
+      "_getExtensionFromURL",
+      "_getFileNameFromURL",
+      "addAvailableFile",
+      "addAvailableFiles",
+      "addAvailablePDF",
+      "addAvailablePDFs",
+      "addFileFromURLs",
+      "addPDFFromURLs",
+      "canFindFileForItem",
+      "canFindPDFForItem",
+      "createURLAttachmentFromTemporaryStorageDirectory",
+      "downloadFile",
+      "downloadFirstAvailableFile",
+      "getFileResolvers",
+      "getPDFResolvers",
+      "importFromURL",
+      "isPDFJSBrowser",
+      "isPDFJSDocument",
+      "linkFromURL",
+      "resolveRelativePath"
+    ],
+    "Zotero.BrowserDownload": {
+      "type": "undefined"
+    },
+    "Zotero.BrowserRequest": {
+      "type": "object",
+      "ownKeys": [
+        "CHALLENGE_URLS",
+        "PLAIN_UA_HOSTS",
+        "_browserMatchesSelector",
+        "_loadAndSettle",
+        "_loadAndWaitForCookieInViewer",
+        "_makePDFMIMETypeHandler",
+        "_makeViewerCloseListener",
+        "_pollForCookie",
+        "_readCookieValue",
+        "clearChallenge",
+        "clearChallengeInViewer",
+        "downloadPDF",
+        "downloadPDFViaViewer",
+        "getEntryForURL"
+      ],
+      "protoKeys": [
+        "__defineGetter__",
+        "__defineSetter__",
+        "__lookupGetter__",
+        "__lookupSetter__",
+        "__proto__",
+        "hasOwnProperty",
+        "isPrototypeOf",
+        "propertyIsEnumerable",
+        "toLocaleString",
+        "toSource",
+        "toString",
+        "valueOf"
+      ]
+    },
+    "Zotero.BrowserRequest.downloadPDF": {
+      "type": "function",
+      "length": 2,
+      "name": "downloadPDF",
+      "src": "async downloadPDF(url, path, options = {}) {\n    Zotero.debug(`BrowserRequest: Downloading PDF via hidden browser from ${url}`);\n\n    let hiddenBrowser;\n    let blob;\n    try {\n      hiddenBrowser = new HiddenBrowser();\n      await hiddenBrowser._createdPromise;\n      await this._loadAndSettle(hidde"
+    },
+    "Zotero.BrowserRequest.downloadPDFViaViewer": {
+      "type": "function",
+      "length": 3,
+      "name": "downloadPDFViaViewer",
+      "src": "async downloadPDFViaViewer(url, path, _options) {\n    Zotero.debug(`BrowserRequest: Downloading PDF via viewer for captcha clearing from ${url}`);\n\n    let win, browser, wmListener;\n    let pdfMIMETypeHandler;\n    let pdfFound;\n    let pdfFoundDeferred = Zotero.Promise.defer();\n    const timeout = Z"
+    },
+    "Zotero.BrowserRequest.clearChallenge": {
+      "type": "function",
+      "length": 1,
+      "name": "clearChallenge",
+      "src": "async clearChallenge(url, options = {}) {\n    Zotero.debug(`BrowserRequest: Clearing challenge at ${url}`);\n\n    let { userContextId, entry, allowViewer = false } = options;\n    let successCookie = entry?.successCookie;\n    // Capture the cookie's current value (if any) before the attempt so\n    // "
+    },
+    "Zotero.BrowserRequest.clearChallengeInViewer": {
+      "type": "function",
+      "length": 2,
+      "name": "clearChallengeInViewer",
+      "src": "async clearChallengeInViewer(url, options) {\n    Zotero.debug(`BrowserRequest: Awaiting user challenge clearance for ${url}`);\n    const onLoadTimeout = Zotero.Prefs.get('browserRequest.onLoadTimeout');\n    const timeout = Zotero.Prefs.get('browserRequest.timeout');\n\n    let win, browser, wmListener"
+    },
+    "Zotero.BrowserRequest.getEntryForURL": {
+      "type": "function",
+      "length": 1,
+      "name": "getEntryForURL",
+      "src": "getEntryForURL(url) {\n    const unproxiedUrls = Object.keys(Zotero.Proxies.getPotentialProxies(url));\n    for (let unproxiedUrl of unproxiedUrls) {\n      for (let entry of this.CHALLENGE_URLS) {\n        if (unproxiedUrl.includes(entry.match)) {\n          return entry;\n        }\n      }\n    }\n    ret"
+    },
+    "Zotero.HTTP.download": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "async function (uri, path, options = {}) {\n    let { url, username, password } = _parseURI(uri);\n\n    if (!/^https?:/.test(url)) {\n      throw new Error(\"HTTP.download() only supports HTTP(S) URLs -- got \" + url);\n    }\n\n    let dispURL = options.displayURL || url;\n    if (username) {\n      dispURL "
+    },
+    "Zotero.Utilities.Internal.getOpenAccessPDFURLs": {
+      "type": "function",
+      "length": 1,
+      "name": "getOpenAccessPDFURLs",
+      "src": "async function (doi, options = {}) {\n    doi = Zotero.Utilities.cleanDOI(doi);\n    if (!doi) {\n      throw new Error(`Invalid DOI '${doi}'`);\n    }\n    Zotero.debug(`Looking for open-access PDFs for ${doi}`);\n\n    var url = ZOTERO_CONFIG.SERVICES_URL + 'oa/search';\n    var req = await Zotero.HTTP.re"
+    },
+    "Zotero.Utilities.Internal.getFileFromDocument": {
+      "type": "function",
+      "length": 1,
+      "name": "getFileFromDocument",
+      "src": "async function (doc) {\n    let translate = new Zotero.Translate.Web();\n    translate.setDocument(doc);\n    var translators = await translate.getTranslators();\n    // TEMP: Until there's a generic webpage translator\n    if (!translators.length) {\n      return false;\n    }\n    translate.setTranslator("
+    },
+    "Zotero.getMainWindows": {
+      "type": "function",
+      "length": 0,
+      "name": "",
+      "src": "function () {\n    var enumerator = Services.wm.getEnumerator(\"navigator:browser\");\n    var windows = [];\n    while (enumerator.hasMoreElements()) {\n      windows.push(enumerator.getNext());\n    }\n    return windows;\n  }"
+    },
+    "Zotero.openMainWindow": {
+      "type": "function",
+      "length": 0,
+      "name": "",
+      "src": "function () {\n    var chromeURI = AppConstants.BROWSER_CHROME_URL;\n    var flags = \"chrome,all,dialog=no,resizable=yes\";\n    var ww = Components.classes['@mozilla.org/embedcomp/window-watcher;1'].\n    getService(Components.interfaces.nsIWindowWatcher);\n    ww.openWindow(null, chromeURI, '_blank', fl"
+    },
+    "Zotero.Proxies": {
+      "type": "object",
+      "ownKeys": [
+        "DNS",
+        "autoRecognize",
+        "disableByDomain",
+        "disabledByDomain",
+        "getPotentialProxies",
+        "hosts",
+        "init",
+        "lastIPCheck",
+        "lastIPs",
+        "newProxyFromRow",
+        "properToProxy",
+        "proxies",
+        "proxyToProper",
+        "refreshHostMap",
+        "remove",
+        "save",
+        "showRedirectNotification",
+        "transparent"
+      ],
+      "protoKeys": []
+    },
+    "Zotero.Proxies.properToProxy": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "function (url, onlyReturnIfProxied) {\n    var uri = Services.io.newURI(url, null, null);\n    if (Zotero.Proxies.hosts[uri.hostPort] && Zotero.Proxies.hosts[uri.hostPort].proxyID) {\n      var toProxy = Zotero.Proxies.hosts[uri.hostPort].toProxy(uri);\n      Zotero.debug(\"Proxies.properToProxy: \" + url"
+    },
+    "Zotero.Proxies.proxyToProper": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "function (url, onlyReturnIfProxied) {\n    // make sure url has a trailing slash\n    url = new URL(url).href;\n    for (let proxy of Zotero.Proxies.proxies) {\n      if (proxy.regexp) {\n        var m = proxy.regexp.exec(url);\n        if (m) {\n          var toProper = proxy.toProper(m);\n          Zotero"
+    },
+    "Zotero.Proxies.getPotentialProxies": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "function (url) {\n    // make sure url has a trailing slash\n    url = new URL(url).href;\n    var urlToProxy = {};\n    // If it's a known proxied URL just return it\n    if (Zotero.Proxies.transparent) {\n      for (var proxy of Zotero.Proxies.proxies) {\n        if (proxy.regexp) {\n          var m = pro"
+    },
+    "Zotero.Proxies.save": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "function (proxy) {\n    // add to list of proxies\n    if (Zotero.Proxies.proxies.indexOf(proxy) == -1) Zotero.Proxies.proxies.push(proxy);\n\n    // if there is a proxy ID (i.e., if this is a persisting, transparent proxy), add to host\n    // list to do reverse mapping\n    if (proxy.proxyID) {\n      fo"
+    },
+    "Zotero.Proxies.init": {
+      "type": "function",
+      "length": 0,
+      "name": "",
+      "src": "async function () {\n    if (!this.proxies) {\n      var rows = await Zotero.DB.queryAsync(\"SELECT * FROM proxies\");\n      Zotero.Proxies.proxies = await Promise.all(\n        rows.map((row) => this.newProxyFromRow(row))\n      );\n\n      for (let proxy of Zotero.Proxies.proxies) {\n        for (let host "
+    },
+    "Zotero.Proxy": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "function (row) {\n  this.hosts = [];\n  this._loadFromRow(row);\n}"
+    },
+    "Zotero.openInViewer": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "function (uri, options) {\n    if (options && !options.onLoad && typeof options === 'function') {\n      Zotero.debug(\"Zotero.openInViewer() now takes an 'options' object for its second parameter -- update your code\");\n      options = { onLoad: options };\n    }\n\n    var viewerWins = Services.wm.getEnu"
+    },
+    "Zotero.launchURL": {
+      "type": "function",
+      "length": 1,
+      "name": "",
+      "src": "function (url) {\n    if (!Zotero.Utilities.isHTTPURL(url)) {\n      if (Zotero.Utilities.isHTTPURL(url, true)) {\n        if (!url.startsWith('x-apple.systempreferences:')) {\n          url = 'http://' + url;\n        }\n      }\n      // Launch non-HTTP URLs\n      else {\n        let schemeRE = /^([a-z][a"
+    },
+    "Zotero.Utilities.cleanDOI": {
+      "type": "function",
+      "length": 1,
+      "name": "cleanDOI",
+      "src": "function (/**String**/x) {\n      if (typeof x != \"string\") {\n        throw new Error(\"cleanDOI: argument must be a string\");\n      }\n      // If it's a URL, try to decode it\n      if (/^https?:/.test(x)) {\n        try {\n          x = decodeURIComponent(x);\n        }\n        catch (e) {\n          // "
+    },
+    "Zotero.Plugins": {
+      "type": "object",
+      "ownKeys": [
+        "_addonObserver",
+        "addObserver",
+        "getAllPluginIDs",
+        "getIconURI",
+        "getName",
+        "getPluginFromError",
+        "getRootURI",
+        "init",
+        "removeObserver",
+        "resolveURI",
+        "warnRemovedAPICall"
+      ],
+      "protoKeys": []
+    },
+    "Zotero.ItemTreeManager": {
+      "type": "object",
+      "ownKeys": [
+        "_columnManager",
+        "customColumnUpdateID",
+        "getCustomCellData",
+        "getCustomColumns",
+        "isCustomColumn",
+        "refreshColumns",
+        "registerColumn",
+        "registerColumns",
+        "unregisterColumn",
+        "unregisterColumns"
+      ],
+      "protoKeys": [
+        "__defineGetter__",
+        "__defineSetter__",
+        "__lookupGetter__",
+        "__lookupSetter__",
+        "__proto__",
+        "hasOwnProperty",
+        "isPrototypeOf",
+        "propertyIsEnumerable",
+        "toLocaleString",
+        "toSource",
+        "toString",
+        "valueOf"
+      ]
+    },
+    "Zotero.ItemPaneManager": {
+      "type": "object",
+      "ownKeys": [
+        "_infoRowManager",
+        "_sectionManager",
+        "customInfoRowData",
+        "customSectionData",
+        "getInfoRowHook",
+        "isSectionOrderable",
+        "refreshInfoRow",
+        "registerInfoRow",
+        "registerSection",
+        "unregisterInfoRow",
+        "unregisterSection"
+      ],
+      "protoKeys": [
+        "__defineGetter__",
+        "__defineSetter__",
+        "__lookupGetter__",
+        "__lookupSetter__",
+        "__proto__",
+        "hasOwnProperty",
+        "isPrototypeOf",
+        "propertyIsEnumerable",
+        "toLocaleString",
+        "toSource",
+        "toString",
+        "valueOf"
+      ]
+    },
+    "Zotero.getActiveZoteroPane": {
+      "type": "function",
+      "length": 0,
+      "name": "",
+      "src": "function () {\n    var win = Services.wm.getMostRecentWindow(\"navigator:browser\");\n    return win ? win.ZoteroPane : null;\n  }"
+    },
+    "Zotero.getMainWindow": {
+      "type": "function",
+      "length": 0,
+      "name": "",
+      "src": "function () {\n    return Services.wm.getMostRecentWindow(\"navigator:browser\");\n  }"
+    },
+    "Zotero.File.getBinaryContentsAsync": {
+      "type": "function",
+      "length": 2,
+      "name": "",
+      "src": "async function (source, maxLength) {\n    // Use OS.File for files\n    if (source instanceof Components.interfaces.nsIFile) {\n      source = source.path;\n    } else\n    if (source.startsWith('file:')) {\n      source = OS.Path.fromFileURI(source);\n    }\n    var options = {};\n    if (maxLength) {\n     "
+    }
+  },
+  "rustLoading": {
+    "urls": {
+      "rootWasm": "jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/probe_core.wasm",
+      "chromeWasm": "chrome://zfprobe/content/probe_core.wasm",
+      "rootURIScheme": "jar"
+    },
+    "methods": {
+      "fetch(rootURI)": {
+        "ok": true,
+        "ms": 227,
+        "value": {
+          "status": 200,
+          "ok": true,
+          "type": "basic",
+          "url": "jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/probe_core.wasm",
+          "contentType": "application/wasm",
+          "verify": {
+            "bytes": 82402,
+            "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+            "call": {
+              "doi_normalized": "10.1038/nature12373",
+              "sum": 5,
+              "ok": true
+            }
+          }
+        }
+      },
+      "fetch(chrome://)": {
+        "ok": true,
+        "ms": 15,
+        "value": {
+          "status": 200,
+          "ok": true,
+          "type": "basic",
+          "url": "chrome://zfprobe/content/probe_core.wasm",
+          "contentType": "application/wasm;charset=UTF-8",
+          "verify": {
+            "bytes": 82402,
+            "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+            "call": {
+              "doi_normalized": "10.1038/nature12373",
+              "sum": 5,
+              "ok": true
+            }
+          }
+        }
+      },
+      "instantiateStreaming(fetch(chrome://))": {
+        "ok": false,
+        "ms": 3,
+        "error": "TypeError: WebAssembly: Response has unsupported MIME type 'application/wasm;charset=utf-8' expected 'application/wasm'"
+      },
+      "instantiateStreaming(fetch(rootURI))": {
+        "ok": true,
+        "ms": 49,
+        "value": {
+          "doi_normalized": "10.1038/nature12373",
+          "sum": 5,
+          "ok": true
+        }
+      },
+      "compileStreaming(new Response(buf, application/wasm))": {
+        "ok": true,
+        "ms": 25,
+        "value": {
+          "doi_normalized": "10.1038/nature12373",
+          "sum": 5,
+          "ok": true
+        }
+      },
+      "IOUtils.read(file path from rootURI)": {
+        "ok": false,
+        "ms": 0,
+        "error": "Error: rootURI is not a file: URL (jar) -- packed XPI; IOUtils cannot read inside the zip @bootstrap.js:851",
+        "stack": "probeRustLoading/<@jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/bootstrap.js:851:13 | attempt@jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/bootstrap.js:34:19 | probeRustLoading@jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/bootstrap.js:848:9"
+      },
+      "XMLHttpRequest(chrome://)": {
+        "ok": true,
+        "ms": 36,
+        "value": {
+          "status": 200,
+          "contentType": "application/wasm;charset=UTF-8",
+          "verify": {
+            "bytes": 82402,
+            "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+            "call": {
+              "doi_normalized": "10.1038/nature12373",
+              "sum": 5,
+              "ok": true
+            }
+          }
+        }
+      },
+      "XMLHttpRequest(rootURI)": {
+        "ok": true,
+        "ms": 9,
+        "value": {
+          "status": 200,
+          "contentType": "application/wasm",
+          "verify": {
+            "bytes": 82402,
+            "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+            "call": {
+              "doi_normalized": "10.1038/nature12373",
+              "sum": 5,
+              "ok": true
+            }
+          }
+        }
+      },
+      "Zotero.HTTP.request(chrome://)": {
+        "ok": true,
+        "ms": 8,
+        "value": {
+          "status": 200,
+          "verify": {
+            "bytes": 82402,
+            "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+            "call": {
+              "doi_normalized": "10.1038/nature12373",
+              "sum": 5,
+              "ok": true
+            }
+          }
+        }
+      },
+      "NetUtil.newChannel(chrome://).open() sync": {
+        "ok": true,
+        "ms": 6,
+        "value": {
+          "contentType": "application/wasm",
+          "verify": {
+            "bytes": 82402,
+            "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+            "call": {
+              "doi_normalized": "10.1038/nature12373",
+              "sum": 5,
+              "ok": true
+            }
+          }
+        }
+      },
+      "base64 in script (loadSubScript + atob)": {
+        "ok": true,
+        "ms": 15,
+        "value": {
+          "bytes": 82402,
+          "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+          "call": {
+            "doi_normalized": "10.1038/nature12373",
+            "sum": 5,
+            "ok": true
+          },
+          "expectedSha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+          "shaMatches": true
+        }
+      }
+    },
+    "bytesUsedForOtherTestsFrom": "fetch jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/probe_core.wasm",
+    "anyMethodWorked": true
+  },
+  "wasm": {
+    "bootstrapSandbox": {
+      "ok": true,
+      "ms": 174,
+      "value": {
+        "label": "bootstrap-sandbox",
+        "ranAt": "2026-10-20T13:54:37.702Z",
+        "global": {
+          "WebAssembly": "object",
+          "fetch": "function",
+          "Response": "function",
+          "Request": "function",
+          "Headers": "function",
+          "TextEncoder": "function",
+          "TextDecoder": "function",
+          "URL": "function",
+          "URLSearchParams": "function",
+          "AbortController": "undefined",
+          "AbortSignal": "undefined",
+          "crypto": "object",
+          "DOMParser": "function",
+          "XMLHttpRequest": "function",
+          "XMLSerializer": "function",
+          "Blob": "function",
+          "File": "function",
+          "FileReader": "function",
+          "atob": "function",
+          "btoa": "function",
+          "structuredClone": "undefined",
+          "queueMicrotask": "undefined",
+          "setTimeout": "function",
+          "requestIdleCallback": "function",
+          "SharedArrayBuffer": "function",
+          "Atomics": "object",
+          "BigInt": "function",
+          "ReadableStream": "undefined",
+          "WritableStream": "undefined",
+          "IOUtils": "object",
+          "PathUtils": "object",
+          "ChromeUtils": "object",
+          "Services": "object",
+          "Components": "object",
+          "Cc": "object",
+          "Ci": "object",
+          "Cu": "object",
+          "Zotero": "function",
+          "Worker": "function",
+          "ChromeWorker": "function",
+          "importScripts": "undefined",
+          "postMessage": "undefined",
+          "window": "undefined",
+          "document": "undefined",
+          "globalThis": "object",
+          "console": "undefined",
+          "dump": "function",
+          "Localization": "function",
+          "crypto.subtle": "object",
+          "globalThis.toString": "[object Object]",
+          "WebAssemblyKeys": "CompileError,Exception,Global,Instance,JSTag,LinkError,Memory,Module,RuntimeError,Table,Tag,compile,compileStreaming,instantiate,instantiateStreaming,validate"
+        },
+        "steps": {
+          "js.eval": {
+            "ok": true,
+            "ms": 0,
+            "value": 2
+          },
+          "js.newFunction": {
+            "ok": true,
+            "ms": 0,
+            "value": 4
+          },
+          "tiny.validate": {
+            "ok": true,
+            "ms": 0,
+            "value": true
+          },
+          "tiny.syncModuleInstance": {
+            "ok": true,
+            "ms": 1,
+            "value": {
+              "add_2_40": 42,
+              "exports": [
+                "add:function"
+              ]
+            }
+          },
+          "tiny.asyncInstantiate": {
+            "ok": true,
+            "ms": 0,
+            "value": 42
+          },
+          "tiny.asyncCompile": {
+            "ok": true,
+            "ms": 3,
+            "value": 2
+          },
+          "tiny.foreignBytesDirect": {
+            "ok": true,
+            "ms": 1,
+            "value": 1
+          },
+          "memoryGrow": {
+            "ok": true,
+            "ms": 0,
+            "value": {
+              "before": 65536,
+              "after": 16777216
+            }
+          },
+          "rust.validate": {
+            "ok": true,
+            "ms": 1,
+            "value": true
+          },
+          "rust.syncCompileInstantiateCall": {
+            "ok": true,
+            "ms": 6,
+            "value": {
+              "i64ReturnType": "bigint",
+              "abi": 1,
+              "add": 42,
+              "memoryBytes": 1179648,
+              "output": {
+                "abi": 1,
+                "doi_normalized": "10.1000/abc.def",
+                "echo_keys": [
+                  "doi",
+                  "numbers",
+                  "text"
+                ],
+                "engine": "rust-wasm32-unknown-unknown",
+                "ok": true,
+                "sum": 6.5,
+                "text_chars": 11,
+                "text_upper": "HÉLLO WÖRLD"
+              },
+              "compileMs": 6,
+              "instantiateMs": 0,
+              "imports": 0
+            }
+          },
+          "rust.asyncInstantiateCall": {
+            "ok": true,
+            "ms": 18,
+            "value": {
+              "i64ReturnType": "bigint",
+              "abi": 1,
+              "add": 42,
+              "memoryBytes": 1179648,
+              "output": {
+                "abi": 1,
+                "doi_normalized": "10.1000/abc.def",
+                "echo_keys": [
+                  "doi",
+                  "numbers",
+                  "text"
+                ],
+                "engine": "rust-wasm32-unknown-unknown",
+                "ok": true,
+                "sum": 6.5,
+                "text_chars": 11,
+                "text_upper": "HÉLLO WÖRLD"
+              }
+            }
+          },
+          "rust.badJsonErrorPath": {
+            "ok": true,
+            "ms": 15,
+            "value": {
+              "error": "invalid JSON: key must be a string at line 1 column 2",
+              "ok": false
+            }
+          },
+          "rust.manyCallsNoLeak": {
+            "ok": true,
+            "ms": 125,
+            "value": {
+              "calls": 2000,
+              "ms": 102,
+              "memoryBytes": 1179648
+            }
+          }
+        },
+        "typeofWebAssembly": "object",
+        "streamingApis": {
+          "instantiateStreaming": "function",
+          "compileStreaming": "function"
+        }
+      }
+    },
+    "esModule": {
+      "ok": true,
+      "ms": 168,
+      "value": {
+        "loadedAt": "2026-10-20T13:54:37.879Z",
+        "describe": {
+          "WebAssembly": "object",
+          "fetch": "function",
+          "Response": "function",
+          "Request": "function",
+          "Headers": "function",
+          "TextEncoder": "function",
+          "TextDecoder": "function",
+          "URL": "function",
+          "URLSearchParams": "function",
+          "AbortController": "function",
+          "AbortSignal": "function",
+          "crypto": "object",
+          "DOMParser": "function",
+          "XMLHttpRequest": "function",
+          "XMLSerializer": "function",
+          "Blob": "function",
+          "File": "function",
+          "FileReader": "function",
+          "atob": "function",
+          "btoa": "function",
+          "structuredClone": "function",
+          "queueMicrotask": "undefined",
+          "setTimeout": "function",
+          "requestIdleCallback": "undefined",
+          "SharedArrayBuffer": "function",
+          "Atomics": "object",
+          "BigInt": "function",
+          "ReadableStream": "function",
+          "WritableStream": "function",
+          "IOUtils": "object",
+          "PathUtils": "object",
+          "ChromeUtils": "object",
+          "Services": "object",
+          "Components": "object",
+          "Cc": "object",
+          "Ci": "object",
+          "Cu": "object",
+          "Zotero": "function",
+          "Worker": "function",
+          "ChromeWorker": "function",
+          "importScripts": "undefined",
+          "postMessage": "undefined",
+          "window": "undefined",
+          "document": "undefined",
+          "globalThis": "object",
+          "console": "object",
+          "dump": "function",
+          "Localization": "function",
+          "crypto.subtle": "object",
+          "globalThis.toString": "[object Object]",
+          "WebAssemblyKeys": "CompileError,Exception,Global,Instance,JSTag,LinkError,Memory,Module,RuntimeError,Table,Tag,compile,compileStreaming,instantiate,instantiateStreaming,toSource,validate",
+          "import.meta.url": "chrome://zfprobe/content/probe-module.mjs"
+        },
+        "tests": {
+          "label": "esm-shared-global",
+          "ranAt": "2026-10-20T13:54:37.882Z",
+          "global": {
+            "WebAssembly": "object",
+            "fetch": "function",
+            "Response": "function",
+            "Request": "function",
+            "Headers": "function",
+            "TextEncoder": "function",
+            "TextDecoder": "function",
+            "URL": "function",
+            "URLSearchParams": "function",
+            "AbortController": "function",
+            "AbortSignal": "function",
+            "crypto": "object",
+            "DOMParser": "function",
+            "XMLHttpRequest": "function",
+            "XMLSerializer": "function",
+            "Blob": "function",
+            "File": "function",
+            "FileReader": "function",
+            "atob": "function",
+            "btoa": "function",
+            "structuredClone": "function",
+            "queueMicrotask": "undefined",
+            "setTimeout": "function",
+            "requestIdleCallback": "undefined",
+            "SharedArrayBuffer": "function",
+            "Atomics": "object",
+            "BigInt": "function",
+            "ReadableStream": "function",
+            "WritableStream": "function",
+            "IOUtils": "object",
+            "PathUtils": "object",
+            "ChromeUtils": "object",
+            "Services": "object",
+            "Components": "object",
+            "Cc": "object",
+            "Ci": "object",
+            "Cu": "object",
+            "Zotero": "function",
+            "Worker": "function",
+            "ChromeWorker": "function",
+            "importScripts": "undefined",
+            "postMessage": "undefined",
+            "window": "undefined",
+            "document": "undefined",
+            "globalThis": "object",
+            "console": "object",
+            "dump": "function",
+            "Localization": "function",
+            "crypto.subtle": "object",
+            "globalThis.toString": "[object Object]",
+            "WebAssemblyKeys": "CompileError,Exception,Global,Instance,JSTag,LinkError,Memory,Module,RuntimeError,Table,Tag,compile,compileStreaming,instantiate,instantiateStreaming,toSource,validate"
+          },
+          "steps": {
+            "js.eval": {
+              "ok": true,
+              "ms": 1,
+              "value": 2
+            },
+            "js.newFunction": {
+              "ok": true,
+              "ms": 0,
+              "value": 4
+            },
+            "tiny.validate": {
+              "ok": true,
+              "ms": 0,
+              "value": true
+            },
+            "tiny.syncModuleInstance": {
+              "ok": true,
+              "ms": 1,
+              "value": {
+                "add_2_40": 42,
+                "exports": [
+                  "add:function"
+                ]
+              }
+            },
+            "tiny.asyncInstantiate": {
+              "ok": true,
+              "ms": 16,
+              "value": 42
+            },
+            "tiny.asyncCompile": {
+              "ok": true,
+              "ms": 1,
+              "value": 2
+            },
+            "tiny.foreignBytesDirect": {
+              "ok": true,
+              "ms": 0,
+              "value": 1
+            },
+            "memoryGrow": {
+              "ok": true,
+              "ms": 0,
+              "value": {
+                "before": 65536,
+                "after": 16777216
+              }
+            },
+            "rust.validate": {
+              "ok": true,
+              "ms": 1,
+              "value": true
+            },
+            "rust.syncCompileInstantiateCall": {
+              "ok": true,
+              "ms": 12,
+              "value": {
+                "i64ReturnType": "bigint",
+                "abi": 1,
+                "add": 42,
+                "memoryBytes": 1179648,
+                "output": {
+                  "abi": 1,
+                  "doi_normalized": "10.1000/abc.def",
+                  "echo_keys": [
+                    "doi",
+                    "numbers",
+                    "text"
+                  ],
+                  "engine": "rust-wasm32-unknown-unknown",
+                  "ok": true,
+                  "sum": 6.5,
+                  "text_chars": 11,
+                  "text_upper": "HÉLLO WÖRLD"
+                },
+                "compileMs": 5,
+                "instantiateMs": 7,
+                "imports": 0
+              }
+            },
+            "rust.asyncInstantiateCall": {
+              "ok": true,
+              "ms": 14,
+              "value": {
+                "i64ReturnType": "bigint",
+                "abi": 1,
+                "add": 42,
+                "memoryBytes": 1179648,
+                "output": {
+                  "abi": 1,
+                  "doi_normalized": "10.1000/abc.def",
+                  "echo_keys": [
+                    "doi",
+                    "numbers",
+                    "text"
+                  ],
+                  "engine": "rust-wasm32-unknown-unknown",
+                  "ok": true,
+                  "sum": 6.5,
+                  "text_chars": 11,
+                  "text_upper": "HÉLLO WÖRLD"
+                }
+              }
+            },
+            "rust.badJsonErrorPath": {
+              "ok": true,
+              "ms": 11,
+              "value": {
+                "error": "invalid JSON: key must be a string at line 1 column 2",
+                "ok": false
+              }
+            },
+            "rust.manyCallsNoLeak": {
+              "ok": true,
+              "ms": 75,
+              "value": {
+                "calls": 2000,
+                "ms": 63,
+                "memoryBytes": 1179648
+              }
+            }
+          },
+          "typeofWebAssembly": "object",
+          "streamingApis": {
+            "instantiateStreaming": "function",
+            "compileStreaming": "function"
+          }
+        },
+        "direct": {
+          "typeofWebAssembly": "object",
+          "add": 3,
+          "ok": true,
+          "fetchChromeFromEsm": {
+            "ok": true,
+            "status": 200,
+            "bytes": 82402
+          }
+        }
+      }
+    },
+    "chromeWorker": {
+      "ok": true,
+      "ms": 96,
+      "value": {
+        "constructor": "chromeworker",
+        "importScriptsError": null,
+        "fetchChromeInWorker": {
+          "ok": true,
+          "status": 200,
+          "bytes": 82402,
+          "add": 11
+        },
+        "instantiateStreamingInWorker": {
+          "ok": false,
+          "error": "TypeError: WebAssembly: Response has unsupported MIME type 'application/wasm;charset=utf-8' expected 'application/wasm'"
+        },
+        "tests": {
+          "label": "chromeworker",
+          "ranAt": "2026-10-20T13:54:38.057Z",
+          "global": {
+            "WebAssembly": "object",
+            "fetch": "function",
+            "Response": "function",
+            "Request": "function",
+            "Headers": "function",
+            "TextEncoder": "function",
+            "TextDecoder": "function",
+            "URL": "function",
+            "URLSearchParams": "function",
+            "AbortController": "function",
+            "AbortSignal": "function",
+            "crypto": "object",
+            "DOMParser": "undefined",
+            "XMLHttpRequest": "function",
+            "XMLSerializer": "undefined",
+            "Blob": "function",
+            "File": "function",
+            "FileReader": "function",
+            "atob": "function",
+            "btoa": "function",
+            "structuredClone": "function",
+            "queueMicrotask": "function",
+            "setTimeout": "function",
+            "requestIdleCallback": "undefined",
+            "SharedArrayBuffer": "function",
+            "Atomics": "object",
+            "BigInt": "function",
+            "ReadableStream": "function",
+            "WritableStream": "function",
+            "IOUtils": "object",
+            "PathUtils": "object",
+            "ChromeUtils": "object",
+            "Services": "undefined",
+            "Components": "undefined",
+            "Cc": "undefined",
+            "Ci": "undefined",
+            "Cu": "undefined",
+            "Zotero": "undefined",
+            "Worker": "function",
+            "ChromeWorker": "function",
+            "importScripts": "function",
+            "postMessage": "function",
+            "window": "undefined",
+            "document": "undefined",
+            "globalThis": "object",
+            "console": "object",
+            "dump": "function",
+            "Localization": "undefined",
+            "crypto.subtle": "object",
+            "globalThis.toString": "[object DedicatedWorkerGlobalScope]",
+            "WebAssemblyKeys": "CompileError,Exception,Global,Instance,JSTag,LinkError,Memory,Module,RuntimeError,Table,Tag,compile,compileStreaming,instantiate,instantiateStreaming,toSource,validate"
+          },
+          "steps": {
+            "js.eval": {
+              "ok": true,
+              "ms": 0,
+              "value": 2
+            },
+            "js.newFunction": {
+              "ok": true,
+              "ms": 0,
+              "value": 4
+            },
+            "tiny.validate": {
+              "ok": true,
+              "ms": 0,
+              "value": true
+            },
+            "tiny.syncModuleInstance": {
+              "ok": true,
+              "ms": 0,
+              "value": {
+                "add_2_40": 42,
+                "exports": [
+                  "add:function"
+                ]
+              }
+            },
+            "tiny.asyncInstantiate": {
+              "ok": true,
+              "ms": 1,
+              "value": 42
+            },
+            "tiny.asyncCompile": {
+              "ok": true,
+              "ms": 0,
+              "value": 2
+            },
+            "tiny.foreignBytesDirect": {
+              "ok": true,
+              "ms": 0,
+              "value": 1
+            },
+            "memoryGrow": {
+              "ok": true,
+              "ms": 1,
+              "value": {
+                "before": 65536,
+                "after": 16777216
+              }
+            },
+            "rust.validate": {
+              "ok": true,
+              "ms": 1,
+              "value": true
+            },
+            "rust.syncCompileInstantiateCall": {
+              "ok": true,
+              "ms": 3,
+              "value": {
+                "i64ReturnType": "bigint",
+                "abi": 1,
+                "add": 42,
+                "memoryBytes": 1179648,
+                "output": {
+                  "abi": 1,
+                  "doi_normalized": "10.1000/abc.def",
+                  "echo_keys": [
+                    "doi",
+                    "numbers",
+                    "text"
+                  ],
+                  "engine": "rust-wasm32-unknown-unknown",
+                  "ok": true,
+                  "sum": 6.5,
+                  "text_chars": 11,
+                  "text_upper": "HÉLLO WÖRLD"
+                },
+                "compileMs": 3,
+                "instantiateMs": 0,
+                "imports": 0
+              }
+            },
+            "rust.asyncInstantiateCall": {
+              "ok": true,
+              "ms": 3,
+              "value": {
+                "i64ReturnType": "bigint",
+                "abi": 1,
+                "add": 42,
+                "memoryBytes": 1179648,
+                "output": {
+                  "abi": 1,
+                  "doi_normalized": "10.1000/abc.def",
+                  "echo_keys": [
+                    "doi",
+                    "numbers",
+                    "text"
+                  ],
+                  "engine": "rust-wasm32-unknown-unknown",
+                  "ok": true,
+                  "sum": 6.5,
+                  "text_chars": 11,
+                  "text_upper": "HÉLLO WÖRLD"
+                }
+              }
+            },
+            "rust.badJsonErrorPath": {
+              "ok": true,
+              "ms": 4,
+              "value": {
+                "error": "invalid JSON: key must be a string at line 1 column 2",
+                "ok": false
+              }
+            },
+            "rust.manyCallsNoLeak": {
+              "ok": true,
+              "ms": 48,
+              "value": {
+                "calls": 2000,
+                "ms": 45,
+                "memoryBytes": 1179648
+              }
+            }
+          },
+          "typeofWebAssembly": "object",
+          "streamingApis": {
+            "instantiateStreaming": "function",
+            "compileStreaming": "function"
+          }
+        }
+      }
+    },
+    "worker": {
+      "ok": true,
+      "ms": 228,
+      "value": {
+        "constructor": "worker",
+        "importScriptsError": null,
+        "fetchChromeInWorker": {
+          "ok": true,
+          "status": 200,
+          "bytes": 82402,
+          "add": 11
+        },
+        "instantiateStreamingInWorker": {
+          "ok": false,
+          "error": "TypeError: WebAssembly: Response has unsupported MIME type 'application/wasm;charset=utf-8' expected 'application/wasm'"
+        },
+        "tests": {
+          "label": "worker",
+          "ranAt": "2026-10-20T13:54:38.154Z",
+          "global": {
+            "WebAssembly": "object",
+            "fetch": "function",
+            "Response": "function",
+            "Request": "function",
+            "Headers": "function",
+            "TextEncoder": "function",
+            "TextDecoder": "function",
+            "URL": "function",
+            "URLSearchParams": "function",
+            "AbortController": "function",
+            "AbortSignal": "function",
+            "crypto": "object",
+            "DOMParser": "undefined",
+            "XMLHttpRequest": "function",
+            "XMLSerializer": "undefined",
+            "Blob": "function",
+            "File": "function",
+            "FileReader": "function",
+            "atob": "function",
+            "btoa": "function",
+            "structuredClone": "function",
+            "queueMicrotask": "function",
+            "setTimeout": "function",
+            "requestIdleCallback": "undefined",
+            "SharedArrayBuffer": "undefined",
+            "Atomics": "object",
+            "BigInt": "function",
+            "ReadableStream": "function",
+            "WritableStream": "function",
+            "IOUtils": "object",
+            "PathUtils": "object",
+            "ChromeUtils": "object",
+            "Services": "undefined",
+            "Components": "undefined",
+            "Cc": "undefined",
+            "Ci": "undefined",
+            "Cu": "undefined",
+            "Zotero": "undefined",
+            "Worker": "function",
+            "ChromeWorker": "undefined",
+            "importScripts": "function",
+            "postMessage": "function",
+            "window": "undefined",
+            "document": "undefined",
+            "globalThis": "object",
+            "console": "object",
+            "dump": "function",
+            "Localization": "undefined",
+            "crypto.subtle": "object",
+            "globalThis.toString": "[object DedicatedWorkerGlobalScope]",
+            "WebAssemblyKeys": "CompileError,Exception,Global,Instance,JSTag,LinkError,Memory,Module,RuntimeError,Table,Tag,compile,compileStreaming,instantiate,instantiateStreaming,toSource,validate"
+          },
+          "steps": {
+            "js.eval": {
+              "ok": true,
+              "ms": 0,
+              "value": 2
+            },
+            "js.newFunction": {
+              "ok": true,
+              "ms": 0,
+              "value": 4
+            },
+            "tiny.validate": {
+              "ok": true,
+              "ms": 1,
+              "value": true
+            },
+            "tiny.syncModuleInstance": {
+              "ok": true,
+              "ms": 0,
+              "value": {
+                "add_2_40": 42,
+                "exports": [
+                  "add:function"
+                ]
+              }
+            },
+            "tiny.asyncInstantiate": {
+              "ok": true,
+              "ms": 0,
+              "value": 42
+            },
+            "tiny.asyncCompile": {
+              "ok": true,
+              "ms": 1,
+              "value": 2
+            },
+            "tiny.foreignBytesDirect": {
+              "ok": true,
+              "ms": 0,
+              "value": 1
+            },
+            "memoryGrow": {
+              "ok": true,
+              "ms": 0,
+              "value": {
+                "before": 65536,
+                "after": 16777216
+              }
+            },
+            "rust.validate": {
+              "ok": true,
+              "ms": 1,
+              "value": true
+            },
+            "rust.syncCompileInstantiateCall": {
+              "ok": true,
+              "ms": 4,
+              "value": {
+                "i64ReturnType": "bigint",
+                "abi": 1,
+                "add": 42,
+                "memoryBytes": 1179648,
+                "output": {
+                  "abi": 1,
+                  "doi_normalized": "10.1000/abc.def",
+                  "echo_keys": [
+                    "doi",
+                    "numbers",
+                    "text"
+                  ],
+                  "engine": "rust-wasm32-unknown-unknown",
+                  "ok": true,
+                  "sum": 6.5,
+                  "text_chars": 11,
+                  "text_upper": "HÉLLO WÖRLD"
+                },
+                "compileMs": 3,
+                "instantiateMs": 0,
+                "imports": 0
+              }
+            },
+            "rust.asyncInstantiateCall": {
+              "ok": true,
+              "ms": 7,
+              "value": {
+                "i64ReturnType": "bigint",
+                "abi": 1,
+                "add": 42,
+                "memoryBytes": 1179648,
+                "output": {
+                  "abi": 1,
+                  "doi_normalized": "10.1000/abc.def",
+                  "echo_keys": [
+                    "doi",
+                    "numbers",
+                    "text"
+                  ],
+                  "engine": "rust-wasm32-unknown-unknown",
+                  "ok": true,
+                  "sum": 6.5,
+                  "text_chars": 11,
+                  "text_upper": "HÉLLO WÖRLD"
+                }
+              }
+            },
+            "rust.badJsonErrorPath": {
+              "ok": true,
+              "ms": 13,
+              "value": {
+                "error": "invalid JSON: key must be a string at line 1 column 2",
+                "ok": false
+              }
+            },
+            "rust.manyCallsNoLeak": {
+              "ok": true,
+              "ms": 153,
+              "value": {
+                "calls": 2000,
+                "ms": 137,
+                "memoryBytes": 1179648
+              }
+            }
+          },
+          "typeofWebAssembly": "object",
+          "streamingApis": {
+            "instantiateStreaming": "function",
+            "compileStreaming": "function"
+          }
+        }
+      }
+    },
+    "nullPrincipalSandbox": {
+      "ok": true,
+      "ms": 1,
+      "value": "{\"typeofWebAssembly\":\"object\",\"add\":7}"
+    }
+  },
+  "mainWindow": {
+    "source": "Zotero.getMainWindow-fallback",
+    "info": {
+      "href": "chrome://zotero/content/zoteroPane.xhtml",
+      "readyState": "complete",
+      "title": "My Library - Zotero",
+      "typeofZoteroPane": "object",
+      "typeofWebAssembly": "object",
+      "innerWidth": 1000,
+      "innerHeight": 600,
+      "itemsViewExists": true,
+      "itemContextMenuExists": true
+    },
+    "csp": {
+      "policyCount": 0,
+      "policies": []
+    },
+    "loadSubScriptIntoWindow": {
+      "ok": true,
+      "ms": 1,
+      "value": "function"
+    },
+    "wasmTests": {
+      "ok": true,
+      "ms": 68,
+      "value": {
+        "label": "main-window",
+        "ranAt": "2026-10-20T13:54:48.447Z",
+        "global": {
+          "WebAssembly": "object",
+          "fetch": "function",
+          "Response": "function",
+          "Request": "function",
+          "Headers": "function",
+          "TextEncoder": "function",
+          "TextDecoder": "function",
+          "URL": "function",
+          "URLSearchParams": "function",
+          "AbortController": "function",
+          "AbortSignal": "function",
+          "crypto": "object",
+          "DOMParser": "function",
+          "XMLHttpRequest": "function",
+          "XMLSerializer": "function",
+          "Blob": "function",
+          "File": "function",
+          "FileReader": "function",
+          "atob": "function",
+          "btoa": "function",
+          "structuredClone": "function",
+          "queueMicrotask": "function",
+          "setTimeout": "function",
+          "requestIdleCallback": "function",
+          "SharedArrayBuffer": "undefined",
+          "Atomics": "object",
+          "BigInt": "function",
+          "ReadableStream": "function",
+          "WritableStream": "function",
+          "IOUtils": "object",
+          "PathUtils": "object",
+          "ChromeUtils": "object",
+          "Services": "object",
+          "Components": "object",
+          "Cc": "object",
+          "Ci": "object",
+          "Cu": "object",
+          "Zotero": "function",
+          "Worker": "function",
+          "ChromeWorker": "function",
+          "importScripts": "undefined",
+          "postMessage": "function",
+          "window": "object",
+          "document": "object",
+          "globalThis": "object",
+          "console": "object",
+          "dump": "function",
+          "Localization": "function",
+          "crypto.subtle": "object",
+          "globalThis.toString": "[object Window]",
+          "WebAssemblyKeys": "CompileError,Exception,Global,Instance,JSTag,LinkError,Memory,Module,RuntimeError,Table,Tag,compile,compileStreaming,instantiate,instantiateStreaming,toSource,validate"
+        },
+        "steps": {
+          "js.eval": {
+            "ok": true,
+            "ms": 0,
+            "value": 2
+          },
+          "js.newFunction": {
+            "ok": true,
+            "ms": 0,
+            "value": 4
+          },
+          "tiny.validate": {
+            "ok": true,
+            "ms": 0,
+            "value": true
+          },
+          "tiny.syncModuleInstance": {
+            "ok": true,
+            "ms": 1,
+            "value": {
+              "add_2_40": 42,
+              "exports": [
+                "add:function"
+              ]
+            }
+          },
+          "tiny.asyncInstantiate": {
+            "ok": true,
+            "ms": 1,
+            "value": 42
+          },
+          "tiny.asyncCompile": {
+            "ok": true,
+            "ms": 0,
+            "value": 2
+          },
+          "tiny.foreignBytesDirect": {
+            "ok": true,
+            "ms": 0,
+            "value": 1
+          },
+          "memoryGrow": {
+            "ok": true,
+            "ms": 1,
+            "value": {
+              "before": 65536,
+              "after": 16777216
+            }
+          },
+          "rust.validate": {
+            "ok": true,
+            "ms": 1,
+            "value": true
+          },
+          "rust.syncCompileInstantiateCall": {
+            "ok": true,
+            "ms": 2,
+            "value": {
+              "i64ReturnType": "bigint",
+              "abi": 1,
+              "add": 42,
+              "memoryBytes": 1179648,
+              "output": {
+                "abi": 1,
+                "doi_normalized": "10.1000/abc.def",
+                "echo_keys": [
+                  "doi",
+                  "numbers",
+                  "text"
+                ],
+                "engine": "rust-wasm32-unknown-unknown",
+                "ok": true,
+                "sum": 6.5,
+                "text_chars": 11,
+                "text_upper": "HÉLLO WÖRLD"
+              },
+              "compileMs": 2,
+              "instantiateMs": 0,
+              "imports": 0
+            }
+          },
+          "rust.asyncInstantiateCall": {
+            "ok": true,
+            "ms": 4,
+            "value": {
+              "i64ReturnType": "bigint",
+              "abi": 1,
+              "add": 42,
+              "memoryBytes": 1179648,
+              "output": {
+                "abi": 1,
+                "doi_normalized": "10.1000/abc.def",
+                "echo_keys": [
+                  "doi",
+                  "numbers",
+                  "text"
+                ],
+                "engine": "rust-wasm32-unknown-unknown",
+                "ok": true,
+                "sum": 6.5,
+                "text_chars": 11,
+                "text_upper": "HÉLLO WÖRLD"
+              }
+            }
+          },
+          "rust.badJsonErrorPath": {
+            "ok": true,
+            "ms": 6,
+            "value": {
+              "error": "invalid JSON: key must be a string at line 1 column 2",
+              "ok": false
+            }
+          },
+          "rust.manyCallsNoLeak": {
+            "ok": true,
+            "ms": 49,
+            "value": {
+              "calls": 2000,
+              "ms": 45,
+              "memoryBytes": 1179648
+            }
+          }
+        },
+        "typeofWebAssembly": "object",
+        "streamingApis": {
+          "instantiateStreaming": "function",
+          "compileStreaming": "function"
+        }
+      }
+    },
+    "AbortControllerFromWindow": {
+      "ok": true,
+      "ms": 0,
+      "value": true
+    }
+  },
+  "menuManagerLiveTest": {
+    "registerAndUnregister": {
+      "ok": true,
+      "ms": 0,
+      "value": {
+        "registerReturned": "probe\\@zotero-fulltext\\.local-zfprobe-test-menu",
+        "unregisterReturned": true
+      }
+    }
+  },
+  "headless": {
+    "atStartup": {
+      "mainWindowExists": true,
+      "mainWindowReadyState": "complete",
+      "mainWindowHref": "chrome://zotero/content/zoteroPane.xhtml",
+      "openWindows": [
+        "chrome://zotero/content/zoteroPane.xhtml"
+      ]
+    },
+    "uiReadyResolved": true,
+    "uiReadyAtMs": 1236,
+    "onMainWindowLoadFired": false,
+    "onMainWindowLoadEvents": [
+      {
+        "atMs": 12011,
+        "href": "chrome://zotero/content/zoteroPane.xhtml",
+        "readyState": "complete"
+      }
+    ],
+    "afterWait": {
+      "getMainWindowExists": true,
+      "readyState": "complete",
+      "openWindows": [
+        "chrome://zotero/content/zoteroPane.xhtml"
+      ]
+    },
+    "onMainWindowLoadFiredByFinish": true,
+    "onMainWindowLoadEventsByFinish": [
+      {
+        "atMs": 12011,
+        "href": "chrome://zotero/content/zoteroPane.xhtml",
+        "readyState": "complete"
+      }
+    ]
+  },
+  "secondMainWindow": {
+    "openMainWindowAfterStartup": {
+      "ok": true,
+      "ms": 3252,
+      "value": {
+        "onMainWindowLoadFired": true,
+        "event": {
+          "atMs": 12011,
+          "href": "chrome://zotero/content/zoteroPane.xhtml",
+          "readyState": "complete"
+        },
+        "mainWindowsBefore": 1,
+        "mainWindowsAfterOpen": 2,
+        "closedNewWindows": 1,
+        "mainWindowsAfterClose": 1
+      }
+    }
+  },
+  "cookieJarAndAttachSim": {
+    "base": "http://127.0.0.1:61002",
+    "steps": {
+      "01 Zotero.HTTP.request sets cookie zh": {
+        "ok": true,
+        "ms": 17,
+        "value": {
+          "status": 200
+        }
+      },
+      "02 fetch default credentials -> echo": {
+        "ok": true,
+        "ms": 31,
+        "value": {
+          "cookie": null
+        }
+      },
+      "03 fetch credentials:include -> echo": {
+        "ok": true,
+        "ms": 25,
+        "value": {
+          "cookie": "zh=1"
+        }
+      },
+      "04 Zotero.HTTP.request -> echo": {
+        "ok": true,
+        "ms": 85,
+        "value": {
+          "cookie": "zh=1"
+        }
+      },
+      "05 XHR withCredentials=false -> echo": {
+        "ok": true,
+        "ms": 10,
+        "value": {
+          "cookie": null
+        }
+      },
+      "06 fetch credentials:include sets cookie fe": {
+        "ok": true,
+        "ms": 10,
+        "value": {
+          "status": 200
+        }
+      },
+      "07 Zotero.HTTP.request -> echo (sees fe?)": {
+        "ok": true,
+        "ms": 27,
+        "value": {
+          "cookie": "zh=1; fe=1"
+        }
+      },
+      "08 Attachments.downloadFile protected.pdf BEFORE login (expect fail)": {
+        "ok": false,
+        "ms": 72,
+        "error": "Error: Downloaded file was not a supported type (PDF or EPUB)",
+        "stack": "Zotero.Attachments</this.InvalidPDFException@chrome://zotero/content/xpcom/attachments.js:1245:18 | _enforceFileType@chrome://zotero/content/xpcom/attachments.js:1238:13 | "
+      },
+      "09 openInViewer(/login) sets HttpOnly sess cookie in a content <browser>": {
+        "ok": true,
+        "ms": 1714,
+        "value": {
+          "loginRequestSeen": true,
+          "viewerTitle": "simulated SSO done",
+          "browser": {
+            "remote": "true",
+            "isRemoteBrowser": true,
+            "currentURI": "http://127.0.0.1:61002/login?via=viewer",
+            "userContextId": null
+          }
+        }
+      },
+      "10 Attachments.downloadFile protected.pdf AFTER login": {
+        "ok": true,
+        "ms": 63,
+        "value": {
+          "size": 193,
+          "head": "%PDF-1.4"
+        }
+      },
+      "11 fetch credentials:include protected.pdf AFTER login": {
+        "ok": true,
+        "ms": 20,
+        "value": {
+          "status": 200,
+          "url": "http://127.0.0.1:61002/protected.pdf?via=fetch-postlogin",
+          "contentType": "application/pdf",
+          "redirected": false
+        }
+      },
+      "12 fetch default credentials protected.pdf AFTER login": {
+        "ok": true,
+        "ms": 18,
+        "value": {
+          "status": 200,
+          "url": "http://127.0.0.1:61002/login-form?via=redirect",
+          "contentType": "text/html",
+          "redirected": true
+        }
+      },
+      "13 create journalArticle item with DOI": {
+        "ok": true,
+        "ms": 515,
+        "value": {
+          "id": 1,
+          "key": "FYE7DNKS",
+          "canFindFileForItem": true
+        }
+      },
+      "14 getFileResolvers(item) shape": {
+        "ok": true,
+        "ms": 0,
+        "value": [
+          {
+            "pageURL": "https://doi.org/10.5555/zfprobe.1",
+            "accessMethod": "doi"
+          },
+          {
+            "pageURL": "http://127.0.0.1:61002/landing?via=item-url-field",
+            "accessMethod": "url"
+          },
+          "[async function]"
+        ]
+      },
+      "15 addFileFromURLs(item, [{url: protected.pdf}]) with Zotero.test=true": {
+        "ok": true,
+        "ms": 237,
+        "value": {
+          "id": 2,
+          "key": "SQBPEGLX",
+          "parentID": 1,
+          "linkMode": 1,
+          "contentType": "application/pdf",
+          "title": "Full Text",
+          "url": "http://127.0.0.1:61002/protected.pdf?via=addFileFromURLs-url",
+          "fileExists": true,
+          "path": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\data\\storage\\SQBPEGLX\\zfprobe test article.pdf"
+        }
+      },
+      "16 addFileFromURLs(item2, [{pageURL: landing}]) -> translator finds citation_pdf_url?": {
+        "ok": true,
+        "ms": 778,
+        "value": {
+          "id": 4,
+          "key": "354UQWCB",
+          "parentID": 3,
+          "linkMode": 1,
+          "contentType": "application/pdf",
+          "title": "Full Text PDF",
+          "url": "http://127.0.0.1:61002/protected.pdf?via=citation_pdf_url",
+          "fileExists": true,
+          "path": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\data\\storage\\354UQWCB\\zfprobe landing test.pdf"
+        }
+      },
+      "17 addFileFromURLs with plain http URL and Zotero.test=false (https forcing)": {
+        "ok": true,
+        "ms": 30221,
+        "value": false
+      },
+      "18 Zotero.HTTP.processDocuments(/doc)": {
+        "ok": true,
+        "ms": 21,
+        "value": [
+          "processDocuments page"
+        ]
+      }
+    },
+    "jarAfterZhttpSet": [
+      {
+        "name": "zh",
+        "value": "1",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": false,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      }
+    ],
+    "jarBeforeLogin": [
+      {
+        "name": "zh",
+        "value": "1",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": false,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      },
+      {
+        "name": "fe",
+        "value": "1",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": false,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      }
+    ],
+    "jarAfterViewerLogin": [
+      {
+        "name": "zh",
+        "value": "1",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": false,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      },
+      {
+        "name": "fe",
+        "value": "1",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": false,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      },
+      {
+        "name": "sess",
+        "value": "ok",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": true,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      }
+    ],
+    "jarFinal": [
+      {
+        "name": "zh",
+        "value": "1",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": false,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      },
+      {
+        "name": "fe",
+        "value": "1",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": false,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      },
+      {
+        "name": "sess",
+        "value": "ok",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": true,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      },
+      {
+        "name": "pd",
+        "value": "1",
+        "host": "127.0.0.1",
+        "path": "/",
+        "isSession": true,
+        "isHttpOnly": false,
+        "sameSite": 256,
+        "partitionKey": "",
+        "userContextId": 0
+      }
+    ],
+    "serverLog": [
+      {
+        "atMs": 14587,
+        "path": "/set-cookie",
+        "via": "zhttp-set",
+        "cookie": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 14606,
+        "path": "/echo",
+        "via": "fetch-default",
+        "cookie": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 14637,
+        "path": "/echo",
+        "via": "fetch-include",
+        "cookie": "zh=1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 14733,
+        "path": "/echo",
+        "via": "zhttp",
+        "cookie": "zh=1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 14746,
+        "path": "/echo",
+        "via": "xhr",
+        "cookie": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 14760,
+        "path": "/set-cookie",
+        "via": "fetch-set",
+        "cookie": "zh=1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 14788,
+        "path": "/echo",
+        "via": "zhttp-after-fetch-set",
+        "cookie": "zh=1; fe=1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 14809,
+        "path": "/protected.pdf",
+        "via": "downloadFile-prelogin",
+        "cookie": "zh=1; fe=1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 14818,
+        "path": "/login-form",
+        "via": "redirect",
+        "cookie": "zh=1; fe=1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 14986,
+        "path": "/login",
+        "via": "viewer",
+        "cookie": "zh=1; fe=1",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+      },
+      {
+        "atMs": 16625,
+        "path": "/protected.pdf",
+        "via": "downloadFile-postlogin",
+        "cookie": "zh=1; fe=1; sess=ok",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 16672,
+        "path": "/protected.pdf",
+        "via": "fetch-postlogin",
+        "cookie": "zh=1; fe=1; sess=ok",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 16681,
+        "path": "/protected.pdf",
+        "via": "fetch-default-postlogin",
+        "cookie": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 16689,
+        "path": "/login-form",
+        "via": "redirect",
+        "cookie": null,
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 17239,
+        "path": "/protected.pdf",
+        "via": "addFileFromURLs-url",
+        "cookie": "zh=1; fe=1; sess=ok",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 17784,
+        "path": "/landing",
+        "via": "addFileFromURLs-pageURL",
+        "cookie": "zh=1; fe=1; sess=ok",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      },
+      {
+        "atMs": 17870,
+        "path": "/protected.pdf",
+        "via": "citation_pdf_url",
+        "cookie": "zh=1; fe=1; sess=ok",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": "http://127.0.0.1:61002/landing?via=addFileFromURLs-pageURL",
+        "accept": "*/*"
+      },
+      {
+        "atMs": 48460,
+        "path": "/doc",
+        "via": "processDocuments",
+        "cookie": "zh=1; fe=1; sess=ok",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:140.0) Gecko/20100101 Firefox/140.0 Zotero/10.0.6",
+        "referer": null,
+        "accept": "*/*"
+      }
+    ],
+    "run": {
+      "ok": true,
+      "ms": 33920,
+      "value": {
+        "base": "http://127.0.0.1:61002",
+        "requests": 18
+      }
+    }
+  },
+  "wasmBindgen": {
+    "web.importESModule(.js).defaultInit": {
+      "ok": true,
+      "ms": 22,
+      "value": {
+        "add": 5,
+        "processJson": {
+          "doi_normalized": "10.1000/abc",
+          "engine": "rust-wasm-bindgen",
+          "ok": true,
+          "text_upper": "WBG OK"
+        },
+        "failIfEmpty": "threw: input was empty",
+        "failIfEmptyOk": 3
+      }
+    },
+    "fetch wbg wasm bytes": {
+      "ok": true,
+      "ms": 2,
+      "value": 73201
+    },
+    "web.importESModule(.mjs).initSync({module}) naive cross-compartment object": {
+      "ok": false,
+      "ms": 2,
+      "error": "TypeError: first argument must be an ArrayBuffer or typed array object @probe_wbg.mjs:246",
+      "stack": "initSync@chrome://zfprobe/content/wbg-web/probe_wbg.mjs:246:18 | probeWasmBindgen/<@jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/bootstrap.js:380:8 | attempt@jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run06-headless-xpi-full/profile/extensions/probe@zotero-fulltext.local.xpi!/bootstrap.js:34:19"
+    },
+    "web.importESModule(.mjs).initSync(Cu.cloneInto({module}, esmGlobal))": {
+      "ok": true,
+      "ms": 9,
+      "value": {
+        "add": 5,
+        "processJson": {
+          "doi_normalized": "10.1000/abc",
+          "engine": "rust-wasm-bindgen",
+          "ok": true,
+          "text_upper": "WBG OK"
+        },
+        "failIfEmpty": "threw: input was empty",
+        "failIfEmptyOk": 3
+      }
+    },
+    "nomod.loadSubScript(into object).wasm_bindgen visible?": {
+      "ok": true,
+      "ms": 2,
+      "value": {
+        "typeofWasmBindgenOnTarget": "undefined"
+      }
+    },
+    "nomod.new Function(src + return wasm_bindgen).initSync({module})": {
+      "ok": true,
+      "ms": 12,
+      "value": {
+        "add": 5,
+        "processJson": {
+          "doi_normalized": "10.1000/abc",
+          "engine": "rust-wasm-bindgen",
+          "ok": true,
+          "text_upper": "WBG OK"
+        },
+        "failIfEmpty": "threw: input was empty",
+        "failIfEmptyOk": 3
+      }
+    }
+  },
+  "log": [
+    "+1ms startup returned; main flow detached",
+    "+3ms loadSubScript.wasmTests.chromeURL -> ok",
+    "+4ms DOMParser -> ok",
+    "+5ms TextEncoderDecoder -> ok",
+    "+5ms URL -> ok",
+    "+6ms AbortController.inSandbox -> FAIL ReferenceError: AbortController is not defined @bootstrap.js:666",
+    "+7ms AbortController.fromMainWindowOrHiddenWindow -> ok",
+    "+43ms crypto.subtle.digest -> ok",
+    "+90ms fetch.dataURL -> ok",
+    "+90ms ResponseCtor -> ok",
+    "+91ms Cc_Ci_Cu -> ok",
+    "+91ms IOUtils.PathUtils -> ok",
+    "+110ms registerAndUnregister -> ok",
+    "+338ms fetch(rootURI) -> ok",
+    "+353ms fetch(chrome://) -> ok",
+    "+356ms instantiateStreaming(fetch(chrome://)) -> FAIL TypeError: WebAssembly: Response has unsupported MIME type 'application/wasm;charset=utf-8' expected 'application/wasm'",
+    "+406ms instantiateStreaming(fetch(rootURI)) -> ok",
+    "+432ms compileStreaming(new Response(buf, application/wasm)) -> ok",
+    "+433ms IOUtils.read(file path from rootURI) -> FAIL Error: rootURI is not a file: URL (jar) -- packed XPI; IOUtils cannot read inside the zip @bootstrap.js:851",
+    "+469ms XMLHttpRequest(chrome://) -> ok",
+    "+479ms XMLHttpRequest(rootURI) -> ok",
+    "+487ms Zotero.HTTP.request(chrome://) -> ok",
+    "+493ms NetUtil.newChannel(chrome://).open() sync -> ok",
+    "+509ms base64 in script (loadSubScript + atob) -> ok",
+    "+683ms bootstrapSandbox -> ok",
+    "+853ms esModule -> ok",
+    "+950ms chromeWorker -> ok",
+    "+1179ms worker -> ok",
+    "+1203ms web.importESModule(.js).defaultInit -> ok",
+    "+1205ms fetch wbg wasm bytes -> ok",
+    "+1208ms web.importESModule(.mjs).initSync({module}) naive cross-compartment object -> FAIL TypeError: first argument must be an ArrayBuffer or typed array object @probe_wbg.mjs:246",
+    "+1217ms web.importESModule(.mjs).initSync(Cu.cloneInto({module}, esmGlobal)) -> ok",
+    "+1219ms nomod.loadSubScript(into object).wasm_bindgen visible? -> ok",
+    "+1234ms nomod.new Function(src + return wasm_bindgen).initSync({module}) -> ok",
+    "+1235ms nullPrincipalSandbox -> ok",
+    "+1236ms uiReadyPromise resolved=true",
+    "+11254ms loadSubScriptIntoWindow -> ok",
+    "+11322ms wasmTests -> ok",
+    "+11324ms AbortControllerFromWindow -> ok",
+    "+12011ms onMainWindowLoad fired: {\"atMs\":12011,\"href\":\"chrome://zotero/content/zoteroPane.xhtml\",\"readyState\":\"complete\"}",
+    "+14577ms openMainWindowAfterStartup -> ok",
+    "+14596ms 01 Zotero.HTTP.request sets cookie zh -> ok",
+    "+14628ms 02 fetch default credentials -> echo -> ok",
+    "+14655ms 03 fetch credentials:include -> echo -> ok",
+    "+14741ms 04 Zotero.HTTP.request -> echo -> ok",
+    "+14752ms 05 XHR withCredentials=false -> echo -> ok",
+    "+14762ms 06 fetch credentials:include sets cookie fe -> ok",
+    "+14792ms 07 Zotero.HTTP.request -> echo (sees fe?) -> ok",
+    "+14875ms 08 Attachments.downloadFile protected.pdf BEFORE login (expect fail) -> FAIL Error: Downloaded file was not a supported type (PDF or EPUB)",
+    "+16590ms 09 openInViewer(/login) sets HttpOnly sess cookie in a content <browser> -> ok",
+    "+16655ms 10 Attachments.downloadFile protected.pdf AFTER login -> ok",
+    "+16675ms 11 fetch credentials:include protected.pdf AFTER login -> ok",
+    "+16693ms 12 fetch default credentials protected.pdf AFTER login -> ok",
+    "+17209ms 13 create journalArticle item with DOI -> ok",
+    "+17210ms 14 getFileResolvers(item) shape -> ok",
+    "+17447ms 15 addFileFromURLs(item, [{url: protected.pdf}]) with Zotero.test=true -> ok",
+    "+18225ms 16 addFileFromURLs(item2, [{pageURL: landing}]) -> translator finds citation_pdf_url? -> ok",
+    "+48446ms 17 addFileFromURLs with plain http URL and Zotero.test=false (https forcing) -> ok",
+    "+48468ms 18 Zotero.HTTP.processDocuments(/doc) -> ok",
+    "+48498ms run -> ok"
+  ],
+  "consoleMessages": [],
+  "harnessSummary": {
+    "runDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full",
+    "profileDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\profile",
+    "dataDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\data",
+    "resultFile": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\result.json",
+    "installMode": "xpi-copy",
+    "headless": true,
+    "args": "-profile \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\profile\" -no-remote -datadir \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run06-headless-xpi-full\\data\" -ZoteroDebugText -headless",
+    "rootPid": 111424,
+    "ourPidsSeen": [
+      111424,
+      37360,
+      98380,
+      118360,
+      168536,
+      71856,
+      20796,
+      98860,
+      140880
+    ],
+    "resultSeen": true,
+    "resultAtSec": 51.7,
+    "timedOut": false,
+    "cleanExit": true,
+    "killedPids": [],
+    "ourPidsStillAlive": [],
+    "rootExitCode": 0,
+    "userZoteroPidsBefore": [
+      162400,
+      166424,
+      148420
+    ],
+    "userZoteroPidsAlive": [
+      162400,
+      166424,
+      148420
+    ],
+    "userZoteroPidsMissing": [],
+    "userIniHashesUnchanged": true,
+    "durationSec": 54.7
+  },
+  "otherRuns": {
+    "run01-headless-proxy": {
+      "harnessSummary": {
+        "runDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run01-headless-proxy",
+        "profileDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run01-headless-proxy\\profile",
+        "dataDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run01-headless-proxy\\data",
+        "resultFile": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run01-headless-proxy\\result.json",
+        "installMode": "proxy-file",
+        "headless": true,
+        "args": "-profile \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run01-headless-proxy\\profile\" -no-remote -datadir \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run01-headless-proxy\\data\" -ZoteroDebugText -headless",
+        "rootPid": 106340,
+        "ourPidsSeen": [
+          106340,
+          77156,
+          141208,
+          54028,
+          32044,
+          49848,
+          156960,
+          64532
+        ],
+        "resultSeen": true,
+        "resultAtSec": 26.3,
+        "timedOut": false,
+        "cleanExit": true,
+        "killedPids": [],
+        "ourPidsStillAlive": [],
+        "rootExitCode": 0,
+        "userZoteroPidsBefore": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsAlive": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsMissing": [],
+        "userIniHashesUnchanged": true,
+        "durationSec": 30.2
+      },
+      "note": "first run, unpacked dir via proxy file; no cookie sim / second-window test yet"
+    },
+    "run02-headless-proxy": {
+      "harnessSummary": {
+        "runDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run02-headless-proxy",
+        "profileDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run02-headless-proxy\\profile",
+        "dataDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run02-headless-proxy\\data",
+        "resultFile": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run02-headless-proxy\\result.json",
+        "installMode": "proxy-file",
+        "headless": true,
+        "args": "-profile \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run02-headless-proxy\\profile\" -no-remote -datadir \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run02-headless-proxy\\data\" -ZoteroDebugText -headless",
+        "rootPid": 117844,
+        "ourPidsSeen": [
+          117844,
+          139868,
+          119968,
+          115632,
+          87824,
+          146460,
+          174864,
+          1268,
+          133796
+        ],
+        "resultSeen": true,
+        "resultAtSec": 51.1,
+        "timedOut": false,
+        "cleanExit": true,
+        "killedPids": [],
+        "ourPidsStillAlive": [],
+        "rootExitCode": 0,
+        "userZoteroPidsBefore": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsAlive": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsMissing": [],
+        "userIniHashesUnchanged": true,
+        "durationSec": 53.8
+      },
+      "rootURI": "file:///C:/Users/abora/zotero-fulltext/tools/zotero-harness/probe-plugin/",
+      "rustLoadingMethods": {
+        "fetch(rootURI)": "ok",
+        "fetch(chrome://)": "ok",
+        "instantiateStreaming(fetch(chrome://))": "FAIL: TypeError: WebAssembly: Response has unsupported MIME type 'application/wasm;charset=utf-8' expected 'application/wasm'",
+        "instantiateStreaming(fetch(rootURI))": "ok",
+        "compileStreaming(new Response(buf, application/wasm))": "ok",
+        "IOUtils.read(file path from rootURI)": "ok",
+        "XMLHttpRequest(chrome://)": "ok",
+        "XMLHttpRequest(rootURI)": "ok",
+        "Zotero.HTTP.request(chrome://)": "ok",
+        "NetUtil.newChannel(chrome://).open() sync": "ok",
+        "base64 in script (loadSubScript + atob)": "ok"
+      },
+      "rustLoadingDetail": {
+        "urls": {
+          "rootWasm": "file:///C:/Users/abora/zotero-fulltext/tools/zotero-harness/probe-plugin/probe_core.wasm",
+          "chromeWasm": "chrome://zfprobe/content/probe_core.wasm",
+          "rootURIScheme": "file"
+        },
+        "methods": {
+          "fetch(rootURI)": {
+            "ok": true,
+            "ms": 153,
+            "value": {
+              "status": 200,
+              "ok": true,
+              "type": "basic",
+              "url": "file:///C:/Users/abora/zotero-fulltext/tools/zotero-harness/probe-plugin/probe_core.wasm",
+              "contentType": "application/wasm",
+              "verify": {
+                "bytes": 82402,
+                "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+                "call": {
+                  "doi_normalized": "10.1038/nature12373",
+                  "sum": 5,
+                  "ok": true
+                }
+              }
+            }
+          },
+          "fetch(chrome://)": {
+            "ok": true,
+            "ms": 12,
+            "value": {
+              "status": 200,
+              "ok": true,
+              "type": "basic",
+              "url": "chrome://zfprobe/content/probe_core.wasm",
+              "contentType": "application/wasm;charset=UTF-8",
+              "verify": {
+                "bytes": 82402,
+                "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+                "call": {
+                  "doi_normalized": "10.1038/nature12373",
+                  "sum": 5,
+                  "ok": true
+                }
+              }
+            }
+          },
+          "instantiateStreaming(fetch(chrome://))": {
+            "ok": false,
+            "ms": 2,
+            "error": "TypeError: WebAssembly: Response has unsupported MIME type 'application/wasm;charset=utf-8' expected 'application/wasm'"
+          },
+          "instantiateStreaming(fetch(rootURI))": {
+            "ok": true,
+            "ms": 7,
+            "value": {
+              "doi_normalized": "10.1038/nature12373",
+              "sum": 5,
+              "ok": true
+            }
+          },
+          "compileStreaming(new Response(buf, application/wasm))": {
+            "ok": true,
+            "ms": 30,
+            "value": {
+              "doi_normalized": "10.1038/nature12373",
+              "sum": 5,
+              "ok": true
+            }
+          },
+          "IOUtils.read(file path from rootURI)": {
+            "ok": true,
+            "ms": 14,
+            "value": {
+              "path": "C:\\Users\\abora\\zotero-fulltext\\tools\\zotero-harness\\probe-plugin\\probe_core.wasm",
+              "verify": {
+                "bytes": 82402,
+                "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+                "call": {
+                  "doi_normalized": "10.1038/nature12373",
+                  "sum": 5,
+                  "ok": true
+                }
+              }
+            }
+          },
+          "XMLHttpRequest(chrome://)": {
+            "ok": true,
+            "ms": 38,
+            "value": {
+              "status": 200,
+              "contentType": "text/xml;charset=UTF-8",
+              "verify": {
+                "bytes": 82402,
+                "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+                "call": {
+                  "doi_normalized": "10.1038/nature12373",
+                  "sum": 5,
+                  "ok": true
+                }
+              }
+            }
+          },
+          "XMLHttpRequest(rootURI)": {
+            "ok": true,
+            "ms": 5,
+            "value": {
+              "status": 200,
+              "contentType": "text/xml",
+              "verify": {
+                "bytes": 82402,
+                "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+                "call": {
+                  "doi_normalized": "10.1038/nature12373",
+                  "sum": 5,
+                  "ok": true
+                }
+              }
+            }
+          },
+          "Zotero.HTTP.request(chrome://)": {
+            "ok": true,
+            "ms": 10,
+            "value": {
+              "status": 200,
+              "verify": {
+                "bytes": 82402,
+                "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+                "call": {
+                  "doi_normalized": "10.1038/nature12373",
+                  "sum": 5,
+                  "ok": true
+                }
+              }
+            }
+          },
+          "NetUtil.newChannel(chrome://).open() sync": {
+            "ok": true,
+            "ms": 16,
+            "value": {
+              "contentType": "application/wasm",
+              "verify": {
+                "bytes": 82402,
+                "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+                "call": {
+                  "doi_normalized": "10.1038/nature12373",
+                  "sum": 5,
+                  "ok": true
+                }
+              }
+            }
+          },
+          "base64 in script (loadSubScript + atob)": {
+            "ok": true,
+            "ms": 10,
+            "value": {
+              "bytes": 82402,
+              "sha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+              "call": {
+                "doi_normalized": "10.1038/nature12373",
+                "sum": 5,
+                "ok": true
+              },
+              "expectedSha256": "6498b47795398c255cf49716bbad68a48b47a40abc9ffc47c412b0aea6b0f326",
+              "shaMatches": true
+            }
+          }
+        },
+        "bytesUsedForOtherTestsFrom": "fetch file:///C:/Users/abora/zotero-fulltext/tools/zotero-harness/probe-plugin/probe_core.wasm",
+        "anyMethodWorked": true
+      },
+      "headless": {
+        "atStartup": {
+          "mainWindowExists": true,
+          "mainWindowReadyState": "complete",
+          "mainWindowHref": "chrome://zotero/content/zoteroPane.xhtml",
+          "openWindows": [
+            "chrome://zotero/content/zoteroPane.xhtml"
+          ]
+        },
+        "uiReadyResolved": true,
+        "uiReadyAtMs": 756,
+        "onMainWindowLoadFired": false,
+        "onMainWindowLoadEvents": [
+          {
+            "atMs": 11613,
+            "href": "chrome://zotero/content/zoteroPane.xhtml",
+            "readyState": "complete"
+          }
+        ],
+        "afterWait": {
+          "getMainWindowExists": true,
+          "readyState": "complete",
+          "openWindows": [
+            "chrome://zotero/content/zoteroPane.xhtml"
+          ]
+        },
+        "onMainWindowLoadFiredByFinish": true,
+        "onMainWindowLoadEventsByFinish": [
+          {
+            "atMs": 11613,
+            "href": "chrome://zotero/content/zoteroPane.xhtml",
+            "readyState": "complete"
+          }
+        ]
+      },
+      "secondMainWindow": {
+        "openMainWindowAfterStartup": {
+          "ok": true,
+          "ms": 3331,
+          "value": {
+            "onMainWindowLoadFired": true,
+            "event": {
+              "atMs": 11613,
+              "href": "chrome://zotero/content/zoteroPane.xhtml",
+              "readyState": "complete"
+            },
+            "mainWindowsBefore": 1,
+            "mainWindowsAfterOpen": 2,
+            "closedNewWindows": 1,
+            "mainWindowsAfterClose": 1
+          }
+        }
+      },
+      "cookieSimSteps": {
+        "01 Zotero.HTTP.request sets cookie zh": "ok",
+        "02 fetch default credentials -> echo": "ok",
+        "03 fetch credentials:include -> echo": "ok",
+        "04 Zotero.HTTP.request -> echo": "ok",
+        "05 XHR withCredentials=false -> echo": "ok",
+        "06 fetch credentials:include sets cookie fe": "ok",
+        "07 Zotero.HTTP.request -> echo (sees fe?)": "ok",
+        "08 Attachments.downloadFile protected.pdf BEFORE login (expect fail)": "FAIL: Error: Downloaded file was not a supported type (PDF or EPUB)",
+        "09 openInViewer(/login) sets HttpOnly sess cookie in a content <browser>": "ok",
+        "10 Attachments.downloadFile protected.pdf AFTER login": "ok",
+        "11 fetch credentials:include protected.pdf AFTER login": "ok",
+        "12 fetch default credentials protected.pdf AFTER login": "ok",
+        "13 create journalArticle item with DOI": "ok",
+        "14 getFileResolvers(item) shape": "ok",
+        "15 addFileFromURLs(item, [{url: protected.pdf}]) with Zotero.test=true": "ok",
+        "16 addFileFromURLs(item2, [{pageURL: landing}]) -> translator finds citation_pdf_url?": "ok",
+        "17 addFileFromURLs with plain http URL and Zotero.test=false (https forcing)": "ok",
+        "18 Zotero.HTTP.processDocuments(/doc)": "ok"
+      }
+    },
+    "run03-headless-xpi": {
+      "harnessSummary": {
+        "runDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run03-headless-xpi",
+        "profileDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run03-headless-xpi\\profile",
+        "dataDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run03-headless-xpi\\data",
+        "resultFile": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run03-headless-xpi\\result.json",
+        "installMode": "xpi-copy",
+        "headless": true,
+        "args": "-profile \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run03-headless-xpi\\profile\" -no-remote -datadir \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run03-headless-xpi\\data\" -ZoteroDebugText -headless",
+        "rootPid": 44688,
+        "ourPidsSeen": [
+          44688,
+          143000,
+          68912,
+          121208,
+          162636,
+          100676,
+          91720,
+          131928
+        ],
+        "resultSeen": true,
+        "resultAtSec": 17.7,
+        "timedOut": false,
+        "cleanExit": true,
+        "killedPids": [],
+        "ourPidsStillAlive": [],
+        "rootExitCode": 0,
+        "userZoteroPidsBefore": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsAlive": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsMissing": [],
+        "userIniHashesUnchanged": true,
+        "durationSec": 20.4
+      },
+      "rootURI": "jar:file:///C:/Users/abora/zotero-fulltext/.ref/harness-runs/run03-headless-xpi/profile/extensions/probe@zotero-fulltext.local.xpi!/",
+      "rustLoadingMethods": {
+        "fetch(rootURI)": "ok",
+        "fetch(chrome://)": "ok",
+        "instantiateStreaming(fetch(chrome://))": "FAIL: TypeError: WebAssembly: Response has unsupported MIME type 'application/wasm;charset=utf-8' expected 'application/wasm'",
+        "instantiateStreaming(fetch(rootURI))": "ok",
+        "compileStreaming(new Response(buf, application/wasm))": "ok",
+        "IOUtils.read(file path from rootURI)": "FAIL: Error: rootURI is not a file: URL (jar) -- packed XPI; IOUtils cannot read inside the zip @bootstrap.js:785",
+        "XMLHttpRequest(chrome://)": "ok",
+        "XMLHttpRequest(rootURI)": "ok",
+        "Zotero.HTTP.request(chrome://)": "ok",
+        "NetUtil.newChannel(chrome://).open() sync": "ok",
+        "base64 in script (loadSubScript + atob)": "ok"
+      },
+      "headless": {
+        "atStartup": {
+          "mainWindowExists": true,
+          "mainWindowReadyState": "complete",
+          "mainWindowHref": "chrome://zotero/content/zoteroPane.xhtml",
+          "openWindows": [
+            "chrome://zotero/content/zoteroPane.xhtml"
+          ]
+        },
+        "uiReadyResolved": true,
+        "uiReadyAtMs": 876,
+        "onMainWindowLoadFired": false,
+        "onMainWindowLoadEvents": [
+          {
+            "atMs": 11642,
+            "href": "chrome://zotero/content/zoteroPane.xhtml",
+            "readyState": "complete"
+          }
+        ],
+        "afterWait": {
+          "getMainWindowExists": true,
+          "readyState": "complete",
+          "openWindows": [
+            "chrome://zotero/content/zoteroPane.xhtml"
+          ]
+        },
+        "onMainWindowLoadFiredByFinish": true,
+        "onMainWindowLoadEventsByFinish": [
+          {
+            "atMs": 11642,
+            "href": "chrome://zotero/content/zoteroPane.xhtml",
+            "readyState": "complete"
+          }
+        ]
+      }
+    },
+    "run04-gui-xpi": {
+      "harnessSummary": {
+        "runDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run04-gui-xpi",
+        "profileDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run04-gui-xpi\\profile",
+        "dataDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run04-gui-xpi\\data",
+        "resultFile": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run04-gui-xpi\\result.json",
+        "installMode": "xpi-copy",
+        "headless": false,
+        "args": "-profile \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run04-gui-xpi\\profile\" -no-remote -datadir \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run04-gui-xpi\\data\" -ZoteroDebugText",
+        "rootPid": 138436,
+        "ourPidsSeen": [
+          138436,
+          21980,
+          1568,
+          85796,
+          169256,
+          129628,
+          108988,
+          172620,
+          86316
+        ],
+        "resultSeen": true,
+        "resultAtSec": 21.3,
+        "timedOut": false,
+        "cleanExit": true,
+        "killedPids": [],
+        "ourPidsStillAlive": [],
+        "rootExitCode": 0,
+        "userZoteroPidsBefore": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsAlive": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsMissing": [],
+        "userIniHashesUnchanged": true,
+        "durationSec": 24.1
+      },
+      "env_MOZ_HEADLESS": "",
+      "startupInfoMsFromProcessStart": {
+        "process": 0,
+        "start": 25,
+        "main": 81,
+        "selectProfile": 86,
+        "afterProfileLocked": 90,
+        "startupCrashDetectionBegin": 163,
+        "firstPaint": 3429,
+        "firstPaint2": 2561,
+        "createTopLevelWindow": 416,
+        "firstLoadURI": 2722,
+        "startupCalled": 4370
+      },
+      "headless": {
+        "atStartup": {
+          "mainWindowExists": true,
+          "mainWindowReadyState": "complete",
+          "mainWindowHref": "chrome://zotero/content/zoteroPane.xhtml",
+          "openWindows": [
+            "chrome://zotero/content/zoteroPane.xhtml"
+          ]
+        },
+        "uiReadyResolved": true,
+        "uiReadyAtMs": 730,
+        "onMainWindowLoadFired": false,
+        "onMainWindowLoadEvents": [
+          {
+            "atMs": 11987,
+            "href": "chrome://zotero/content/zoteroPane.xhtml",
+            "readyState": "complete"
+          }
+        ],
+        "afterWait": {
+          "getMainWindowExists": true,
+          "readyState": "complete",
+          "openWindows": [
+            "chrome://zotero/content/zoteroPane.xhtml"
+          ]
+        },
+        "onMainWindowLoadFiredByFinish": true,
+        "onMainWindowLoadEventsByFinish": [
+          {
+            "atMs": 11987,
+            "href": "chrome://zotero/content/zoteroPane.xhtml",
+            "readyState": "complete"
+          }
+        ]
+      },
+      "secondMainWindow": {
+        "openMainWindowAfterStartup": {
+          "ok": true,
+          "ms": 3545,
+          "value": {
+            "onMainWindowLoadFired": true,
+            "event": {
+              "atMs": 11987,
+              "href": "chrome://zotero/content/zoteroPane.xhtml",
+              "readyState": "complete"
+            },
+            "mainWindowsBefore": 1,
+            "mainWindowsAfterOpen": 2,
+            "closedNewWindows": 1,
+            "mainWindowsAfterClose": 1
+          }
+        }
+      },
+      "mainWindowInfo": {
+        "href": "chrome://zotero/content/zoteroPane.xhtml",
+        "readyState": "complete",
+        "title": "My Library - Zotero",
+        "typeofZoteroPane": "object",
+        "typeofWebAssembly": "object",
+        "innerWidth": 1000,
+        "innerHeight": 601,
+        "itemsViewExists": true,
+        "itemContextMenuExists": true
+      },
+      "wasmContextsOk": {
+        "bootstrapSandbox": true,
+        "esModule": true,
+        "chromeWorker": true,
+        "worker": true,
+        "nullPrincipalSandbox": true
+      }
+    },
+    "run05-timeout-kill": {
+      "harnessSummary": {
+        "runDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run05-timeout-kill",
+        "profileDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run05-timeout-kill\\profile",
+        "dataDir": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run05-timeout-kill\\data",
+        "resultFile": "C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run05-timeout-kill\\result.json",
+        "installMode": "proxy-file",
+        "headless": true,
+        "args": "-profile \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run05-timeout-kill\\profile\" -no-remote -datadir \"C:\\Users\\abora\\zotero-fulltext\\.ref\\harness-runs\\run05-timeout-kill\\data\" -ZoteroDebugText -headless",
+        "rootPid": 70280,
+        "ourPidsSeen": [
+          70280,
+          126404,
+          152472,
+          116224,
+          166728,
+          69984,
+          69028
+        ],
+        "resultSeen": false,
+        "resultAtSec": 25.9,
+        "timedOut": true,
+        "cleanExit": false,
+        "killedPids": [
+          70280,
+          126404,
+          152472,
+          116224,
+          166728,
+          69984,
+          69028
+        ],
+        "ourPidsStillAlive": [],
+        "rootExitCode": -1,
+        "userZoteroPidsBefore": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsAlive": [
+          162400,
+          166424,
+          148420
+        ],
+        "userZoteroPidsMissing": [],
+        "userIniHashesUnchanged": true,
+        "durationSec": 29.2
+      },
+      "note": "noop plugin never writes a result; verifies timeout path kills only this runs PIDs"
+    }
+  }
+}

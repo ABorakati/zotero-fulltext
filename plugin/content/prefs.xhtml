@@ -1,0 +1,33 @@
+<!-- zotero-fulltext preferences pane (owner: js-shell). Loaded by Zotero.PreferencePanes.register as an XHTML FRAGMENT:
+     XUL is the default namespace, (X)HTML tags need the html: prefix; there is no <window>/<html> root.
+     The rows are built by prefs-pane.js from ZFT.config.PANE_LAYOUT so that pref names, types and labels have a single
+     source of truth; this file only provides the localization link, the mount points and a little layout CSS.
+     The inline onload runs in the preferences window, which is why prefs-pane.js publishes window.ZoteroFullTextPrefs. -->
+<linkset>
+  <html:link rel="localization" href="zotero-fulltext.ftl"/>
+</linkset>
+<html:style>
+  #zft-prefs .zft-group { margin-block: 0 18px; }
+  #zft-prefs .zft-group h2 { margin-block: 14px 8px; font-size: 1.15em; }
+  #zft-prefs .zft-row { display: flex; align-items: center; gap: 8px; margin-block: 4px; }
+  #zft-prefs .zft-row input[type="text"], #zft-prefs .zft-row input[type="password"], #zft-prefs .zft-row input[type="number"], #zft-prefs .zft-row select { flex: 1 1 18em; min-width: 8em; max-width: 34em; }
+  #zft-prefs .zft-row input[type="number"] { flex: 0 0 8em; }
+  #zft-prefs .zft-row label { flex: 0 1 22em; }
+  #zft-prefs .zft-row input[type="checkbox"] + label { flex: 1 1 auto; }
+  #zft-prefs-problems { border: 1px solid var(--accent-red, #c0392b); border-radius: 4px; padding: 4px 10px; margin-block: 0 12px; }
+  #zft-prefs-problems p { margin-block: 4px; }
+  #zft-prefs-status { margin-block: 8px 0; }
+  #zft-prefs-actions { gap: 8px; flex-wrap: wrap; margin-block: 8px; }
+  #zft-prefs-privacy { margin-block: 12px 0; opacity: 0.8; }
+</html:style>
+<vbox id="zft-prefs" class="main-section" flex="1" onload="ZoteroFullTextPrefs.init()">
+  <html:div id="zft-prefs-problems" role="alert" hidden="true"></html:div>
+  <html:div id="zft-prefs-root"></html:div>
+  <hbox id="zft-prefs-actions">
+    <html:button id="zft-prefs-reset-institution" data-l10n-id="zotero-fulltext-prefs-reset-institution"></html:button>
+    <html:button id="zft-prefs-clear-state" data-l10n-id="zotero-fulltext-prefs-clear-state"></html:button>
+    <html:button id="zft-prefs-open-data" data-l10n-id="zotero-fulltext-prefs-open-data-folder"></html:button>
+  </hbox>
+  <html:p id="zft-prefs-status" role="status" hidden="true"></html:p>
+  <html:p id="zft-prefs-privacy" data-l10n-id="zotero-fulltext-prefs-privacy-note"></html:p>
+</vbox>

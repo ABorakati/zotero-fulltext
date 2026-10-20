@@ -1,0 +1,9 @@
+[package]
+name = "xtask"
+version = "0.1.0"
+edition.workspace = true
+publish = false
+
+[dependencies]
+# Pure-Rust deflate (zlib-rs); no C toolchain, no Node.
+zip = { version = "9", default-features = false, features = ["deflate-flate2-zlib-rs"] }

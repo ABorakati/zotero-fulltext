@@ -1,0 +1,12 @@
+[alias]
+xtask = "run -q -p xtask --"
+
+# Panic Location strings (file paths) end up in the .wasm data section even with
+# strip = true. Remap the user's home so the shipped binary does not contain
+# C:\Users\<name>\... (cargo `trim-paths` is still unstable on 1.96).
+[target.wasm32-unknown-unknown]
+rustflags = [
+  "--remap-path-prefix=C:\\Users\\abora\\.cargo\\registry\\src=/cargo",
+  "--remap-path-prefix=C:\\Users\\abora\\.rustup\\toolchains=/rustup",
+  "--remap-path-prefix=C:\\Users\\abora\\zotero-fulltext=/src",
+]

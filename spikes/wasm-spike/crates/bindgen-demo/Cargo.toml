@@ -1,0 +1,14 @@
+[package]
+name = "bindgen-demo"
+version = "0.1.0"
+edition.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# Must match the installed wasm-bindgen CLI exactly (0.2.126).
+wasm-bindgen = "=0.2.126"
+fulltext-core = { path = "../core" }
+serde_json = "1"

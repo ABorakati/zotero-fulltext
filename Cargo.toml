@@ -1,0 +1,53 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/fulltext-core",
+    "crates/fulltext-engine",
+    "crates/fulltext-wasm",
+    "xtask",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+publish = false
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# `url` pulls in `idna`; pinning `idna_adapter` to 1.0.0 (ASCII hosts only) cuts the wasm by ~44 % (research/07).
+# The direct dependency in fulltext-core exists only to hold that pin in Cargo.lock.
+url = "2.5"
+idna_adapter = "=1.0.0"
+html5gum = "0.8.4"
+futures-util = { version = "0.3", default-features = false, features = ["alloc"] }
+zip = { version = "9", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+fulltext-core = { path = "crates/fulltext-core" }
+fulltext-engine = { path = "crates/fulltext-engine" }
+
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+
+# The wasm build uses panic = "abort": a panic is an unrecoverable trap of the whole instance.
+# Forbid the usual panic sources in non-test code. clippy.toml re-allows them inside #[cfg(test)] / #[test];
+# integration-test files add a file-level #![allow(...)] for their helper functions.
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+string_slice = "deny"
+
+# Size-oriented release profile (the one the plugin ships).
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false
+incremental = false
