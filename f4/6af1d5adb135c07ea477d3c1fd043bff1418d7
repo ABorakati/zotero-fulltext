@@ -1,0 +1,844 @@
+.gitignore
+  s_3ae4ed00856a4b::t_e68a2a6a98fb25 18-19
+  s_3ae4ed00856a4b::t_b1c43a0faeb189 15-17
+  s_3ae4ed00856a4b::t_183521bbf10c9a 20-22
+  s_3ae4ed00856a4b::t_e385b1312f71a5 1-14,23-26
+.gitattributes
+  s_3ae4ed00856a4b::t_d21549052a40f7 1-6
+Cargo.lock
+  s_3ae4ed00856a4b::t_1021568f8f1fef 1-359
+crates/fulltext-core/src/ids.rs
+  s_3ae4ed00856a4b::t_4c95a3b082b0bf 1-561
+crates/fulltext-core/src/inspect.rs
+  s_3ae4ed00856a4b::t_2b4b8d5d79f0f5 1-221
+crates/fulltext-core/src/model.rs
+  s_3ae4ed00856a4b::t_3edda18ca0e657 1-537
+crates/fulltext-core/src/oa/alma.rs
+  s_3ae4ed00856a4b::t_90ff3774569cb0 1-133
+crates/fulltext-core/src/oa/arxiv.rs
+  s_3ae4ed00856a4b::t_cdde9c62da9304 1-151
+crates/fulltext-core/src/oa/biorxiv.rs
+  s_3ae4ed00856a4b::t_010aa4e79a9462 1-245
+crates/fulltext-core/src/oa/core_api.rs
+  s_3ae4ed00856a4b::t_493027bfb4b778 1-172
+crates/fulltext-core/src/oa/crossref.rs
+  s_3ae4ed00856a4b::t_6431f43bf11b38 1-143
+crates/fulltext-core/src/oa/europepmc.rs
+  s_3ae4ed00856a4b::t_e14ed0ca87f781 1-201
+crates/fulltext-core/src/oa/mod.rs
+  s_3ae4ed00856a4b::t_c4d2525559f09e 1-574
+crates/fulltext-core/src/oa/openalex.rs
+  s_3ae4ed00856a4b::t_379d28f2db709e 1-372
+crates/fulltext-core/src/oa/pmc_s3.rs
+  s_3ae4ed00856a4b::t_fc9e7621b971f9 1-266
+crates/fulltext-core/src/oa/semantic_scholar.rs
+  s_3ae4ed00856a4b::t_37ec1e48bb8ca1 1-137
+crates/fulltext-core/src/oa/unpaywall.rs
+  s_3ae4ed00856a4b::t_1a69bb352bcee1 1-167
+crates/fulltext-core/src/oa/util.rs
+  s_3ae4ed00856a4b::t_c38a57ae320856 1-222
+crates/fulltext-core/src/oa/xml.rs
+  s_3ae4ed00856a4b::t_0a9903b7ee3378 1-199
+crates/fulltext-core/src/oa/zotero_oa.rs
+  s_3ae4ed00856a4b::t_df16245268b723 1-134
+crates/fulltext-core/src/page/classify.rs
+  s_3ae4ed00856a4b::t_1966ade31b92f0 1-784
+crates/fulltext-core/src/page/extract.rs
+  s_3ae4ed00856a4b::t_3f3dc5b1d816db 1-1100
+crates/fulltext-core/src/page/html.rs
+  s_3ae4ed00856a4b::t_8bc661aaba434c 1-935
+crates/fulltext-core/src/page/mod.rs
+  s_3ae4ed00856a4b::t_7ccd6383f222cd 1-303
+crates/fulltext-core/src/page/rules.rs
+  s_3ae4ed00856a4b::t_0e7f94836a3a0f 1-700
+crates/fulltext-core/src/page/util.rs
+  s_3ae4ed00856a4b::t_9f9660ca471a6a 1-748
+crates/fulltext-core/src/pdf.rs
+  s_3ae4ed00856a4b::t_5353e28e2d47c5 1-136
+crates/fulltext-core/src/rank.rs
+  s_3ae4ed00856a4b::t_440a606960defc 1-529
+crates/fulltext-core/src/text.rs
+  s_3ae4ed00856a4b::t_a2edaace28d889 1-88
+crates/fulltext-core/src/urls.rs
+  s_3ae4ed00856a4b::t_eb53fced6579df 1-663
+crates/fulltext-core/tests/classify.rs
+  s_3ae4ed00856a4b::t_d9a5e011d75019 1-1426
+crates/fulltext-core/tests/common/mod.rs
+  s_3ae4ed00856a4b::t_d1a11358dad729 1-120
+crates/fulltext-core/tests/data/oa/alma-free.xml
+  s_3ae4ed00856a4b::t_b60e8361311423 1-19
+crates/fulltext-core/tests/data/oa/alma-held.xml
+  s_3ae4ed00856a4b::t_a1fcda676204f8 1-41
+crates/fulltext-core/tests/data/oa/alma-not-held.xml
+  s_3ae4ed00856a4b::t_147fc140900f3d 1-10
+crates/fulltext-core/tests/data/page/akamai_bm_verify.html
+  s_3ae4ed00856a4b::t_00cdd5e9c273e2 1-4
+crates/fulltext-core/tests/data/page/article_mentions_blockwords.html
+  s_3ae4ed00856a4b::t_229cb97f00e564 1-7
+crates/fulltext-core/tests/data/page/cloudflare_turnstile.html
+  s_3ae4ed00856a4b::t_6514b39e0b62c3 1-4
+crates/fulltext-core/tests/data/page/entra_ca_error.html
+  s_3ae4ed00856a4b::t_80d8e95bf94989 1-6
+crates/fulltext-core/tests/data/page/entra_signin.html
+  s_3ae4ed00856a4b::t_91a98b40a3302c 1-7
+crates/fulltext-core/tests/data/page/ezproxy_404_not_configured.html
+  s_3ae4ed00856a4b::t_171e9cc3382d9b 1-3
+crates/fulltext-core/tests/data/page/ezproxy_error_needhost.html
+  s_3ae4ed00856a4b::t_70d19139ab9912 1-5
+crates/fulltext-core/tests/data/page/ezproxy_error_suspend.html
+  s_3ae4ed00856a4b::t_5810ce8b5a6e4b 1-6
+crates/fulltext-core/tests/data/page/ezproxy_login_page.html
+  s_3ae4ed00856a4b::t_9b95ac28c41d2a 1-10
+crates/fulltext-core/tests/data/page/licence_stop.html
+  s_3ae4ed00856a4b::t_975de0aad43973 1-4
+crates/fulltext-core/tests/data/page/openathens_404.html
+  s_3ae4ed00856a4b::t_fa344d46fc49cc 1-3
+crates/fulltext-core/tests/data/page/openathens_wait.html
+  s_3ae4ed00856a4b::t_51b3d8ea9f07bc 1-4
+crates/fulltext-core/tests/data/page/saml_autopost.html
+  s_3ae4ed00856a4b::t_5257021ae1d76f 1-6
+crates/fulltext-core/tests/data/page/silverchair_unusual_traffic.html
+  s_3ae4ed00856a4b::t_16ce691da25616 1-3
+crates/fulltext-core/tests/e2e.rs
+  s_3ae4ed00856a4b::t_72d48450a96bb2 1-1685
+crates/fulltext-core/tests/fixture_inventory.rs
+  s_3ae4ed00856a4b::t_c60598432ebca2 1-66
+crates/fulltext-core/tests/ids.rs
+  s_3ae4ed00856a4b::t_f12657c3fd1ce7 1-704
+crates/fulltext-core/tests/inspect.rs
+  s_3ae4ed00856a4b::t_feab39581f5c33 1-539
+crates/fulltext-core/tests/model_contract.rs
+  s_3ae4ed00856a4b::t_c6ddde08b3db12 1-120
+crates/fulltext-core/tests/oa_fixtures.rs
+  s_3ae4ed00856a4b::t_eef451990020b7 1-1756
+crates/fulltext-core/tests/page_fixtures.rs
+  s_3ae4ed00856a4b::t_93148dd1432e7e 1-1089
+crates/fulltext-core/tests/pdf.rs
+  s_3ae4ed00856a4b::t_cf2c0ff874eb27 1-305
+crates/fulltext-core/tests/rank.rs
+  s_3ae4ed00856a4b::t_55fa890dd47daa 1-1004
+crates/fulltext-core/tests/totality.rs
+  s_3ae4ed00856a4b::t_4ced22aa0d9ad5 1-1132
+crates/fulltext-core/tests/urls.rs
+  s_3ae4ed00856a4b::t_7f8e457e87a5ca 1-1282
+crates/fulltext-engine/src/cx.rs
+  s_3ae4ed00856a4b::t_0d1b80a522de90 1-540
+crates/fulltext-engine/src/engine.rs
+  s_3ae4ed00856a4b::t_4ca02492b9c41c 1-1062
+crates/fulltext-engine/src/error.rs
+  s_3ae4ed00856a4b::t_0a567a3797376c 1-64
+crates/fulltext-engine/src/l10n.rs
+  s_3ae4ed00856a4b::t_c2fb0da76dbab7 1-677
+crates/fulltext-engine/src/lib.rs
+  s_3ae4ed00856a4b::t_eb6a9aa8754402 1-41
+crates/fulltext-engine/src/login.rs
+  s_3ae4ed00856a4b::t_5d8df3975d2322 1-3018
+crates/fulltext-engine/src/ops.rs
+  s_3ae4ed00856a4b::t_c96c0e693285d0 1-1656
+crates/fulltext-engine/src/pipeline/attempt.rs
+  s_3ae4ed00856a4b::t_93afcfcdfcad06 1-2700
+crates/fulltext-engine/src/pipeline/handoff.rs
+  s_3ae4ed00856a4b::t_5f5d21f9489784 1-195
+crates/fulltext-engine/src/pipeline/inst.rs
+  s_3ae4ed00856a4b::t_d50819e3b417f5 1-4542
+crates/fulltext-engine/src/pipeline/item.rs
+  s_3ae4ed00856a4b::t_72918da3e3b80d 1-975
+crates/fulltext-engine/src/pipeline/landing.rs
+  s_3ae4ed00856a4b::t_46dcacd0e14e83 1-642
+crates/fulltext-engine/src/pipeline/mod.rs
+  s_3ae4ed00856a4b::t_1c6ff174e0c3f9 1-259
+crates/fulltext-engine/src/pipeline/oa.rs
+  s_3ae4ed00856a4b::t_f1192df75d7c02 1-1075
+crates/fulltext-engine/src/pipeline/pool.rs
+  s_3ae4ed00856a4b::t_bbb17239795710 1-541
+crates/fulltext-engine/src/pipeline/precheck.rs
+  s_3ae4ed00856a4b::t_557eee9c0c1f7f 1-76
+crates/fulltext-engine/src/pipeline/pure.rs
+  s_3ae4ed00856a4b::t_90bbf28c564657 1-476
+crates/fulltext-engine/src/pipeline/requests.rs
+  s_3ae4ed00856a4b::t_0281b3750c5eb1 1-645
+crates/fulltext-engine/src/pipeline/save.rs
+  s_3ae4ed00856a4b::t_208c70e7bbbe22 1-657
+crates/fulltext-engine/src/proto.rs
+  s_3ae4ed00856a4b::t_a40cb6c3cc3c65 1-709
+crates/fulltext-engine/src/run.rs
+  s_3ae4ed00856a4b::t_345b52aa28a442 1-2571
+crates/fulltext-engine/src/sched/acquire.rs
+  s_3ae4ed00856a4b::t_4f4c525ac0a9c3 1-2233
+crates/fulltext-engine/src/sched/gate.rs
+  s_3ae4ed00856a4b::t_fb589ab99eff2d 1-734
+crates/fulltext-engine/src/sched/hosts.rs
+  s_3ae4ed00856a4b::t_edb49ac7a61a6f 1-1026
+crates/fulltext-engine/src/sched/ledger.rs
+  s_3ae4ed00856a4b::t_f7d462ba6e0e92 1-751
+crates/fulltext-engine/src/sched/policy.rs
+  s_3ae4ed00856a4b::t_f9f2c1fcc74bd7 1-251
+crates/fulltext-engine/src/sim/fixtures.rs
+  s_3ae4ed00856a4b::t_6063293de02ce0 1-575
+crates/fulltext-engine/src/sim/invariants.rs
+  s_3ae4ed00856a4b::t_075e7e81d8f9c0 1-1749
+crates/fulltext-engine/src/sim/mod.rs
+  s_3ae4ed00856a4b::t_4c3d8c70e2b4e8 1-906
+crates/fulltext-engine/src/sim/scenarios/inst.rs
+  s_3ae4ed00856a4b::t_8789362e85dd64 1-408
+crates/fulltext-engine/src/sim/scenarios/property.rs
+  s_3ae4ed00856a4b::t_d63e70cddf8165 1-486
+crates/fulltext-engine/src/sim/scenarios/run.rs
+  s_3ae4ed00856a4b::t_b0430c79534106 1-645
+crates/fulltext-engine/tests/golden/login_batch_20.json
+  s_3ae4ed00856a4b::t_801b5b518949e1 1-383
+crates/fulltext-engine/tests/golden/oa_happy_path.json
+  s_3ae4ed00856a4b::t_cd5df79a32069f 1-42
+crates/fulltext-engine/tests/golden/rate_limit_halt.json
+  s_3ae4ed00856a4b::t_bc2ab7db77a075 1-56
+crates/fulltext-wasm/Cargo.toml
+  s_3ae4ed00856a4b::t_a4acf2158e5669 1-25
+crates/fulltext-wasm/src/abi.rs
+  s_3ae4ed00856a4b::t_86a29de61fdb46 1-142
+crates/fulltext-wasm/src/json.rs
+  s_3ae4ed00856a4b::t_6e0da4f4a9777d 1-353
+crates/fulltext-wasm/src/lib.rs
+  s_3ae4ed00856a4b::t_26f78eac289717 1-49
+crates/fulltext-wasm/src/panic_hook.rs
+  s_3ae4ed00856a4b::t_2662b7c35a81a8 1-78
+docs/design/candidates/A-rust-async-engine.md
+  s_3ae4ed00856a4b::t_c44d56dee59cf4 1-976
+docs/design/candidates/B-js-orchestrator.md
+  s_3ae4ed00856a4b::t_8365338403323f 1-834
+docs/design/candidates/C-failure-first.md
+  s_3ae4ed00856a4b::t_242d117a833b7c 1-615
+docs/design/contracts/model.rs
+  s_3ae4ed00856a4b::t_e91aa6618c44ad 1-300
+docs/design/contracts/proto.rs
+  s_3ae4ed00856a4b::t_88216d36bdac59 1-423
+docs/design/judgements.json
+  s_3ae4ed00856a4b::t_2672ec99d9f0c8 1-167
+docs/design/plugin-js.md
+  s_3ae4ed00856a4b::t_febc163d6aa043 1-215
+docs/wp/_finish-results.json
+  s_3ae4ed00856a4b::t_d3d7cad634ff79 1-57
+docs/wp/_state.json
+  s_3ae4ed00856a4b::t_0d163e1e3490f4 1-379
+docs/wp/engine-executor-ops.md
+  s_3ae4ed00856a4b::t_a846e62c960e93 1-92
+docs/wp/engine-inst.md
+  s_3ae4ed00856a4b::t_e5f453ff1fa02e 1-75
+docs/wp/engine-sched-login.md
+  s_3ae4ed00856a4b::t_d06421d6a99aca 1-100
+docs/wp/js-shell.md
+  s_3ae4ed00856a4b::t_11b7be84d55008 1-82
+fixtures/html/akamai__access-denied.html
+  s_3ae4ed00856a4b::t_8845d8fd471d9f 1-11
+fixtures/html/biomedcentral__redirected-to-springerlink-oa.html
+  s_3ae4ed00856a4b::t_fc4ed2f261fa6e 1-59
+fixtures/html/bmj__article-oa.html
+  s_3ae4ed00856a4b::t_5d86455893a886 1-47
+fixtures/html/cambridge__article-oa.html
+  s_3ae4ed00856a4b::t_9d3a84af4e6dff 1-30
+fixtures/html/cell__article-free.html
+  s_3ae4ed00856a4b::t_115c0980e40291 1-41
+fixtures/html/cloudflare__blocked-attention-required.html
+  s_3ae4ed00856a4b::t_bb91bda2974f8b 1-14
+fixtures/html/cloudflare__managed-challenge.html
+  s_3ae4ed00856a4b::t_057ea9ab8bcb8e 1-9
+fixtures/html/elsevier-linkinghub__redirect-S0140673620301835.html
+  s_3ae4ed00856a4b::t_995d09b854977e 1-11
+fixtures/html/elsevier-linkinghub__redirect-S1743919121000406.html
+  s_3ae4ed00856a4b::t_38b5955002ebc2 1-11
+fixtures/html/europepmc__spa-shell.html
+  s_3ae4ed00856a4b::t_a5e3d76ba6afa5 1-12
+fixtures/html/expected.json
+  s_3ae4ed00856a4b::t_183ee8c09dfdff 1-235
+fixtures/html/frontiers__article-oa.html
+  s_3ae4ed00856a4b::t_16d6cd83fb0104 1-30
+fixtures/html/jama__article-free.html
+  s_3ae4ed00856a4b::t_e2eaaad6e60640 1-27
+fixtures/html/karger__article.html
+  s_3ae4ed00856a4b::t_75b0c55c28244c 1-38
+fixtures/html/lancet__article-free.html
+  s_3ae4ed00856a4b::t_f1885b51c7e3c3 1-41
+fixtures/html/lww__annals-of-surgery-article.html
+  s_3ae4ed00856a4b::t_e1f38bc25a4af1 1-34
+fixtures/html/lww__ijs-article-oa.html
+  s_3ae4ed00856a4b::t_262a9c9d5f82c8 1-34
+fixtures/html/mdpi__article-oa.html
+  s_3ae4ed00856a4b::t_bf2c6ec965c3b6 1-57
+fixtures/html/nature__scirep-oa.html
+  s_3ae4ed00856a4b::t_6d9ba85e0c1c6d 1-58
+fixtures/html/nejm__article-free.html
+  s_3ae4ed00856a4b::t_a332a1df3a05bc 1-33
+fixtures/html/oup__bjs-article-abstract.html
+  s_3ae4ed00856a4b::t_fb8aef3e0553f2 1-26
+fixtures/html/plos__article-oa.html
+  s_3ae4ed00856a4b::t_c458af5e926b7e 1-31
+fixtures/html/pmc__article-oa.html
+  s_3ae4ed00856a4b::t_7bb3c15fccb523 1-28
+fixtures/html/pmc__pdf-proof-of-work-interstitial.html
+  s_3ae4ed00856a4b::t_192a4f572daa78 1-9
+fixtures/html/sage__article-ereader-only.html
+  s_3ae4ed00856a4b::t_051fac561ba93f 1-28
+fixtures/html/sciencedirect__article-preloaded-state.html
+  s_3ae4ed00856a4b::t_1eaa09e43a4677 1-29
+fixtures/html/sciencedirect__pdfft-js-challenge-interstitial.html
+  s_3ae4ed00856a4b::t_8e7be73829c824 1-9
+fixtures/html/springer__article-paywalled.html
+  s_3ae4ed00856a4b::t_95e894875f6a30 1-58
+fixtures/html/tandf__article-no-citation-pdf-url.html
+  s_3ae4ed00856a4b::t_23501bbf4e4736 1-25
+fixtures/html/thieme__article-html.html
+  s_3ae4ed00856a4b::t_68af5057bdb72c 1-31
+fixtures/html/thieme__bot-challenge-interstitial.html
+  s_3ae4ed00856a4b::t_4e7b2a19474b9a 1-8
+fixtures/html/wiley__wjs-article.html
+  s_3ae4ed00856a4b::t_d372b13e4c670f 1-31
+fixtures/oa/README.md
+  s_3ae4ed00856a4b::t_601dae5b6a1e3a 1-118
+fixtures/oa/_capture-log.txt
+  s_3ae4ed00856a4b::t_e0e56c63554e24 1-523
+fixtures/oa/arxiv__export-api-nonexistent.xml
+  s_3ae4ed00856a4b::t_dd91b31ca0cf0c 1-10
+fixtures/oa/arxiv__export-api.xml
+  s_3ae4ed00856a4b::t_ea4550ce5dad9e 1-47
+fixtures/oa/biorxiv-api__medrxiv-details.json
+  s_3ae4ed00856a4b::t_7754d1e10b033a 1-4
+fixtures/oa/biorxiv-api__medrxiv-pubs.json
+  s_3ae4ed00856a4b::t_f03cee13f8282c 1-4
+fixtures/oa/biorxiv-api__nonexistent.json
+  s_3ae4ed00856a4b::t_daa203a03f12a4 1-4
+fixtures/oa/core__discover-gold-no-key.json
+  s_3ae4ed00856a4b::t_d686b07f1f3eb4 1
+fixtures/oa/core__discover-green-no-key.json
+  s_3ae4ed00856a4b::t_231cb27ac08737 1
+fixtures/oa/core__discover-paywalled-no-key.json
+  s_3ae4ed00856a4b::t_c561a78c0d3191 1
+fixtures/oa/core__output-green-no-key.json
+  s_3ae4ed00856a4b::t_e48917ae0597f3 1
+fixtures/oa/core__output-paywalled-hit-no-key.json
+  s_3ae4ed00856a4b::t_1e3d4f222d5800 1
+fixtures/oa/core__search-no-key-500.json
+  s_3ae4ed00856a4b::t_55870616d90bff 1
+fixtures/oa/crossref__gold.json
+  s_3ae4ed00856a4b::t_4902faf06a9dda 1
+fixtures/oa/crossref__green.json
+  s_3ae4ed00856a4b::t_05ee9b9b39d907 1
+fixtures/oa/crossref__medrxiv.json
+  s_3ae4ed00856a4b::t_ade38b6a0390fd 1
+fixtures/oa/crossref__nonexistent-404.txt
+  s_3ae4ed00856a4b::t_7b6e0b05b35783 1
+fixtures/oa/crossref__paywalled.json
+  s_3ae4ed00856a4b::t_adad98a170b000 1
+fixtures/oa/datacite__arxiv.json
+  s_3ae4ed00856a4b::t_5915b2e64fca87 1
+fixtures/oa/doaj__gold.json
+  s_3ae4ed00856a4b::t_2f4ac1a9666d5b 1
+fixtures/oa/doaj__paywalled.json
+  s_3ae4ed00856a4b::t_69aecc129a9deb 1
+fixtures/oa/europepmc-web__pdf-render-cloudflare-challenge.html
+  s_3ae4ed00856a4b::t_312ecd5a484a01 1
+fixtures/oa/europepmc__batch-or-lite.json
+  s_3ae4ed00856a4b::t_52de97702c006f 1
+fixtures/oa/europepmc__by-extid-pmid.json
+  s_3ae4ed00856a4b::t_1e0cbf93873a76 1
+fixtures/oa/europepmc__by-pmcid.json
+  s_3ae4ed00856a4b::t_306c716181efe2 1
+fixtures/oa/europepmc__fulltext-xml-gold.xml
+  s_3ae4ed00856a4b::t_fc842e883af3d5 1-26
+fixtures/oa/europepmc__gold.json
+  s_3ae4ed00856a4b::t_4ee17f8b039e8e 1
+fixtures/oa/europepmc__green.json
+  s_3ae4ed00856a4b::t_1b47ed91a2a8f7 1
+fixtures/oa/europepmc__medrxiv.json
+  s_3ae4ed00856a4b::t_b4a677a4d97b8f 1
+fixtures/oa/europepmc__nonexistent.json
+  s_3ae4ed00856a4b::t_d6fd499ecba586 1
+fixtures/oa/europepmc__paywalled.json
+  s_3ae4ed00856a4b::t_d84cfa42defe2b 1
+fixtures/oa/manifest.json
+  s_3ae4ed00856a4b::t_00e834a7aad800 1-849
+fixtures/oa/medrxiv-web__pdf-403-block.html
+  s_3ae4ed00856a4b::t_22f50f009e7543 1-90
+fixtures/oa/ncbi-idconv__gold-green-paywalled.json
+  s_3ae4ed00856a4b::t_8d17d16cc6fba1 1
+fixtures/oa/ncbi-idconv__nonexistent.json
+  s_3ae4ed00856a4b::t_e0595968d54f8c 1
+fixtures/oa/ncbi-idconv__pmid.json
+  s_3ae4ed00856a4b::t_1400f4c8e3f738 1
+fixtures/oa/ncbi-pmc-oa__retired-404.html
+  s_3ae4ed00856a4b::t_70663587a70f6e 1-38
+fixtures/oa/openalex-content__no-key.json
+  s_3ae4ed00856a4b::t_20d5f23f2a7551 1
+fixtures/oa/openalex__arxiv.json
+  s_3ae4ed00856a4b::t_729fdcd210950e 1
+fixtures/oa/openalex__by-pmcid-404.html
+  s_3ae4ed00856a4b::t_fa473c865b6061 1-5
+fixtures/oa/openalex__by-pmcid-filter.json
+  s_3ae4ed00856a4b::t_9ed99027aa03fe 1
+fixtures/oa/openalex__by-pmid.json
+  s_3ae4ed00856a4b::t_204e379080499e 1
+fixtures/oa/openalex__filter-doi-select.json
+  s_3ae4ed00856a4b::t_c3ea7910f7ad5e 1
+fixtures/oa/openalex__gold.json
+  s_3ae4ed00856a4b::t_539b7721a9ca1f 1
+fixtures/oa/openalex__green-select.json
+  s_3ae4ed00856a4b::t_3214ea36087984 1
+fixtures/oa/openalex__green.json
+  s_3ae4ed00856a4b::t_823c360bfd29a2 1
+fixtures/oa/openalex__medrxiv.json
+  s_3ae4ed00856a4b::t_d989f718f42e06 1
+fixtures/oa/openalex__nonexistent-404.html
+  s_3ae4ed00856a4b::t_89b6c53d750ab8 1-5
+fixtures/oa/openalex__paywalled.json
+  s_3ae4ed00856a4b::t_b69d66b373bdfb 1
+fixtures/oa/openalex__title-search.json
+  s_3ae4ed00856a4b::t_efba52176d23af 1
+fixtures/oa/pmc-s3__list-PMC2707599.xml
+  s_3ae4ed00856a4b::t_a51776aba7fd43 1-2
+fixtures/oa/pmc-s3__list-PMC4221854.xml
+  s_3ae4ed00856a4b::t_fec66be21124b1 1-2
+fixtures/oa/pmc-s3__meta-gold.json
+  s_3ae4ed00856a4b::t_ecfd0a9b69cf4d 1
+fixtures/oa/pmc-s3__meta-green-aam.json
+  s_3ae4ed00856a4b::t_1e5b1aaac7d1c9 1
+fixtures/oa/pmc-s3__meta-nonexistent.xml
+  s_3ae4ed00856a4b::t_2a6dccd26b8ebf 1-2
+fixtures/oa/pmc-web__pdf-pow-interstitial.html
+  s_3ae4ed00856a4b::t_0d4cf9dd7c253f 1-36
+fixtures/oa/semanticscholar__arxiv.json
+  s_3ae4ed00856a4b::t_680e39f1645d0e 1
+fixtures/oa/semanticscholar__batch-other-ids.json
+  s_3ae4ed00856a4b::t_b4d8e382a0ecf3 1
+fixtures/oa/semanticscholar__batch.json
+  s_3ae4ed00856a4b::t_c6add18d7f9830 1
+fixtures/oa/semanticscholar__error-429-unauthenticated.json
+  s_3ae4ed00856a4b::t_af5d6419bb9df9 1
+fixtures/oa/semanticscholar__gold.json
+  s_3ae4ed00856a4b::t_8e3db12c221af1 1
+fixtures/oa/semanticscholar__green.json
+  s_3ae4ed00856a4b::t_140ca5e090944d 1
+fixtures/oa/semanticscholar__medrxiv.json
+  s_3ae4ed00856a4b::t_f3ba0fc20d5d51 1
+fixtures/oa/semanticscholar__nonexistent.json
+  s_3ae4ed00856a4b::t_e46b192970a916 1
+fixtures/oa/semanticscholar__paywalled.json
+  s_3ae4ed00856a4b::t_47d284170fd895 1
+fixtures/oa/unpaywall__arxiv-404.html
+  s_3ae4ed00856a4b::t_b872d93b4de31a 1-5
+fixtures/oa/unpaywall__error-invalid-doi-404.html
+  s_3ae4ed00856a4b::t_e262652ae176c7 1-5
+fixtures/oa/unpaywall__error-no-email.json
+  s_3ae4ed00856a4b::t_a12b525cc4e158 1-5
+fixtures/oa/unpaywall__error-test-example-email.json
+  s_3ae4ed00856a4b::t_9194c66926c449 1-5
+fixtures/oa/unpaywall__gold.json
+  s_3ae4ed00856a4b::t_c34b8c5afc79d0 1
+fixtures/oa/unpaywall__green.json
+  s_3ae4ed00856a4b::t_503ebf1baa65b2 1
+fixtures/oa/unpaywall__medrxiv.json
+  s_3ae4ed00856a4b::t_156faa0b23e006 1
+fixtures/oa/unpaywall__nonexistent-404.html
+  s_3ae4ed00856a4b::t_b82c0f2882d32b 1-5
+fixtures/oa/unpaywall__paywalled.json
+  s_3ae4ed00856a4b::t_60ed75164a8241 1
+fixtures/oa/zotero-oa__arxiv.json
+  s_3ae4ed00856a4b::t_0394169f46429e 1
+fixtures/oa/zotero-oa__gold.json
+  s_3ae4ed00856a4b::t_c22c52bbf30706 1
+fixtures/oa/zotero-oa__green.json
+  s_3ae4ed00856a4b::t_718f8f450f2332 1
+fixtures/oa/zotero-oa__invalid-doi.json
+  s_3ae4ed00856a4b::t_eec784455c0d8f 1
+fixtures/oa/zotero-oa__medrxiv.json
+  s_3ae4ed00856a4b::t_b57411f276aa18 1
+fixtures/oa/zotero-oa__nonexistent.json
+  s_3ae4ed00856a4b::t_32b13ab2147dfa 1
+fixtures/oa/zotero-oa__paywalled.json
+  s_3ae4ed00856a4b::t_c84b48df8e79a1 1
+plugin/bootstrap.js
+  s_3ae4ed00856a4b::t_a8e74f113ebe64 1-80
+plugin/content/browser.js
+  s_3ae4ed00856a4b::t_839dcd8e2ff0c8 1-334
+plugin/content/confirm.js
+  s_3ae4ed00856a4b::t_5bd262d1163732 1-115
+plugin/content/harness.js
+  s_3ae4ed00856a4b::t_ae5a63925b206b 1-405
+plugin/content/icons/icon.svg
+  s_3ae4ed00856a4b::t_9f6c6fbd2888f5 1-3
+plugin/content/items.js
+  s_3ae4ed00856a4b::t_a74e3ec747316f 1-266
+plugin/content/login-controller.js
+  s_3ae4ed00856a4b::t_715dfc882c84d4 1-623
+plugin/content/login.js
+  s_3ae4ed00856a4b::t_7fee5701689ebf 1-257
+plugin/content/login.xhtml
+  s_3ae4ed00856a4b::t_3bdfaa2177d4c7 1-39
+plugin/content/menu.js
+  s_3ae4ed00856a4b::t_4303976122137a 1-161
+plugin/content/net.js
+  s_3ae4ed00856a4b::t_dbd4362d5ca83d 1-503
+plugin/content/pdf-capture.js
+  s_3ae4ed00856a4b::t_0008269c485643 1-176
+plugin/content/plugin.js
+  s_3ae4ed00856a4b::t_8100dc88ec4aed 1-201
+plugin/content/prefs.xhtml
+  s_3ae4ed00856a4b::t_0f32577edf2caf 1-33
+plugin/content/progress-window.js
+  s_3ae4ed00856a4b::t_0387e23ae4927f 1-326
+plugin/content/progress.js
+  s_3ae4ed00856a4b::t_a77be24d78e225 1-537
+plugin/content/progress.xhtml
+  s_3ae4ed00856a4b::t_97ff6778391006 1-26
+plugin/content/save.js
+  s_3ae4ed00856a4b::t_d7427bb74c6187 1-258
+plugin/content/state.js
+  s_3ae4ed00856a4b::t_f30e89681e2881 1-379
+plugin/content/translators.js
+  s_3ae4ed00856a4b::t_1c375f36fde9ce 1-211
+plugin/content/wasm-host.js
+  s_3ae4ed00856a4b::t_3824f74a9910c2 1-661
+plugin/content/zotero-oa.js
+  s_3ae4ed00856a4b::t_ab970b97d45fd9 1-88
+plugin/locale/en-US/zotero-fulltext.ftl
+  s_3ae4ed00856a4b::t_c6f42101fa2e2a 1-209
+plugin/manifest.json
+  s_3ae4ed00856a4b::t_1875cc8def6be6 1-20
+plugin/prefs.js
+  s_3ae4ed00856a4b::t_ac92719b811967 1-60
+research/01-zotero-plugin-api.md
+  s_3ae4ed00856a4b::t_4d782570a97420 1-879
+research/02-zotero-download-internals.md
+  s_3ae4ed00856a4b::t_be3881e9c21448 1-650
+research/03-probe-result.json
+  s_3ae4ed00856a4b::t_cbd0691bc383a4 1-3653
+research/04-kcl-institutional-access.md
+  s_3ae4ed00856a4b::t_d339c581d85a00 1-508
+research/05-oa-sources.md
+  s_3ae4ed00856a4b::t_4bdbb46d21183b 1-612
+research/SUMMARY.md
+  s_3ae4ed00856a4b::t_f5a0e74b672093 1-329
+spikes/wasm-spike/Cargo.lock
+  s_3ae4ed00856a4b::t_53a043c6122409 1-1054
+spikes/wasm-spike/Cargo.toml
+  s_3ae4ed00856a4b::t_9eaf267503a9f4 1-39
+spikes/wasm-spike/crates/bindgen-demo/Cargo.toml
+  s_3ae4ed00856a4b::t_e762e62b302961 1-14
+spikes/wasm-spike/crates/bindgen-demo/src/lib.rs
+  s_3ae4ed00856a4b::t_eb94d5b0384bb0 1-15
+spikes/wasm-spike/crates/core/Cargo.toml
+  s_3ae4ed00856a4b::t_213e3acca4ab7d 1-33
+spikes/wasm-spike/crates/core/examples/bench.rs
+  s_3ae4ed00856a4b::t_a1daf62937fca0 1-79
+spikes/wasm-spike/crates/core/src/html/gum.rs
+  s_3ae4ed00856a4b::t_3e490091663ea5 1-31
+spikes/wasm-spike/crates/core/src/html/hand.rs
+  s_3ae4ed00856a4b::t_70f9b840406122 1-185
+spikes/wasm-spike/crates/core/src/html/lol.rs
+  s_3ae4ed00856a4b::t_44e3d47fcd505d 1-87
+spikes/wasm-spike/crates/core/src/html/mod.rs
+  s_3ae4ed00856a4b::t_3a417d86c79e12 1-179
+spikes/wasm-spike/crates/core/src/html/scrap.rs
+  s_3ae4ed00856a4b::t_2d0bc64832f5d5 1-46
+spikes/wasm-spike/crates/core/src/html/tl_impl.rs
+  s_3ae4ed00856a4b::t_f101c53211cfc9 1-44
+spikes/wasm-spike/crates/core/src/lib.rs
+  s_3ae4ed00856a4b::t_fd7442b05b4487 1-6
+spikes/wasm-spike/crates/core/src/logic.rs
+  s_3ae4ed00856a4b::t_08f552188bcf76 1-251
+spikes/wasm-spike/crates/core/tests/logic.rs
+  s_3ae4ed00856a4b::t_42d0b7d07ceb92 1-61
+spikes/wasm-spike/crates/core/tests/messy.rs
+  s_3ae4ed00856a4b::t_ddbcc4cccccac1 1-113
+spikes/wasm-spike/crates/ladder/Cargo.toml
+  s_3ae4ed00856a4b::t_fef2a0b491cbf4 1-18
+spikes/wasm-spike/crates/ladder/src/lib.rs
+  s_3ae4ed00856a4b::t_0f6612537c5ed6 1-49
+spikes/wasm-spike/js/test-node.cjs
+  s_3ae4ed00856a4b::t_88fa6e086f8cad 1-87
+spikes/wasm-spike/js/test-panic.cjs
+  s_3ae4ed00856a4b::t_bd768836040c12 1-32
+spikes/wasm-spike/js/wasm-info.mjs
+  s_3ae4ed00856a4b::t_47cbcd58b4c4e9 1-56
+spikes/wasm-spike/js/wasm-top.mjs
+  s_3ae4ed00856a4b::t_6be86092c5a0a4 1-58
+spikes/wasm-spike/measure.sh
+  s_3ae4ed00856a4b::t_9ea74100630666 1-70
+spikes/wasm-spike/plugin-skel/bootstrap.js
+  s_3ae4ed00856a4b::t_985bcaf4aa874c 1-23
+spikes/wasm-spike/plugin-skel/content/fulltext-core.js
+  s_3ae4ed00856a4b::t_7569e8cacfe7d7 1-113
+spikes/wasm-spike/plugin-skel/manifest.json
+  s_3ae4ed00856a4b::t_86bf751df5e4d3 1-14
+spikes/wasm-spike/xtask/Cargo.toml
+  s_3ae4ed00856a4b::t_6bd873fbfc286c 1-9
+spikes/wasm-spike/zig/build.zig
+  s_3ae4ed00856a4b::t_1bdee4c2b03823 1-15
+spikes/wasm-spike/zig/ladder.zig
+  s_3ae4ed00856a4b::t_5be2bbbb462778 1-41
+tests/js/abi-recovery.test.mjs
+  s_3ae4ed00856a4b::t_e18727778ee87c 1-204
+tests/js/abi.test.mjs
+  s_3ae4ed00856a4b::t_4dc96ec3871f4e 1-356
+tests/js/browser.test.mjs
+  s_3ae4ed00856a4b::t_1cdc503e74c1d6 1-461
+tests/js/config.test.mjs
+  s_3ae4ed00856a4b::t_1d9a97568995f7 1-395
+tests/js/confirm.test.mjs
+  s_3ae4ed00856a4b::t_6466b964867ed9 1-167
+tests/js/effects-failure.test.mjs
+  s_3ae4ed00856a4b::t_78390cc5c2592f 1-493
+tests/js/effects.test.mjs
+  s_3ae4ed00856a4b::t_4085ff608dd716 1-902
+tests/js/ftl.test.mjs
+  s_3ae4ed00856a4b::t_9d28ad9d21f8db 1-108
+tests/js/harness.test.mjs
+  s_3ae4ed00856a4b::t_ab6dc951e07187 1-531
+tests/js/helpers/api-manifest.mjs
+  s_3ae4ed00856a4b::t_e8b0411e351099 1-41
+tests/js/helpers/fake-dom.mjs
+  s_3ae4ed00856a4b::t_4427cca1c49ca9 1-198
+tests/js/helpers/ftl-ids.mjs
+  s_3ae4ed00856a4b::t_5fd4d4e43a752b 1-16
+tests/js/helpers/pane-dom.mjs
+  s_3ae4ed00856a4b::t_9ae85b1251174d 1-153
+tests/js/helpers/shell-env.mjs
+  s_3ae4ed00856a4b::t_abde09b872893c 1-137
+tests/js/helpers/xml-check.mjs
+  s_3ae4ed00856a4b::t_397c5507bab3bf 1-51
+tests/js/items.test.mjs
+  s_3ae4ed00856a4b::t_a35d4c7cee99b8 1-443
+tests/js/load.test.mjs
+  s_3ae4ed00856a4b::t_50d9e03e4ddbc0 1-47
+tests/js/login.test.mjs
+  s_3ae4ed00856a4b::t_75a9bc46358215 1-922
+tests/js/menu.test.mjs
+  s_3ae4ed00856a4b::t_3f0ed4806e3d8a 1-222
+tests/js/net.test.mjs
+  s_3ae4ed00856a4b::t_93f5b9781098d5 1-549
+tests/js/pdf-capture.test.mjs
+  s_3ae4ed00856a4b::t_babbd917e138ee 1-247
+tests/js/plugin.test.mjs
+  s_3ae4ed00856a4b::t_7cde6ae993fcee 1-381
+tests/js/prefs-pane.test.mjs
+  s_3ae4ed00856a4b::t_01ce5eb2e96d4e 1-418
+tests/js/progress.test.mjs
+  s_3ae4ed00856a4b::t_b41f838cb10958 1-678
+tests/js/runs.test.mjs
+  s_3ae4ed00856a4b::t_27164b13cebe20 1-959
+tests/js/save.test.mjs
+  s_3ae4ed00856a4b::t_109c2119fced1d 1-376
+tests/js/state.test.mjs
+  s_3ae4ed00856a4b::t_510b6b36ddf3bc 1-546
+tests/js/static.test.mjs
+  s_3ae4ed00856a4b::t_caa45b4722b10b 1-83
+tests/js/wire-contract.test.mjs
+  s_3ae4ed00856a4b::t_36ae30121a2d34 1-168
+tools/sso-spike/plugin/manifest.json
+  s_3ae4ed00856a4b::t_e6e0097ae0b0b3 1-15
+tools/zotero-harness/.gitignore
+  s_3ae4ed00856a4b::t_a728441b5d95a5 1-2
+tools/zotero-harness/README.md
+  s_3ae4ed00856a4b::t_8ac8afd24c8f25 1-120
+tools/zotero-harness/e2e/evaluate.test.mjs
+  s_3ae4ed00856a4b::t_bf7abfa6ff056a 1-97
+tools/zotero-harness/e2e/plugin/manifest.json
+  s_3ae4ed00856a4b::t_af3e5719ce38b2 1-15
+tools/zotero-harness/probe-plugin/bootstrap.js
+  s_3ae4ed00856a4b::t_c88b5596b8728f 1-1016
+tools/zotero-harness/probe-plugin/content/probe-module.mjs
+  s_3ae4ed00856a4b::t_0d273846d7d516 1-40
+tools/zotero-harness/probe-plugin/content/probe-worker.js
+  s_3ae4ed00856a4b::t_81d90a03d0bad2 1-36
+tools/zotero-harness/probe-plugin/content/probe_core.wasm.b64.js
+  s_3ae4ed00856a4b::t_fb582e2e57c593 1-3
+tools/zotero-harness/probe-plugin/content/wasm-tests.js
+  s_3ae4ed00856a4b::t_ff8a64face86ce 1-195
+tools/zotero-harness/probe-plugin/content/wbg-nomod/probe_wbg.d.ts
+  s_3ae4ed00856a4b::t_d7f66c5c525c43 1-36
+tools/zotero-harness/probe-plugin/content/wbg-nomod/probe_wbg.js
+  s_3ae4ed00856a4b::t_6c72de35ad04c6 1-278
+tools/zotero-harness/probe-plugin/content/wbg-nomod/probe_wbg_bg.wasm.d.ts
+  s_3ae4ed00856a4b::t_c5988ae45f3964 1-10
+tools/zotero-harness/probe-plugin/content/wbg-web/probe_wbg.d.ts
+  s_3ae4ed00856a4b::t_9a97c18eefd15b 1-46
+tools/zotero-harness/probe-plugin/content/wbg-web/probe_wbg.js
+  s_3ae4ed00856a4b::t_5e99a584aa0b8e 1-278
+tools/zotero-harness/probe-plugin/content/wbg-web/probe_wbg.mjs
+  s_3ae4ed00856a4b::t_905406f1f31432 1-278
+tools/zotero-harness/probe-plugin/content/wbg-web/probe_wbg_bg.wasm.d.ts
+  s_3ae4ed00856a4b::t_ff3e9c1471b682 1-10
+tools/zotero-harness/probe-plugin/manifest.json
+  s_3ae4ed00856a4b::t_4bd73b4d0657b0 1-15
+tools/zotero-harness/probe-wasm-bindgen/Cargo.lock
+  s_3ae4ed00856a4b::t_aee08d20c42389 1-186
+tools/zotero-harness/probe-wasm-bindgen/Cargo.toml
+  s_3ae4ed00856a4b::t_082d127b1ce675 1-21
+tools/zotero-harness/probe-wasm-bindgen/src/lib.rs
+  s_3ae4ed00856a4b::t_ed8c17ef5dfb52 1-41
+tools/zotero-harness/probe-wasm/Cargo.lock
+  s_3ae4ed00856a4b::t_9859673ca71814 1-105
+tools/zotero-harness/probe-wasm/Cargo.toml
+  s_3ae4ed00856a4b::t_5f2b752a9bcc7a 1-19
+tools/zotero-harness/probe-wasm/src/lib.rs
+  s_3ae4ed00856a4b::t_028b5f79eef133 1-107
+tools/zotero-harness/test-plugins/noop-plugin/bootstrap.js
+  s_3ae4ed00856a4b::t_c61a04e317e883 1-5
+tools/zotero-harness/test-plugins/noop-plugin/manifest.json
+  s_3ae4ed00856a4b::t_f2038ebd33583d 1-7
+xtask/src/harness.rs
+  s_3ae4ed00856a4b::t_5e48fc06d3e899 1-630
+xtask/src/sha256.rs
+  s_3ae4ed00856a4b::t_0412075e5c9c05 1-111
+xtask/src/xpi.rs
+  s_3ae4ed00856a4b::t_7791c9d5ecdeb5 1-351
+.cargo/config.toml
+  s_3ae4ed00856a4b::t_6916a6b4de2971 1-2
+Cargo.toml
+  s_3ae4ed00856a4b::t_615c495a9a9063 1-53
+README.md
+  s_3ae4ed00856a4b::t_ddd676ae207e1c 1-116
+clippy.toml
+  s_3ae4ed00856a4b::t_ede68148e8d6ef 1-6
+crates/fulltext-core/Cargo.toml
+  s_3ae4ed00856a4b::t_b0c5784e56877d 1-18
+crates/fulltext-core/src/lib.rs
+  s_3ae4ed00856a4b::t_cbedb504a01517 1-32
+crates/fulltext-engine/Cargo.toml
+  s_3ae4ed00856a4b::t_5a49d1336c4908 1-19
+crates/fulltext-engine/src/executor.rs
+  s_3ae4ed00856a4b::t_ef2bae9841a54f 1-667
+crates/fulltext-engine/src/sched/mod.rs
+  s_3ae4ed00856a4b::t_e80fbf6b4f1890 1-1363
+crates/fulltext-engine/src/sim/scenarios/mod.rs
+  s_3ae4ed00856a4b::t_69d58b21432eaf 1-547
+crates/fulltext-engine/src/sim/scenarios/sched.rs
+  s_3ae4ed00856a4b::t_96f0ddd9afde9c 1-381
+docs/design/core.md
+  s_3ae4ed00856a4b::t_9ece0723602b45 1-181
+docs/design/engine.md
+  s_3ae4ed00856a4b::t_3dadc988445711 1-237
+docs/wp/core-ids-oa.md
+  s_3ae4ed00856a4b::t_d537e62f40d3a0 1-88
+docs/wp/core-integration.md
+  s_3ae4ed00856a4b::t_ceda1c7669bc44 1-52
+docs/wp/core-page.md
+  s_3ae4ed00856a4b::t_c0641138668235 1-115
+docs/wp/core-pdf-urls-inspect.md
+  s_3ae4ed00856a4b::t_d1ae784186b7e9 1-67
+docs/wp/core-wasm-xtask.md
+  s_3ae4ed00856a4b::t_d6e7344e920254 1-53
+docs/wp/engine-pipeline.md
+  s_3ae4ed00856a4b::t_7ad64d5c892ddd 1-89
+docs/wp/engine-run-sim.md
+  s_3ae4ed00856a4b::t_25f3bc1ce76e0a 1-71
+docs/wp/js-host-effects.md
+  s_3ae4ed00856a4b::t_e1179f040f0e20 1-85
+docs/wp/js-runs.md
+  s_3ae4ed00856a4b::t_66afcb57a9dcc7 1-62
+docs/wp/js-ui.md
+  s_3ae4ed00856a4b::t_f491e1f1ea2e11 1-60
+docs/wp/js-zotero-io.md
+  s_3ae4ed00856a4b::t_117e837aa04929 1-70
+fixtures/html/README.md
+  s_3ae4ed00856a4b::t_be76cbbb9d7f49 1-55
+plugin/content/bodies.js
+  s_3ae4ed00856a4b::t_0e196a1d28fb60 1-309
+plugin/content/config.js
+  s_3ae4ed00856a4b::t_5233ba0997053a 1-426
+plugin/content/effects.js
+  s_3ae4ed00856a4b::t_6ff534b68b28f9 1-856
+plugin/content/inspect-worker.js
+  s_3ae4ed00856a4b::t_0bf200a01e5455 1-149
+plugin/content/namespace.js
+  s_3ae4ed00856a4b::t_339841c4d05135 1-65
+plugin/content/prefs-pane.js
+  s_3ae4ed00856a4b::t_ec64643dcfcf2f 1-381
+plugin/content/runs.js
+  s_3ae4ed00856a4b::t_8d511e1e7b84ab 1-522
+plugin/content/util.js
+  s_3ae4ed00856a4b::t_682d0d04245e24 1-241
+research/03-zotero-runtime-probe.md
+  s_3ae4ed00856a4b::t_18bd1b075eeb3c 1-447
+research/06-publisher-pdf-patterns.md
+  s_3ae4ed00856a4b::t_494751eb174ee8 1-461
+research/07-rust-wasm-toolchain.md
+  s_3ae4ed00856a4b::t_40f7a0230834e3 1-439
+research/08-gap-fill.md
+  s_3ae4ed00856a4b::t_695e09446026dc 1-531
+spikes/wasm-spike/.cargo/config.toml
+  s_3ae4ed00856a4b::t_e0b904cc7d6754 1-12
+spikes/wasm-spike/crates/core/src/abi.rs
+  s_3ae4ed00856a4b::t_322c7e46bedc0c 1-171
+spikes/wasm-spike/js/fulltext-core.js
+  s_3ae4ed00856a4b::t_95a28ea6906529 1-113
+spikes/wasm-spike/js/sim-bootstrap.cjs
+  s_3ae4ed00856a4b::t_5cc9919f004434 1-32
+spikes/wasm-spike/js/test-bindgen.mjs
+  s_3ae4ed00856a4b::t_80023d2795ead0 1-42
+spikes/wasm-spike/xtask/src/main.rs
+  s_3ae4ed00856a4b::t_70fdc0229b1fea 1-83
+tests/js/bodies.test.mjs
+  s_3ae4ed00856a4b::t_bb7c7b16928a6e 1-377
+tests/js/core-wasm-fixtures.test.mjs
+  s_3ae4ed00856a4b::t_ab3273471905ea 1-439
+tests/js/helpers/fakes.mjs
+  s_3ae4ed00856a4b::t_5f130ffd2fab05 1-129
+tests/js/helpers/zft-env.mjs
+  s_3ae4ed00856a4b::t_a5ddf8a650148e 1-79
+tests/js/prefs.test.mjs
+  s_3ae4ed00856a4b::t_ac712d25c14de6 1-39
+tests/js/translators.test.mjs
+  s_3ae4ed00856a4b::t_0f5896564e9258 1-290
+tests/js/util.test.mjs
+  s_3ae4ed00856a4b::t_33ec1a36d32f5e 1-94
+tests/js/wasm-host.test.mjs
+  s_3ae4ed00856a4b::t_05eef2f42da499 1-759
+tests/js/zotero-oa.test.mjs
+  s_3ae4ed00856a4b::t_572bd315662d87 1-143
+tools/sso-spike/README.md
+  s_3ae4ed00856a4b::t_82a04d53c91e03 1-80
+tools/sso-spike/plugin/bootstrap.js
+  s_3ae4ed00856a4b::t_fe443d8c5f39a6 1-1455
+tools/sso-spike/plugin/content/SsoSpikeChild.mjs
+  s_3ae4ed00856a4b::t_8a857d7e8f2600 1-80
+tools/sso-spike/plugin/content/control.js
+  s_3ae4ed00856a4b::t_eb145a85b6f976 1-70
+tools/sso-spike/plugin/content/control.xhtml
+  s_3ae4ed00856a4b::t_ed7703e1451151 1-36
+tools/sso-spike/plugin/content/login.js
+  s_3ae4ed00856a4b::t_63709886d7ef99 1-131
+tools/sso-spike/plugin/content/login.xhtml
+  s_3ae4ed00856a4b::t_bfd0fda3cf5743 1-29
+tools/sso-spike/run-auto.ps1
+  s_3ae4ed00856a4b::t_a38924f614b9be 1-33
+tools/sso-spike/run-manual.ps1
+  s_3ae4ed00856a4b::t_a121823ee40f5e 1-74
+tools/zotero-harness/build-probe.ps1
+  s_3ae4ed00856a4b::t_433c065168a8dd 1-73
+tools/zotero-harness/e2e.ps1
+  s_3ae4ed00856a4b::t_ee7cf1ec5b3afd 1-262
+tools/zotero-harness/e2e/plugin/bootstrap.js
+  s_3ae4ed00856a4b::t_075c3f3d43bae2 1-920
+tools/zotero-harness/run.ps1
+  s_3ae4ed00856a4b::t_e6b97e636272ef 1-319
+xtask/Cargo.toml
+  s_3ae4ed00856a4b::t_2043e240df24bb 1-15
+xtask/src/main.rs
+  s_3ae4ed00856a4b::t_47c65bebd2b9cf 1-492
+xtask/src/wasm.rs
+  s_3ae4ed00856a4b::t_76569443b4575c 1-628
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f46af1d5adb135c07ea477d3c1fd043bff1418d7",
+  "prompts": {},
+  "sessions": {
+    "s_3ae4ed00856a4b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2eda52fb-3ac9-4e03-a64a-b8dd07a22a35",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ABorakati <ABorakati@users.noreply.github.com>"
+    }
+  }
+}
