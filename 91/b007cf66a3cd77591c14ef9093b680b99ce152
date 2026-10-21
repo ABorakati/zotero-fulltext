@@ -1,0 +1,346 @@
+crates/fulltext-core/src/urls.rs
+  s_3ae4ed00856a4b::t_2c2970c2a2e2ad 522-524
+  s_3ae4ed00856a4b::t_e6ed09b7f0849a 587,592-593
+  s_3ae4ed00856a4b::t_33a541f372914b 603-605
+  s_3ae4ed00856a4b::t_d87695c867bc00 506-507
+  s_3ae4ed00856a4b::t_b84267f68edf74 459-488,490-492
+  s_3ae4ed00856a4b::t_56004cf1e8340c 628-639
+crates/fulltext-core/src/page/classify.rs
+  s_3ae4ed00856a4b::t_38e99c9ede4e1c 11-14
+  s_3ae4ed00856a4b::t_65736a5d9a71cc 424-428,433-443,448-450
+  s_3ae4ed00856a4b::t_7514a49ce20928 429-432,444-447
+  s_3ae4ed00856a4b::t_93eda6396d97d2 71
+  s_3ae4ed00856a4b::t_29c52a53408012 375-376
+docs/design/core.md
+  s_3ae4ed00856a4b::t_b931a59b49e4f8 79
+  s_3ae4ed00856a4b::t_a18691768e40ab 152-154
+  s_3ae4ed00856a4b::t_197d8f024364eb 112-151,155-183
+tools/zotero-harness/README.md
+  s_3ae4ed00856a4b::t_e42b518e674bf2 20
+crates/fulltext-core/src/lib.rs
+  s_3ae4ed00856a4b::t_4f7e3ba412dc38 14
+  s_3ae4ed00856a4b::t_d59d4453e83114 34
+tools/zotero-harness/login-probe.ps1
+  s_3ae4ed00856a4b::t_43d0c625bc4c75 148,157-158
+  s_3ae4ed00856a4b::t_42aea809ce4a10 150-154
+  s_3ae4ed00856a4b::t_793a53033c14c7 32
+  s_3ae4ed00856a4b::t_11378caac3f1f8 136-137
+  s_3ae4ed00856a4b::t_24794f0e48117d 155
+  s_3ae4ed00856a4b::t_b1e73205832090 132-133
+  s_3ae4ed00856a4b::t_955e6d0ea53776 144-147
+  s_3ae4ed00856a4b::t_9507cc64ffcafd 140-141
+  s_3ae4ed00856a4b::t_b190e65c59e9c7 1-31,33-74,76-131,134-135,138-139,142-143,156,159-161
+  s_3ae4ed00856a4b::t_f3a3bf1df22c5d 75
+  s_3ae4ed00856a4b::t_309b4945a79dd8 149
+tools/zotero-harness/login-probe/plugin/manifest.json
+  s_3ae4ed00856a4b::t_9c9141e9fb6af4 1-15
+plugin/content/harness.js
+  s_3ae4ed00856a4b::t_e1919eafbbcccb 281-287,293,295-310,312-314
+  s_3ae4ed00856a4b::t_172c07a79c5fe5 255-257
+  s_3ae4ed00856a4b::t_5537360d58610d 24-26
+  s_3ae4ed00856a4b::t_49617575f17161 288-292
+  s_3ae4ed00856a4b::t_a1874635b3ba79 294
+crates/fulltext-engine/src/sched/mod.rs
+  s_3ae4ed00856a4b::t_1b26f8df80ad52 442
+  s_3ae4ed00856a4b::t_6dc6c953d304ec 469-470
+plugin/content/plugin.js
+  s_3ae4ed00856a4b::t_0eecec31524b7d 104-105
+tools/zotero-harness/login-probe/plugin/bootstrap.js
+  s_3ae4ed00856a4b::t_e08a7c5f9b7d20 81-82,84-85
+  s_3ae4ed00856a4b::t_be2879c38eaa79 207
+  s_3ae4ed00856a4b::t_db94308a54d0ee 1-62,64-71,87-88,90-132,152-173,175-198,211-223,315-326,328-329,331-368
+  s_3ae4ed00856a4b::t_19a9e59b704e9f 327
+  s_3ae4ed00856a4b::t_82551ade80c6ed 270-301
+  s_3ae4ed00856a4b::t_6deebad5d353cd 330
+  s_3ae4ed00856a4b::t_3fbc44d42613be 89
+  s_3ae4ed00856a4b::t_c7226927b15877 133-143
+  s_3ae4ed00856a4b::t_f5f1631d4b7184 224-249,258-269
+  s_3ae4ed00856a4b::t_df6437e6b2d1c5 63
+  s_3ae4ed00856a4b::t_f60dc2da422f6b 72-73,75-80,83,86
+  s_3ae4ed00856a4b::t_a2ae8a56869742 199-206,208-210
+  s_3ae4ed00856a4b::t_7d7e2b4a273646 302-314
+  s_3ae4ed00856a4b::t_fd2410e6be6be8 250-257
+  s_3ae4ed00856a4b::t_5cd740bb0b4fb0 144-151
+  s_3ae4ed00856a4b::t_d7c14893e3261a 174
+  s_3ae4ed00856a4b::t_62e2d9734cc723 74
+crates/fulltext-engine/src/proto.rs
+  s_3ae4ed00856a4b::t_23246e16e7e139 126-130
+  s_3ae4ed00856a4b::t_872f9cd578e630 696-738
+  s_3ae4ed00856a4b::t_68c755cf9657ec 139-141
+  s_3ae4ed00856a4b::t_d72b4aa5addd2d 174-175,181-188
+  s_3ae4ed00856a4b::t_d70c2bb219c260 695
+crates/fulltext-engine/src/pipeline/requests.rs
+  s_3ae4ed00856a4b::t_5e2aa4a80c2b5c 252-253
+tests/js/plugin.test.mjs
+  s_3ae4ed00856a4b::t_1e402c9b301ae8 240,248,253
+  s_3ae4ed00856a4b::t_3ce142e61124db 181,217,222
+tests/js/institution.test.mjs
+  s_3ae4ed00856a4b::t_dc2ab6ebaafab5 413
+  s_3ae4ed00856a4b::t_f85f256efff820 50-51,245,300
+  s_3ae4ed00856a4b::t_b21edfc4ac0ffd 1-49,52-61,63-64,67,71-74,77-79,81-83,108-109,145,147-148,150,152-153,155,162-244,246-299,301-369,371,383-392,395-412,414-461,463-660
+  s_3ae4ed00856a4b::t_cf225f27385a60 62,65-66,68-70,75-76,80,84-107,110-144,146,149,151,154,156-161,370,372-382,393-394,462
+tests/js/browser.test.mjs
+  s_3ae4ed00856a4b::t_6aee78786ac12b 72
+  s_3ae4ed00856a4b::t_b31a9185291f0a 333-351
+crates/fulltext-engine/src/login.rs
+  s_3ae4ed00856a4b::t_cc97756f60fa14 411
+crates/fulltext-core/tests/totality.rs
+  s_3ae4ed00856a4b::t_9596928fe24340 76
+  s_3ae4ed00856a4b::t_0d101e5d3b30e1 93
+  s_3ae4ed00856a4b::t_8274a693c027cc 114
+tests/js/helpers/shell-env.mjs
+  s_3ae4ed00856a4b::t_3ce142e61124db 124
+crates/fulltext-engine/src/sim/scenarios/inst.rs
+  s_3ae4ed00856a4b::t_abe9bd7d8e46b7 409-609
+plugin/content/login.xhtml
+  s_3ae4ed00856a4b::t_19d363de3820e9 6-10,23-32,43-45
+tests/js/harness.test.mjs
+  s_3ae4ed00856a4b::t_a1874635b3ba79 494-500
+  s_3ae4ed00856a4b::t_f85f256efff820 516
+tests/js/progress.test.mjs
+  s_3ae4ed00856a4b::t_6fd0df35ef68a0 679-727,731-737
+  s_3ae4ed00856a4b::t_d4de25b4152fc8 728-730
+crates/fulltext-engine/src/pipeline/handoff.rs
+  s_3ae4ed00856a4b::t_82caa49880b0ad 59-60
+  s_3ae4ed00856a4b::t_bdcc905080c7e9 11
+  s_3ae4ed00856a4b::t_6f584ca09e0801 31-38,40
+plugin/content/prefs-pane.js
+  s_3ae4ed00856a4b::t_5c07eeb8f5752a 427-428,432
+  s_3ae4ed00856a4b::t_918fc3ba7e1b55 945
+  s_3ae4ed00856a4b::t_3150928043707a 741-742,768-770,775-778,781-782,784,861-863,867-868
+  s_3ae4ed00856a4b::t_dce8d3bae72305 439-440,444-450,453,455-458,499-577,579-656,659-676,678-683,746-767,771-774,779-780,783,785-860,864-866
+  s_3ae4ed00856a4b::t_bb085b20cd4783 298
+  s_3ae4ed00856a4b::t_9b989932117875 688
+  s_3ae4ed00856a4b::t_0628b9a0c639f9 711
+  s_3ae4ed00856a4b::t_21c11fb5b0e7c0 930
+  s_3ae4ed00856a4b::t_c2bec84f96fc39 966
+  s_3ae4ed00856a4b::t_4270cc5815f5ec 20,22-27
+  s_3ae4ed00856a4b::t_6bca1d51950086 282
+  s_3ae4ed00856a4b::t_fe840c25952663 54-71
+  s_3ae4ed00856a4b::t_4316e12d546f65 28-35
+  s_3ae4ed00856a4b::t_e7bfd6c8f66342 299-388
+  s_3ae4ed00856a4b::t_2015f818cc581e 263-266,271,286-297,389-426,429-431,433-438,441-443,451-452,454,459-498,578,657-658,677
+  s_3ae4ed00856a4b::t_f18fe3b45a75a5 153-158
+  s_3ae4ed00856a4b::t_b95852da8d5c03 48-53,73
+  s_3ae4ed00856a4b::t_113e593b6ef04f 151-152,159-167
+  s_3ae4ed00856a4b::t_cebe5e052a3d9c 218,222
+  s_3ae4ed00856a4b::t_df4633556f739a 684,869,871-878,881,884,886,888-889
+  s_3ae4ed00856a4b::t_cfe42547e267e1 72
+  s_3ae4ed00856a4b::t_102629589c6dd3 685
+  s_3ae4ed00856a4b::t_6fc4472fdcb1bd 870
+crates/fulltext-core/src/oa/mod.rs
+  s_3ae4ed00856a4b::t_37d5f09d47216d 62-63
+crates/fulltext-core/tests/urls.rs
+  s_3ae4ed00856a4b::t_3b1e4808e7e9ca 1397
+  s_3ae4ed00856a4b::t_7514a49ce20928 1320-1324,1361-1362,1377-1382
+  s_3ae4ed00856a4b::t_0250c79ff03440 1115
+  s_3ae4ed00856a4b::t_056e4c5c7ce93d 820
+  s_3ae4ed00856a4b::t_1a2cfc87be6d11 1089
+  s_3ae4ed00856a4b::t_5d3448d84cff47 1296
+  s_3ae4ed00856a4b::t_d59e8912a1611d 943,1306-1309,1313-1319,1325-1350,1352-1360,1363-1376,1383-1395
+  s_3ae4ed00856a4b::t_793ea6ae072859 944-973
+  s_3ae4ed00856a4b::t_d8ef50ff6dd708 1263
+  s_3ae4ed00856a4b::t_4e5574816a005f 1276
+  s_3ae4ed00856a4b::t_db5c80c419feaa 1396
+plugin/content/menu.js
+  s_3ae4ed00856a4b::t_1682435b9309e4 118
+  s_3ae4ed00856a4b::t_9d7014720bbf18 101-108,111
+plugin/content/progress.js
+  s_3ae4ed00856a4b::t_665e77c604e1af 187
+  s_3ae4ed00856a4b::t_3ce9ab27aec4df 491-493,495-509
+  s_3ae4ed00856a4b::t_b9dab6ec94d60a 73
+  s_3ae4ed00856a4b::t_527ae028fb514d 250-265
+  s_3ae4ed00856a4b::t_4c475b70eeaa34 494
+  s_3ae4ed00856a4b::t_d7dbbb5dbd0f53 572
+crates/fulltext-engine/src/sched/policy.rs
+  s_3ae4ed00856a4b::t_c2d50e9bfa574a 169-170
+crates/fulltext-core/src/model.rs
+  s_3ae4ed00856a4b::t_eb623e5ebc9e8b 38-40
+  s_3ae4ed00856a4b::t_1cf3a56b9c6b61 60-63
+  s_3ae4ed00856a4b::t_48350a8dcd2ab7 377-380
+crates/fulltext-core/tests/data/page/shibboleth_idp_login.html
+  s_3ae4ed00856a4b::t_9e235734d98dca 1-46
+plugin/content/prefs.xhtml
+  s_3ae4ed00856a4b::t_006a8f13d8e8fe 17-19,27-30
+  s_3ae4ed00856a4b::t_95b5c98b44c5a1 20-26
+crates/fulltext-core/src/wayfless.rs
+  s_3ae4ed00856a4b::t_7514a49ce20928 212-214,398-400,482-484,501-505,509-512,514-517,519-522,529-532,611-614,620-622,711-721,726-741,743-750
+  s_3ae4ed00856a4b::t_0893799ed0bd97 538,547
+  s_3ae4ed00856a4b::t_7b2a85bc9e7406 1-211,215-397,401-481,485-491,493-500,506-508,513,518,523-528,533-537,539-546,548-610,615-619,623-710,722-725,742,751-771
+  s_3ae4ed00856a4b::t_03acfc0de8d581 492
+tests/js/fixtures/mdq-oxford.json
+  s_3ae4ed00856a4b::t_7d880224a08add 1-10
+crates/fulltext-core/tests/classify.rs
+  s_3ae4ed00856a4b::t_e22d42101b33ec 423-462,469-475,484-497,502-545,549-552,554,556-557,561-582
+  s_3ae4ed00856a4b::t_34db415b15fd41 553,555
+  s_3ae4ed00856a4b::t_7514a49ce20928 463-468,477-482,498-501,546-548,558-560
+  s_3ae4ed00856a4b::t_e68e9ede37689c 476,483
+plugin/content/config.js
+  s_3ae4ed00856a4b::t_65b7a085272522 91-93
+  s_3ae4ed00856a4b::t_fe11cb2e482c51 121-132,134,139-142,157,162-165,167-170,173,179-180,187-189,199,204-206,223-225,284-285,288
+  s_3ae4ed00856a4b::t_da849d074b62f3 734-758,767-884,892
+  s_3ae4ed00856a4b::t_7e1d504e62a6fd 326
+  s_3ae4ed00856a4b::t_f8f5ff39f13e3c 286-287
+  s_3ae4ed00856a4b::t_352458f878ef66 11-14
+  s_3ae4ed00856a4b::t_1eb59185f9fcd1 78
+  s_3ae4ed00856a4b::t_c70ecce4d0b6be 133,135-138
+  s_3ae4ed00856a4b::t_aafb7ebaa553d7 15-20
+  s_3ae4ed00856a4b::t_4491447069d24e 143-156,158-161,166,171-172,174-178,181-186,190-198,200-201,203,207-222,228,230,232,234,236,239,241,243,245,247,249,251,253,255,257,259,261,263,265,269,271,273,275,277,279,281,283
+  s_3ae4ed00856a4b::t_eef82d73db70cc 630-662,668,672-700,704-733,888-890
+  s_3ae4ed00856a4b::t_de186bccb4fb35 663-667,669-671
+  s_3ae4ed00856a4b::t_31601254f71a44 759-766
+  s_3ae4ed00856a4b::t_7331f42a2519ec 605
+  s_3ae4ed00856a4b::t_874f92e5081fc4 202,226-227,229,231,233,235,237-238,240,242,244,246,248,250,252,254,256,258,260,262,264,266-268,270,272,274,276,278,280,282,702-703
+  s_3ae4ed00856a4b::t_8b27fe6ddeb3ce 337
+  s_3ae4ed00856a4b::t_673fd90287fa1c 377-381,391-395
+  s_3ae4ed00856a4b::t_8b6f785bbb231a 498,523,545,576-577,596-597,606-609,701
+  s_3ae4ed00856a4b::t_855a2686104332 59
+  s_3ae4ed00856a4b::t_6ffd8b508a08f8 100
+  s_3ae4ed00856a4b::t_594addc12340a3 891
+  s_3ae4ed00856a4b::t_0b66ebad53dc78 63
+  s_3ae4ed00856a4b::t_d42822d3d5e6c6 383-390,396-403
+docs/design/engine.md
+  s_3ae4ed00856a4b::t_84e8d27b1fa104 176-202
+  s_3ae4ed00856a4b::t_654c19908b7f60 137
+tests/js/fixtures/mdq-queen-mary.json
+  s_3ae4ed00856a4b::t_7d880224a08add 1-5
+crates/fulltext-engine/src/sim/fixtures.rs
+  s_3ae4ed00856a4b::t_93d8474f1c253b 32
+  s_3ae4ed00856a4b::t_a175abe809a969 59-60
+crates/fulltext-engine/src/pipeline/pure.rs
+  s_3ae4ed00856a4b::t_0df0525807a5e5 153-164
+  s_3ae4ed00856a4b::t_89e982a1e127c9 117-118
+  s_3ae4ed00856a4b::t_61fdde2d4d40d1 69-110
+  s_3ae4ed00856a4b::t_a4fbb465d22b12 6
+  s_3ae4ed00856a4b::t_bb3b8a03a92ab4 319-320
+tests/js/prefs-pane.test.mjs
+  s_3ae4ed00856a4b::t_f85f256efff820 224-230,232,237,268-269
+tests/js/fixtures/mdq-empty.json
+  s_3ae4ed00856a4b::t_7d880224a08add 1
+docs/design/plugin-js.md
+  s_3ae4ed00856a4b::t_fb75fa0974029b 109-119
+plugin/content/login.js
+  s_3ae4ed00856a4b::t_5a23113b6200ed 265-268
+  s_3ae4ed00856a4b::t_5fcf49cca92cc8 16-20
+  s_3ae4ed00856a4b::t_1619f8b025cacc 104-123
+tests/js/login.test.mjs
+  s_3ae4ed00856a4b::t_6084a5c487b134 1110
+  s_3ae4ed00856a4b::t_7573d7d0389594 88
+  s_3ae4ed00856a4b::t_c208059d46a78c 100
+  s_3ae4ed00856a4b::t_9c3405588b4773 685-686
+  s_3ae4ed00856a4b::t_05f0310f249afe 71,74-78
+  s_3ae4ed00856a4b::t_980e595f01ae28 832-848
+  s_3ae4ed00856a4b::t_65aea1f8aa5fe5 129
+  s_3ae4ed00856a4b::t_1e3bab9480781f 79,729,1014-1109,1111-1161,1163-1230
+  s_3ae4ed00856a4b::t_1c55a6e0c6274d 655,658-664,672-684,687-709,722-723,727-728
+  s_3ae4ed00856a4b::t_1b7a2ef20fc33a 710-721,724-726
+  s_3ae4ed00856a4b::t_3bef80ee32af77 1162
+  s_3ae4ed00856a4b::t_ebf21604c051d9 730
+crates/fulltext-engine/src/l10n.rs
+  s_3ae4ed00856a4b::t_8d0564ea7635a8 72-73
+  s_3ae4ed00856a4b::t_41efc639bdfa3d 113,119-126
+  s_3ae4ed00856a4b::t_fbc2c36fde9f94 135
+  s_3ae4ed00856a4b::t_c543f0f7313aa5 270
+  s_3ae4ed00856a4b::t_36542c1ac2f88d 590-623,625-631,636-637
+  s_3ae4ed00856a4b::t_5143a190f75720 624,632-635
+  s_3ae4ed00856a4b::t_9c5f38ded03559 589
+tests/js/access-methods.test.mjs
+  s_3ae4ed00856a4b::t_2ba03bc09d6e4f 674
+  s_3ae4ed00856a4b::t_7b5ba66590589a 1-92,94-153,156-392,394-673,675-680
+  s_3ae4ed00856a4b::t_2bfd3c45de96c9 93,154-155,393
+crates/fulltext-engine/src/pipeline/inst.rs
+  s_3ae4ed00856a4b::t_ed1e06ce45d446 1503-1508
+  s_3ae4ed00856a4b::t_a975d52744237b 1091,1094-1097,1105-1133,1138,1141-1145
+  s_3ae4ed00856a4b::t_ce109432423626 1340-1350
+  s_3ae4ed00856a4b::t_181ba2cc6f7db9 1359-1370
+  s_3ae4ed00856a4b::t_fed55c15cb69b8 26-44,47-52
+  s_3ae4ed00856a4b::t_e4c8fd7e6b2ad6 490,494,497,500,503,505
+  s_3ae4ed00856a4b::t_0dde6edde21e0f 553
+  s_3ae4ed00856a4b::t_8f913b5d9de085 1178-1180,1182
+  s_3ae4ed00856a4b::t_4aee71112b76cd 1523-1526
+  s_3ae4ed00856a4b::t_ded442bd9d8832 2343
+  s_3ae4ed00856a4b::t_f6265e16b8206b 495,4649-4732,4736-4816,4820-5001,5007-5039,5041-5145,5151-5166,5171,5177-5223,5228-5258,5263-5311,5323-5326,5335-5344
+  s_3ae4ed00856a4b::t_dbe4cd7e7c620c 1214
+  s_3ae4ed00856a4b::t_320da867516b85 1248
+  s_3ae4ed00856a4b::t_8aba0ac7541918 452
+  s_3ae4ed00856a4b::t_fac66768852a84 662-668
+  s_3ae4ed00856a4b::t_7514a49ce20928 4733-4735,4817-4819,5002-5006,5040,5146-5150,5167-5170,5172-5176,5224-5227,5259-5262,5312-5322
+  s_3ae4ed00856a4b::t_277803bc090e2d 496,498-499
+  s_3ae4ed00856a4b::t_cc8a71994e4531 1221-1224
+  s_3ae4ed00856a4b::t_ce5f7ece0717c7 5327-5334
+  s_3ae4ed00856a4b::t_f13ad60b3d1340 1705
+  s_3ae4ed00856a4b::t_f2bd9954f13263 307-317
+plugin/content/browser.js
+  s_3ae4ed00856a4b::t_2379abaf80e081 306
+  s_3ae4ed00856a4b::t_862c6da4f46b26 46-47
+  s_3ae4ed00856a4b::t_a7aa5ff0de3e20 265-271
+  s_3ae4ed00856a4b::t_85a5914c37c7d3 249
+  s_3ae4ed00856a4b::t_8664ddd5082d9d 166-180
+crates/fulltext-core/tests/inspect.rs
+  s_3ae4ed00856a4b::t_1055fc2b3f6916 518-519
+  s_3ae4ed00856a4b::t_7f5dea4d7e0cc1 532-555
+  s_3ae4ed00856a4b::t_1b783e855420d4 531
+plugin/locale/en-US/zotero-fulltext.ftl
+  s_3ae4ed00856a4b::t_089ea34470c276 53
+  s_3ae4ed00856a4b::t_102052bc6aba36 249-264,266-286,288-316
+  s_3ae4ed00856a4b::t_a72cfd137ac6b2 265,287
+  s_3ae4ed00856a4b::t_06bf279ad45a20 13
+  s_3ae4ed00856a4b::t_c0abe9b7ceef88 224,232
+  s_3ae4ed00856a4b::t_0dd1659bf17724 73-74
+  s_3ae4ed00856a4b::t_bd17d647c2d6f2 211-223,225-231,233-238
+  s_3ae4ed00856a4b::t_023bcfa75fa128 239-248
+crates/fulltext-core/tests/data/page/shibboleth_idp_session_loading.html
+  s_3ae4ed00856a4b::t_946806332a1e22 1-85
+plugin/content/progress.xhtml
+  s_3ae4ed00856a4b::t_72bc0014e7fc09 17-22
+plugin/prefs.js
+  s_3ae4ed00856a4b::t_e1329cf64cc545 60-61
+  s_3ae4ed00856a4b::t_eedab4aab151f3 30,46-47
+  s_3ae4ed00856a4b::t_3cb4f974e62b49 26
+README.md
+  s_3ae4ed00856a4b::t_db6e7e1f5ad3ba 67-69
+  s_3ae4ed00856a4b::t_7087b11c9fa296 12-16
+tests/js/config.test.mjs
+  s_3ae4ed00856a4b::t_6baafa8a13d731 44,59-60,234-239,249-251,271-272,274,300,305-308,315-316,324,333-336,405,411-474,476-484
+  s_3ae4ed00856a4b::t_8a333615815ff5 475
+plugin/content/progress-window.js
+  s_3ae4ed00856a4b::t_f9d9f2685aaa71 335-336
+  s_3ae4ed00856a4b::t_7e6a7db0305b6e 250-258
+  s_3ae4ed00856a4b::t_ed612303cea1aa 314-323
+plugin/content/login-controller.js
+  s_3ae4ed00856a4b::t_724985f4a3a6a3 428
+  s_3ae4ed00856a4b::t_b4552d0924c40c 125-126
+  s_3ae4ed00856a4b::t_e676b0dbd13401 619
+  s_3ae4ed00856a4b::t_21465385fde2b2 690-747
+  s_3ae4ed00856a4b::t_db98a55e6d8c14 225
+  s_3ae4ed00856a4b::t_cbdd69495b8077 853-856
+  s_3ae4ed00856a4b::t_cd3fa563d98db3 550-551
+  s_3ae4ed00856a4b::t_77a141b5df281f 779
+  s_3ae4ed00856a4b::t_5f27ae3fe6e863 115-116
+  s_3ae4ed00856a4b::t_958eefce824373 276-279
+  s_3ae4ed00856a4b::t_7394fd8b64a36e 833-836
+  s_3ae4ed00856a4b::t_b4edf581280e6b 554
+  s_3ae4ed00856a4b::t_5a959eac545798 451-461,463,466-467,469-470,473-486
+  s_3ae4ed00856a4b::t_7cdf6d429b75ea 67-75
+  s_3ae4ed00856a4b::t_5df9f217b659b5 203-224,226-271
+  s_3ae4ed00856a4b::t_31f44a5c304b87 113-114,117-124,127-154
+  s_3ae4ed00856a4b::t_ab167670ebd7c6 358-362
+  s_3ae4ed00856a4b::t_c32514a15359d9 552-553,555-557
+  s_3ae4ed00856a4b::t_01f196afd10d75 794-796,807,810,812-815,830
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "91b007cf66a3cd77591c14ef9093b680b99ce152",
+  "prompts": {},
+  "sessions": {
+    "s_3ae4ed00856a4b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2eda52fb-3ac9-4e03-a64a-b8dd07a22a35",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ABorakati <ABorakati@users.noreply.github.com>"
+    }
+  }
+}
