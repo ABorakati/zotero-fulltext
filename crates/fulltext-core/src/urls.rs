@@ -456,10 +456,40 @@ const IDP_HOSTS: [&str; 5] = [
     "kclidp.kcl.ac.uk",
 ];
 
+/// Path fragments (lower-case) of generic Shibboleth / SAML identity providers: the Shibboleth IdP v2-v5 profile
+/// endpoints (`/idp/profile/SAML2/Redirect/SSO`, `/idp/profile/Shibboleth/SSO`, `/idp/profile/cas/login`,
+/// `/idp/Authn/...`, the SAML1 entry), AD FS, SimpleSAMLphp and NetIQ.
+const GENERIC_IDP_PATHS: [&str; 9] = [
+    "/idp/profile/",
+    "/idp/authn/",
+    "/idp/shibboleth",
+    "/adfs/ls",
+    "/simplesaml/saml2/idp/",
+    "/simplesaml/module.php/core/loginuserpass",
+    "/simplesaml/module.php/authcrypt",
+    "/nidp/saml2/sso",
+    "/saml2/idp/ssoservice",
+];
+
+/// Whether `host` / `path` look like a generic SAML / Shibboleth identity-provider page: a known IdP path
+/// ([`GENERIC_IDP_PATHS`]) or a host whose first label is `idp`, `idp1`, `idp2`, ... (`idp.shibboleth.ox.ac.uk`,
+/// `idp.warwick.ac.uk`). Publisher-side Shibboleth SPs (`/Shibboleth.sso/`) are not identity providers.
+pub(crate) fn is_generic_idp(host: &str, path: &str) -> bool {
+    let path = path.to_ascii_lowercase();
+    if GENERIC_IDP_PATHS.iter().any(|m| path.contains(m)) {
+        return true;
+    }
+    let label = host.split('.').next().unwrap_or_default();
+    label
+        .strip_prefix("idp")
+        .is_some_and(|rest| rest.chars().all(|c| c.is_ascii_digit()))
+        && host.contains('.')
+}
+
 /// Substrings (lower-case) of the SP-initiated SSO endpoints publishers redirect to (research/04 section 6.5).
-const SSO_HOP_MARKERS: [&str; 12] = [
-    "/shibboleth.sso/login",
-    "/shibboleth.sso/discovery",
+/// Any `/Shibboleth.sso/` path is a Shibboleth service provider hop (`Login`, `Discovery`, `SAML2/POST`, `Session`).
+const SSO_HOP_MARKERS: [&str; 11] = [
+    "/shibboleth.sso/",
     "/action/ssostart",
     "auth.elsevier.com/shibauth",
     "fsso.springer.com",
@@ -473,7 +503,8 @@ const SSO_HOP_MARKERS: [&str; 12] = [
 ];
 
 /// Classify a URL for `BrowserReq.hold_while` and the login-window poll: OpenAthens redirector, an IdP login page
-/// (Entra, `login.live.com`, `login.openathens.net/auth/`, `kclidp.kcl.ac.uk`), the EZproxy login host
+/// (Entra, `login.live.com`, `login.openathens.net/auth/`, `kclidp.kcl.ac.uk`, any generic Shibboleth / SAML IdP
+/// path or `idp.*` host, see [`is_generic_idp`]), the EZproxy login host
 /// (`conf.login_host`, default [`DEFAULT_EZPROXY_LOGIN_HOST`]) at `/login` or `/connect`, a publisher SSO hop, or
 /// `Other`. Checked in that order. Never fails: an unparseable URL can only be an SSO hop by substring.
 pub fn url_class(conf: Option<&ProxyConf<'_>>, url: &str) -> UrlClassKind {
@@ -486,6 +517,9 @@ pub fn url_class(conf: Option<&ProxyConf<'_>>, url: &str) -> UrlClassKind {
     if IDP_HOSTS.contains(&host.as_str())
         || (host == "login.openathens.net" && starts_with_ci(path, "/auth/"))
     {
+        return UrlClassKind::IdpLogin;
+    }
+    if is_generic_idp(&host, path) {
         return UrlClassKind::IdpLogin;
     }
     let login_host = conf
@@ -550,11 +584,13 @@ pub fn strip_tracking(url: &str) -> String {
 // ------------------------------------------------------------------ hand-off links
 
 /// What [`handoff`] needs from the institution configuration.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct HandoffConf<'a> {
     pub openathens_domain: &'a str,
     pub ezproxy: Option<ProxyConf<'a>>,
     pub libkey_library_id: Option<u32>,
+    /// The institution's SAML IdP `entityID`; with it, `Handoff.wayfless_url` is filled for supported publishers.
+    pub saml_entity_id: Option<&'a str>,
 }
 
 /// Build the "open it in your browser" links shown on `NeedsUser` / `NotEntitled` / `Blocked` rows.
@@ -564,7 +600,9 @@ pub struct HandoffConf<'a> {
 /// * `redirector_url`: the OpenAthens redirector deep link, when `openathens_domain` is non-empty;
 /// * `ezproxy_url`: the EZproxy `login?qurl=` link (always `qurl`, so targets with queries survive), when configured;
 /// * `libkey_url`: the LibKey deep link, only with a DOI and a library id (the DOI is percent-encoded per segment);
-/// * `doi_url`: the plain DOI link, when a DOI is known.
+/// * `doi_url`: the plain DOI link, when a DOI is known;
+/// * `wayfless_url`: the publisher's SAML / Shibboleth sign-in link ([`crate::wayfless`]), when the institution has a
+///   `saml_entity_id` and the reached page, the item URL or the DOI belongs to a supported publisher.
 pub fn handoff(conf: &HandoffConf<'_>, ids: &Ids, landing: Option<&str>) -> Handoff {
     let doi = ids.doi.as_deref().map(str::trim).filter(|d| !d.is_empty());
     let page = [landing, ids.url.as_deref()]
@@ -587,6 +625,18 @@ pub fn handoff(conf: &HandoffConf<'_>, ids: &Ids, landing: Option<&str>) -> Hand
             .zip(doi)
             .map(|(id, d)| libkey_url(id, &encode_doi_path(d))),
         doi_url: doi_link,
+        wayfless_url: conf
+            .saml_entity_id
+            .map(str::trim)
+            .filter(|e| !e.is_empty())
+            .and_then(|entity| {
+                let urls: Vec<&str> = [landing, ids.url.as_deref()]
+                    .into_iter()
+                    .flatten()
+                    .map(str::trim)
+                    .collect();
+                crate::wayfless::wayfless_for(conf.ezproxy.as_ref(), entity, doi, &urls)
+            }),
     }
 }
 

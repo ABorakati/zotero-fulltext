@@ -11,6 +11,7 @@
 //! | [`model`] | frozen data contract shared with the engine and the JS host (copy of `docs/design/contracts/model.rs`) |
 //! | [`ids`] | DOI / PMID / PMCID / arXiv normalisation from item fields |
 //! | [`urls`] | host keys, EZproxy / OpenAthens / LibKey URL builders, proxify / unproxify, URL classification |
+//! | [`wayfless`] | publisher SAML / Shibboleth WAYFless sign-in URLs from `(article URL or DOI, IdP entityID)` |
 //! | [`oa`] | one parser per open-access API: `(RespMeta, body, requested Ids) -> ApiInspection` |
 //! | [`rank`] | merge, dedupe, score and tier candidates |
 //! | [`page`] | HTML tokenizer wrapper, response classifier, PDF-link extractor, per-publisher rules |
@@ -30,3 +31,4 @@ pub mod pdf;
 pub mod rank;
 pub mod text;
 pub mod urls;
+pub mod wayfless;

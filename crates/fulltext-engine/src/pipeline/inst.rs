@@ -23,14 +23,33 @@
 //!    `OpenathensWait` (the browser gave up on the "Please wait..." page) is HEAD-polled every
 //!    `OPENATHENS_POLL_MS` up to `OPENATHENS_POLL_MAX_MS` (201, or 302 + Location, means ready), then reloaded.
 //!    Publisher pages the redirector does not know (`Institution.passthrough_hosts`) skip this step.
-//! 4. **EZproxy** (`prefs.use_ezproxy`): only for a known publisher host (the page a route reached, else the OA
-//!    phase's publisher hint, else the item URL; none known: the step is skipped) that is cached configured by
-//!    `cx.ezproxy_known` (7 days; what the proxy said last beats the list), in `Institution.ezproxy_hosts`, or
-//!    confirmed by a no-follow probe of the proxified host; entry `pure::ezproxy_login_url` through the same
-//!    hidden-browser machinery with `Realm::Ezproxy`.
+//!    An institution without an OpenAthens domain (`Institution.openathens_domain` blank) has no such step: no
+//!    redirector URL is ever built from an empty domain.
+//! 4. **SAML / Shibboleth** (`prefs.use_saml`, `Institution.saml_entity_id`): the publisher's own "institutional
+//!    login" for institutions that are not on OpenAthens (or whose OpenAthens does not know the publisher). The
+//!    entry is the publisher WAYFless deep link `pure::wayfless_url(..)` for the first page this item reached, else
+//!    the item URL, else the article its DOI stands for (`fulltext_core::wayfless`); an unsupported publisher skips
+//!    the step (`Miss::NotKnown`). It runs only while nothing more specific than "not known" was learnt (a working
+//!    OpenAthens session that was refused, found no PDF link or met a bot check would get the same answer from the
+//!    same identity provider). The machinery is the OpenAthens one with its own realm, `Realm::Saml`: silent hidden
+//!    load (plain UA, `hold_while [PublisherSsoHop]`), the single-flight login gate, and a visible window only when
+//!    the load ends on an interactive IdP page (`IdpLogin`, which core classifies for any Shibboleth / SAML IdP).
+//! 5. **EZproxy** (`prefs.use_ezproxy`): only for a known publisher host (the page a route reached, else the OA
+//!    phase's publisher hint, else the item URL; none known: the step is skipped, except with
+//!    `ezproxy_all_hosts` where `doi.org` stands in for a DOI) that is cached configured by `cx.ezproxy_known` (7
+//!    days; what the proxy said last beats the list), in `Institution.ezproxy_hosts`, or confirmed by a no-follow
+//!    probe of the proxified host; entry `pure::ezproxy_login_url` through the same hidden-browser machinery with
+//!    `Realm::Ezproxy`. With `Institution.ezproxy_all_hosts` every host is tried (the probe answering "not
+//!    configured" or the proxy's own needhost / not-configured page is what excludes one: it is learnt `false` and
+//!    skipped for 7 days, a page reached through the proxy is learnt `true`).
 //!    `EzproxyHostNotConfigured` -> learn `false`, skip; `EzproxyError { suspend }` / `LicenceStop` ->
 //!    `halt_inst` and `Outcome::Halted`.
-//! 5. Every failure carries `handoff::handoff(..)` links.
+//! 6. Every failure carries `handoff::handoff(..)` links (including `wayfless_url`).
+//!
+//! # Configuration check (step 0)
+//! An institution with no usable route at all (no direct access, no OpenAthens domain, no `saml_entity_id`, no
+//! EZproxy, or those routes switched off in the preferences) ends as `NeedsUser { Misconfigured }` before any
+//! request; the row text is `zotero-fulltext-status-misconfigured`.
 //!
 //! # Limits enforced here (the gates enforce the rest)
 //! * At most `INST_FETCH_BUDGET_PER_ITEM` fetches (every `fetch_candidate` call and every hidden-browser load
@@ -285,6 +304,17 @@ fn same_host(a: &str, b: &str) -> bool {
     norm(a) == norm(b)
 }
 
+/// Whether the configuration leaves the institutional route anything to do: direct access (campus IP or an
+/// existing publisher session), or a sign-in route that is switched on AND has its settings (OpenAthens domain,
+/// SAML `entityID`, EZproxy login host and suffix).
+fn has_usable_route(cfg: &EngineConfig) -> bool {
+    let (prefs, inst) = (&cfg.inst, &cfg.institution);
+    prefs.try_direct
+        || (prefs.use_openathens && pure::has_openathens(inst))
+        || (prefs.use_saml && pure::saml_entity(inst).is_some())
+        || (prefs.use_ezproxy && pure::has_ezproxy(inst))
+}
+
 /// What every route aims at: the DOI URL, else the item's own URL with proxy / redirector wrappers removed.
 fn target_of(inst: &Institution, ids: &Ids) -> Option<String> {
     if let Some(doi) = ids.doi.as_deref().map(str::trim).filter(|d| !d.is_empty()) {
@@ -419,7 +449,7 @@ async fn run_with<'a>(
 ) -> Outcome {
     match Inst::begin(cx, slot, ids, pool, pipe) {
         Ok(inst) => inst.run().await,
-        Err(done) => done,
+        Err(done) => *done,
     }
 }
 
@@ -457,16 +487,22 @@ impl<'a> Inst<'a> {
         ids: &'a Ids,
         pool: &CandidatePool,
         pipe: &'a dyn Collab,
-    ) -> Result<Self, Outcome> {
+    ) -> Result<Self, Box<Outcome>> {
         let inst = &cx.cfg.institution;
         let hand = handoff(inst, ids);
         if cx.inst_halted().is_some() {
-            return Err(Outcome::Halted { handoff: hand });
+            return Err(Box::new(Outcome::Halted { handoff: hand }));
+        }
+        if !has_usable_route(&cx.cfg) {
+            return Err(Box::new(Outcome::NeedsUser {
+                why: NeedsWhy::Misconfigured,
+                handoff: hand,
+            }));
         }
         let Some(target) = target_of(inst, ids) else {
-            return Err(Outcome::NotFound {
+            return Err(Box::new(Outcome::NotFound {
                 reason: NotFoundReason::NotHeld,
-            });
+            }));
         };
         let key = match ids.doi.as_deref() {
             Some(doi) => InstKey::for_doi(doi),
@@ -514,6 +550,7 @@ impl<'a> Inst<'a> {
         self.group_gate().await?;
         self.direct().await?;
         self.openathens().await?;
+        self.saml().await?;
         self.ezproxy().await
     }
 
@@ -622,6 +659,13 @@ impl<'a> Inst<'a> {
         let clean = pure::unproxify(&self.cx.cfg.institution, url, &BTreeMap::new());
         if self.ids.doi.is_none() {
             self.handoff = handoff_with_landing(&self.cx.cfg.institution, self.ids, Some(&clean));
+        } else if self.handoff.wayfless_url.is_none() {
+            // The DOI alone gave no WAYFless link (OUP, JAMA, Cambridge, ...); the page that was reached does.
+            self.handoff.wayfless_url = pure::wayfless_url(
+                &self.cx.cfg.institution,
+                self.ids.doi.as_deref(),
+                &[clean.as_str()],
+            );
         }
         self.landing = Some(clean);
     }
@@ -1044,26 +1088,61 @@ impl<'a> Inst<'a> {
     async fn openathens(&mut self) -> Flow {
         self.check_halt()?;
         let cx = self.cx;
-        if !cx.cfg.inst.use_openathens || cx.cfg.institution.openathens_domain.trim().is_empty() {
+        if !cx.cfg.inst.use_openathens {
             return Continue(());
         }
+        // No OpenAthens domain, no redirector: an empty domain would build a URL that 403s.
+        let Some(entry) = pure::redirector_url(&cx.cfg.institution, &self.target) else {
+            return Continue(());
+        };
         if self.passthrough() {
             self.note(Miss::NotKnown);
             return Continue(());
         }
-        let entry = pure::redirector_url(&cx.cfg.institution, &self.target);
         self.session_route(Realm::Openathens, entry).await
+    }
+
+    /// The publisher's own SAML / Shibboleth sign-in through a WAYFless link (module docs, step 4).
+    async fn saml(&mut self) -> Flow {
+        self.check_halt()?;
+        let cx = self.cx;
+        if !cx.cfg.inst.use_saml || pure::saml_entity(&cx.cfg.institution).is_none() {
+            return Continue(());
+        }
+        // A publisher page was reached and refused / had no PDF link / showed a bot check: the same institution
+        // signing in again through the publisher gets the same answer.
+        if self.miss > Miss::NotKnown {
+            return Continue(());
+        }
+        let Some(entry) = self.wayfless_entry() else {
+            self.note(Miss::NotKnown);
+            return Continue(());
+        };
+        self.session_route(Realm::Saml, entry).await
+    }
+
+    /// The WAYFless sign-in URL for this item: the first publisher page reached, else the item's own URL, else the
+    /// article the DOI stands for. `None` when the publisher has no known WAYFless form.
+    fn wayfless_entry(&self) -> Option<String> {
+        let urls: Vec<&str> = [self.landing.as_deref(), self.ids.url.as_deref()]
+            .into_iter()
+            .flatten()
+            .collect();
+        pure::wayfless_url(&self.cx.cfg.institution, self.ids.doi.as_deref(), &urls)
     }
 
     async fn ezproxy(&mut self) -> Flow {
         self.check_halt()?;
         let cx = self.cx;
         let inst = &cx.cfg.institution;
-        if !cx.cfg.inst.use_ezproxy || inst.ezproxy.is_none() {
+        if !cx.cfg.inst.use_ezproxy || !pure::has_ezproxy(inst) {
             return Continue(());
         }
-        let Some(host) = self.publisher_host() else {
-            return Continue(());
+        let host = match self.publisher_host() {
+            Some(host) => host,
+            // An EZproxy that proxies everything can start from the DOI resolver.
+            None if inst.ezproxy_all_hosts && self.ids.doi.is_some() => "doi.org".to_owned(),
+            None => return Continue(()),
         };
         if !self.ezproxy_configured(&host).await {
             self.note(Miss::NotKnown);
@@ -1096,8 +1175,11 @@ impl<'a> Inst<'a> {
         let Some(url) = pure::proxify(inst, &format!("https://{host}/")) else {
             return false;
         };
+        // An EZproxy that proxies every host is tried unless it said no (or could not be asked): the probe, the
+        // proxy's own not-configured page and the cache decide which hosts are skipped.
+        let try_when_unsure = inst.ezproxy_all_hosts;
         let Ok(permit) = cx.acquire_api(Source::Ezproxy).await else {
-            return false;
+            return try_when_unsure;
         };
         let ms = cx.timeout_for(FetchClass::Probe, host);
         let started = cx.now();
@@ -1129,17 +1211,17 @@ impl<'a> Inst<'a> {
         if let Some(configured) = configured {
             cx.learn_ezproxy(host, configured);
         }
-        configured == Some(true)
+        configured.unwrap_or(try_when_unsure)
     }
 
     /// Wait for the realm's session gate, load the entry URL in a hidden browser and act on what settles. The
     /// first caller probes alone; callers that find a sign-in window open wait without holding their item slot.
     async fn session_route(&mut self, realm: Realm, entry: String) -> Flow {
         let cx = self.cx;
-        let via = if realm == Realm::Openathens {
-            Source::Redirector
-        } else {
-            Source::Ezproxy
+        let via = match realm {
+            Realm::Openathens => Source::Redirector,
+            Realm::Ezproxy => Source::Ezproxy,
+            Realm::Saml => Source::Saml,
         };
         let (mut attempt, mut waited) = (0u8, false);
         loop {
@@ -1163,6 +1245,7 @@ impl<'a> Inst<'a> {
             match verdict {
                 Seen::Reached => {
                     probe.report(ProbeResult::LoggedIn);
+                    self.learn_ezproxy_reached(realm);
                     let page = LandingPage {
                         url: entry.clone(),
                         final_url: landed.final_url,
@@ -1254,12 +1337,34 @@ impl<'a> Inst<'a> {
                 }
                 Seen::Missing => {
                     probe.report(ProbeResult::Failed);
-                    self.note(Miss::Other);
+                    // The proxy's own "this proxy cannot serve the address" page (needhost): the host is not
+                    // configured there, whatever the probe or the list said.
+                    if realm == Realm::Ezproxy
+                        && matches!(landed.class, PageClass::EzproxyError { suspend: false })
+                        && let Some(host) = self.ezproxy_host.as_deref()
+                    {
+                        cx.learn_ezproxy(host, false);
+                        self.note(Miss::NotKnown);
+                    } else {
+                        self.note(Miss::Other);
+                    }
                     return Continue(());
                 }
             }
             self.sign_in(realm, epoch, &entry, attempt).await?;
             attempt += 1;
+        }
+    }
+
+    /// A publisher page came back through the EZproxy of an institution that proxies every host: that host is
+    /// configured there, so the next item skips the probe. (Only with `ezproxy_all_hosts`; listed hosts need no
+    /// cache entry.)
+    fn learn_ezproxy_reached(&self, realm: Realm) {
+        if realm == Realm::Ezproxy
+            && self.cx.cfg.institution.ezproxy_all_hosts
+            && let Some(host) = self.ezproxy_host.as_deref()
+        {
+            self.cx.learn_ezproxy(host, true);
         }
     }
 
@@ -1395,10 +1500,12 @@ impl<'a> Inst<'a> {
         let slow = self.key.0 == "wiley";
         let host = if slow { SLOW_HOST } else { REDIRECTOR_HOST };
         let ms = cx.timeout_for(FetchClass::BrowserLoad, host);
-        let hold = if realm == Realm::Openathens {
-            UrlClassKind::OpenathensRedirector
-        } else {
-            UrlClassKind::EzproxyLogin
+        // Do not settle on a page that is only a hop on the way: the redirector's "Please wait", the EZproxy
+        // login page (it auto-posts to the IdP), a publisher SSO start page (SAML: the WAYFless link itself).
+        let hold = match realm {
+            Realm::Openathens => UrlClassKind::OpenathensRedirector,
+            Realm::Ezproxy => UrlClassKind::EzproxyLogin,
+            Realm::Saml => UrlClassKind::PublisherSsoHop,
         };
         let req = BrowserReq {
             url: entry.to_owned(),
@@ -1413,10 +1520,10 @@ impl<'a> Inst<'a> {
             requested: self.ids.clone(),
             route: Route::Inst,
         };
-        let src = if realm == Realm::Openathens {
-            "redirector"
-        } else {
-            "ezproxy"
+        let src = match realm {
+            Realm::Openathens => "redirector",
+            Realm::Ezproxy => "ezproxy",
+            Realm::Saml => "saml",
         };
         let started = cx.now();
         // From here on a cancelled item still counts the reservation: the request may have reached the publisher.
@@ -1595,7 +1702,7 @@ mod tests {
     }
 
     fn redirector() -> String {
-        pure::redirector_url(&cfg().institution, DOI_URL)
+        pure::redirector_url(&cfg().institution, DOI_URL).expect("KCL has an OpenAthens domain")
     }
 
     fn page_insp(
@@ -2233,7 +2340,7 @@ mod tests {
             "direct: the item's own page, not the proxied host"
         );
         let expected = pure::redirector_url(&cfg().institution, ARTICLE);
-        assert_eq!(urls.get(1), Some(&expected));
+        assert_eq!(urls.get(1), expected.as_ref());
         assert!(
             rig.http().iter().all(|(u, _, _)| !u.contains(ALMA_HOST)),
             "no DOI, no entitlement lookup"
@@ -4538,5 +4645,701 @@ mod tests {
             }
         );
         assert_eq!(ledger(&rig), (1, 0));
+    }
+
+    // ------------------------------------------------------------- SAML, EZproxy for every host, configuration
+
+    const OX_IDP: &str = "https://registry.shibboleth.ox.ac.uk/idp";
+    const NATURE_DOI: &str = "10.1038/nature12373";
+    const NATURE_DOI_URL: &str = "https://doi.org/10.1038/nature12373";
+    const NATURE_URL: &str = "https://www.nature.com/articles/nature12373";
+    const NATURE_PDF: &str = "https://www.nature.com/articles/nature12373.pdf";
+    const SHIB_IDP: &str =
+        "https://idp.shibboleth.ox.ac.uk/idp/profile/SAML2/Redirect/SSO?execution=e1s1";
+
+    fn shib() -> PageClass {
+        PageClass::IdpLogin {
+            idp: Idp::Other,
+            ca_error: None,
+        }
+    }
+
+    /// An institution on the UK federation only: no OpenAthens domain, no EZproxy, no Alma.
+    fn saml_only() -> EngineConfig {
+        let mut c = cfg();
+        c.institution.openathens_domain = String::new();
+        c.institution.ezproxy = None;
+        c.institution.ezproxy_hosts.clear();
+        c.institution.alma = None;
+        c.institution.passthrough_hosts.clear();
+        c.institution.idp_hosts.clear();
+        c.institution.saml_entity_id = Some(OX_IDP.into());
+        c.inst.check_alma = false;
+        c
+    }
+
+    /// An institution whose EZproxy proxies every host and that is not on OpenAthens at all.
+    fn ezproxy_all_only() -> EngineConfig {
+        let mut c = cfg();
+        c.institution.openathens_domain = String::new();
+        c.institution.ezproxy_hosts.clear();
+        c.institution.ezproxy_all_hosts = true;
+        c.institution.alma = None;
+        c.institution.passthrough_hosts.clear();
+        c.inst.check_alma = false;
+        c
+    }
+
+    /// KCL plus a SAML identity provider: OpenAthens first, the publisher's own login behind it.
+    fn kcl_with_saml() -> EngineConfig {
+        let mut c = cfg();
+        c.institution.saml_entity_id = Some(OX_IDP.into());
+        c.inst.use_ezproxy = false;
+        c
+    }
+
+    fn wayfless_of(target: &str) -> String {
+        fulltext_core::wayfless::wayfless_url(None, OX_IDP, target).expect("a supported publisher")
+    }
+
+    fn nature_entry() -> String {
+        wayfless_of(NATURE_URL)
+    }
+
+    fn saml_load(e: &Effect) -> bool {
+        matches!(e, Effect::BrowserLoad { req, .. } if req.url.contains("sp.nature.com/saml/login"))
+    }
+
+    /// doi.org says "no access" (off campus), saving works.
+    fn nature_off_campus() -> ScriptResponder {
+        script()
+            .on(is_type("save_pdf"), Reply::ok(100, save_ok(SAVED_KEY)))
+            .on(
+                url_has("https://doi.org/"),
+                page(80, NATURE_URL, PageClass::AccessDenied),
+            )
+    }
+
+    fn effect_urls(rig: &Rig) -> Vec<String> {
+        rig.effects()
+            .iter()
+            .filter_map(|e| fixtures::effect_url(e).map(str::to_owned))
+            .collect()
+    }
+
+    fn assert_no_openathens_or_proxy(rig: &Rig) {
+        for url in effect_urls(rig) {
+            assert!(
+                !url.contains("openathens")
+                    && !url.contains("/redirector/")
+                    && !url.contains("qurl="),
+                "a route that is not configured was used: {url}"
+            );
+        }
+    }
+
+    #[test]
+    fn inst_route_configuration_needs_at_least_one_usable_route() {
+        let usable = |f: &dyn Fn(&mut EngineConfig)| {
+            let mut c = cfg();
+            f(&mut c);
+            has_usable_route(&c)
+        };
+        assert!(usable(&|_| {}));
+        // Nothing but a blank OpenAthens domain.
+        assert!(!usable(&|c| {
+            c.inst.try_direct = false;
+            c.institution.openathens_domain = "  ".into();
+            c.institution.ezproxy = None;
+        }));
+        // Everything configured but switched off.
+        assert!(!usable(&|c| {
+            c.inst.try_direct = false;
+            c.inst.use_openathens = false;
+            c.inst.use_ezproxy = false;
+            c.inst.use_saml = false;
+            c.institution.saml_entity_id = Some(OX_IDP.into());
+        }));
+        // Each route alone is enough.
+        assert!(usable(&|c| {
+            c.inst.try_direct = false;
+            c.inst.use_ezproxy = false;
+        }));
+        assert!(usable(&|c| {
+            c.inst.try_direct = false;
+            c.inst.use_openathens = false;
+        }));
+        assert!(usable(&|c| {
+            c.inst.try_direct = false;
+            c.inst.use_openathens = false;
+            c.inst.use_ezproxy = false;
+            c.institution.saml_entity_id = Some(OX_IDP.into());
+        }));
+        assert!(usable(&|c| {
+            c.inst.use_openathens = false;
+            c.inst.use_ezproxy = false;
+        }));
+        // A malformed entityID is no route.
+        assert!(!usable(&|c| {
+            c.inst.try_direct = false;
+            c.inst.use_openathens = false;
+            c.inst.use_ezproxy = false;
+            c.institution.saml_entity_id = Some("not an entity id".into());
+        }));
+        // An EZproxy without a login host is no route.
+        assert!(!usable(&|c| {
+            c.inst.try_direct = false;
+            c.inst.use_openathens = false;
+            c.institution.ezproxy = Some(Ezproxy {
+                login_host: " ".into(),
+                suffix: "x.example".into(),
+            });
+        }));
+    }
+
+    #[test]
+    fn inst_a_configuration_with_nothing_usable_is_misconfigured_before_any_request() {
+        let mut config = cfg();
+        config.inst.try_direct = false;
+        config.institution.openathens_domain = String::new();
+        config.institution.ezproxy = None;
+        config.institution.saml_entity_id = None;
+        let mut rig = Rig::with_config(config.clone(), kcl());
+        let outcome = run_one(&mut rig, snap());
+        assert_eq!(
+            outcome,
+            Outcome::NeedsUser {
+                why: NeedsWhy::Misconfigured,
+                handoff: handoff(&config.institution, &ids_of(DOI)),
+            }
+        );
+        assert!(
+            rig.effects()
+                .iter()
+                .all(|e| fixtures::effect_url(e).is_none()),
+            "no request of any kind: {:?}",
+            effect_urls(&rig)
+        );
+        // The row says so with the existing "settings need attention" text.
+        assert_eq!(
+            l10n::outcome_row(&outcome).l10n,
+            "zotero-fulltext-status-misconfigured"
+        );
+        // The hand-off of such an institution has no redirector, EZproxy or WAYFless link.
+        let Outcome::NeedsUser { handoff: h, .. } = outcome else {
+            panic!("not a hand-off")
+        };
+        assert_eq!(
+            (h.redirector_url, h.ezproxy_url, h.wayfless_url),
+            (None, None, None)
+        );
+        assert_eq!(h.doi_url.as_deref(), Some(DOI_URL));
+
+        // Direct access alone is a route: the item is tried and ends as an ordinary hand-off.
+        let mut direct_only = config;
+        direct_only.inst.try_direct = true;
+        let mut rig = Rig::with_config(direct_only, off_campus());
+        let outcome = run_one(&mut rig, snap());
+        assert!(
+            matches!(
+                outcome,
+                Outcome::NeedsUser {
+                    why: NeedsWhy::HandoffRequested,
+                    ..
+                }
+            ),
+            "{outcome:?}"
+        );
+        assert_eq!(request_urls(&rig), vec![DOI_URL.to_owned()]);
+        assert_no_openathens_or_proxy(&rig);
+    }
+
+    #[test]
+    fn inst_saml_only_institution_loads_the_wayfless_link_and_builds_no_redirector_url() {
+        let s = nature_off_campus().on(is_type("browser_load"), browser_pdf(900, NATURE_PDF, 7));
+        let mut rig = Rig::with_config(saml_only(), s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+        match &outcome {
+            Outcome::Saved {
+                route, source, url, ..
+            } => assert_eq!(
+                (*route, source.as_str(), url.as_str()),
+                (Route::Inst, "saml", NATURE_DOI_URL),
+                "the stored URL names the article, not the sign-in link"
+            ),
+            other => panic!("{other:?}"),
+        }
+        assert_eq!(
+            request_urls(&rig),
+            vec![NATURE_DOI_URL.to_owned(), nature_entry()],
+            "direct, then the WAYFless link"
+        );
+        let sent = loads(&rig);
+        assert_eq!(sent.len(), 1);
+        let want = BrowserReq {
+            url: nature_entry(),
+            ua: Ua::Plain,
+            capture_pdf: true,
+            want_page: true,
+            settle_ms: 3_000,
+            timeout_ms: 60_000,
+            hold_while: vec![UrlClassKind::PublisherSsoHop],
+        };
+        assert_eq!(sent[0], want);
+        assert!(
+            nature_entry().starts_with(
+                "https://sp.nature.com/saml/login?idp=https%3A%2F%2Fregistry.shibboleth.ox.ac.uk%2Fidp&targetUrl="
+            ),
+            "{}",
+            nature_entry()
+        );
+        assert_eq!(
+            session(&rig, Realm::Saml),
+            SessionState::SignedIn { verified: true }
+        );
+        assert_eq!(session(&rig, Realm::Openathens), SessionState::SignedOut);
+        assert_persist_before_barrier(&rig);
+        assert_eq!(ledger(&rig), (1, 0));
+        assert_eq!(rig.count(|e| matches!(e, Effect::LoginWindow { .. })), 0);
+        assert_no_openathens_or_proxy(&rig);
+        assert!(rig.host.pending.is_empty());
+    }
+
+    #[test]
+    fn inst_saml_signs_in_through_one_window_in_its_own_realm() {
+        let s = nature_off_campus()
+            .on_seq(
+                is_type("browser_load"),
+                vec![
+                    browser_page(500, SHIB_IDP, shib()),
+                    browser_pdf(900, NATURE_PDF, 7),
+                ],
+            )
+            .on(
+                is_type("login_window"),
+                Reply::ok(2_000, window_ok(LoginResult::Landed)),
+            );
+        let mut rig = Rig::with_config(saml_only(), s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+        assert_eq!(saved_source(&outcome), Some("saml"), "{outcome:?}");
+        let shown = windows(&rig);
+        assert_eq!(shown.len(), 1);
+        assert_eq!(
+            (shown[0].realm, shown[0].kind, shown[0].entry_url.as_str()),
+            (Realm::Saml, LoginKind::Login, nature_entry().as_str()),
+            "the window opens on the WAYFless link, in the SAML realm"
+        );
+        assert!(shown[0].capture_pdf);
+        assert_eq!(loads(&rig).len(), 2, "the bounce, then the retry");
+        assert_eq!(
+            session(&rig, Realm::Saml),
+            SessionState::SignedIn { verified: true }
+        );
+        assert_eq!(session(&rig, Realm::Openathens), SessionState::SignedOut);
+        assert_eq!(session(&rig, Realm::Ezproxy), SessionState::SignedOut);
+        assert_persist_before_barrier(&rig);
+        assert_eq!(ledger(&rig), (1, 0));
+        assert_no_openathens_or_proxy(&rig);
+    }
+
+    /// The publisher sites for several items at once: the WAYFless link bounces to the Shibboleth IdP until a
+    /// window has been answered, then hands out the PDF.
+    struct Federation {
+        session: Rc<Cell<bool>>,
+        handles: u32,
+    }
+
+    impl Responder for Federation {
+        fn respond(&mut self, op: &PendingOp, _now: u64, _wall: u64) -> Reply {
+            self.handles += 1;
+            let handle = self.handles;
+            match &op.effect {
+                Effect::Http { req, .. } if req.url.starts_with("https://doi.org/") => {
+                    page(80, &req.url, PageClass::AccessDenied)
+                }
+                Effect::BrowserLoad { req, .. } => {
+                    if self.session.get() {
+                        browser_pdf(800, &req.url, handle)
+                    } else {
+                        browser_page(800, SHIB_IDP, shib())
+                    }
+                }
+                Effect::LoginWindow { .. } => {
+                    self.session.set(true);
+                    Reply::ok(3_000, window_ok(LoginResult::Landed))
+                }
+                Effect::SavePdf { req, .. } => {
+                    Reply::ok(100, save_ok(&format!("1/K{:04}", req.item)))
+                }
+                _ => Reply::err(10, OpErrKind::Network),
+            }
+        }
+    }
+
+    #[test]
+    fn inst_saml_items_of_several_publishers_share_one_window() {
+        let session = Rc::new(Cell::new(false));
+        let mut farm = Farm::new(
+            saml_only(),
+            Federation {
+                session: Rc::clone(&session),
+                handles: 100,
+            },
+        );
+        let dois = [
+            "10.1038/saml.1",
+            "10.1007/saml.2",
+            "10.1002/saml.3",
+            "10.1080/saml.4",
+            "10.1177/saml.5",
+        ];
+        for (n, doi) in (1..).zip(dois) {
+            farm.spawn(fixtures::item(n, doi), true);
+        }
+        assert_eq!(farm.rig.run(), SimEnd::Idle);
+        for n in 1..=5 {
+            let outcome = farm.outcome(n).expect("every item ends");
+            assert_eq!(
+                saved_source(&outcome),
+                Some("saml"),
+                "item {n}: {outcome:?}"
+            );
+        }
+        let shown = windows(&farm.rig);
+        assert_eq!(shown.len(), 1, "ONE window for five items");
+        assert_eq!(shown[0].realm, Realm::Saml);
+        assert_eq!(
+            loads(&farm.rig).len(),
+            6,
+            "the prober twice, everybody else once"
+        );
+        let hosts: BTreeSet<String> = loads(&farm.rig)
+            .iter()
+            .filter_map(|r| pure::host_of(&r.url))
+            .collect();
+        assert_eq!(
+            hosts,
+            BTreeSet::from([
+                "sp.nature.com".to_owned(),
+                "fsso.springer.com".to_owned(),
+                "onlinelibrary.wiley.com".to_owned(),
+                "www.tandfonline.com".to_owned(),
+                "journals.sagepub.com".to_owned(),
+            ]),
+            "each publisher's own platform form"
+        );
+        assert_eq!(ledger(&farm.rig), (5, 0));
+        assert_persist_before_barrier(&farm.rig);
+        assert!(farm.rig.host.pending.is_empty());
+        assert_no_openathens_or_proxy(&farm.rig);
+    }
+
+    #[test]
+    fn inst_saml_declined_sign_in_hands_off_with_the_wayfless_link() {
+        let s = nature_off_campus()
+            .on(is_type("browser_load"), browser_page(500, SHIB_IDP, shib()))
+            .on(
+                is_type("login_window"),
+                Reply::ok(1_000, window_ok(LoginResult::ClosedByUser)),
+            );
+        let config = saml_only();
+        let mut rig = Rig::with_config(config.clone(), s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+        let Outcome::NeedsUser {
+            why: NeedsWhy::LoginDeclined,
+            handoff: h,
+        } = &outcome
+        else {
+            panic!("{outcome:?}")
+        };
+        assert_eq!(h.wayfless_url.as_deref(), Some(nature_entry().as_str()));
+        assert_eq!(h.doi_url.as_deref(), Some(NATURE_DOI_URL));
+        assert_eq!((&h.redirector_url, &h.ezproxy_url), (&None, &None));
+        assert_eq!(*h, handoff(&config.institution, &ids_of(NATURE_DOI)));
+        // The row offers the link as an "open in your browser" button.
+        let row = l10n::outcome_row(&outcome);
+        assert!(
+            row.actions.contains(&RowAction::OpenBrowser {
+                url: nature_entry(),
+                l10n: "zotero-fulltext-action-open-wayfless".into()
+            }),
+            "{:?}",
+            row.actions
+        );
+    }
+
+    #[test]
+    fn inst_saml_skips_publishers_without_a_wayfless_form() {
+        // LWW: the redirector passes it through unchanged and no WAYFless form exists.
+        let s = kcl().on(
+            url_has("https://doi.org/"),
+            page(80, "https://journals.lww.com/x", PageClass::AccessDenied),
+        );
+        let config = saml_only();
+        let mut rig = Rig::with_config(config.clone(), s);
+        let lww = "10.1097/sla.0000000000005603";
+        let outcome = run_one(&mut rig, fixtures::item(1, lww));
+        assert_eq!(
+            outcome,
+            Outcome::NotEntitled {
+                handoff: handoff(&config.institution, &ids_of(lww))
+            }
+        );
+        assert!(loads(&rig).is_empty(), "no sign-in is attempted");
+        assert_eq!(rig.count(|e| matches!(e, Effect::LoginWindow { .. })), 0);
+        let Outcome::NotEntitled { handoff: h } = outcome else {
+            panic!("hand-off")
+        };
+        assert_eq!(h.wayfless_url, None);
+    }
+
+    #[test]
+    fn inst_openathens_that_does_not_know_the_publisher_falls_back_to_saml() {
+        let s = nature_off_campus()
+            .on(redirector_load, unknown_at_the_redirector())
+            .on(saml_load, browser_pdf(900, NATURE_PDF, 7));
+        let config = kcl_with_saml();
+        let mut rig = Rig::with_config(config.clone(), s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+        assert_eq!(saved_source(&outcome), Some("saml"), "{outcome:?}");
+        let redirector_entry = pure::redirector_url(&config.institution, NATURE_DOI_URL)
+            .expect("KCL has an OpenAthens domain");
+        assert_eq!(
+            loads(&rig)
+                .iter()
+                .map(|r| r.url.clone())
+                .collect::<Vec<_>>(),
+            vec![redirector_entry, nature_entry()],
+            "OpenAthens first, then the publisher's own login"
+        );
+        assert_eq!(
+            request_urls(&rig).first().map(String::as_str),
+            Some(NATURE_DOI_URL),
+            "direct access came first of all"
+        );
+        assert_eq!(
+            session(&rig, Realm::Saml),
+            SessionState::SignedIn { verified: true }
+        );
+        assert_persist_before_barrier(&rig);
+        assert_eq!(ledger(&rig), (1, 0));
+    }
+
+    #[test]
+    fn inst_a_working_openathens_session_that_is_refused_does_not_try_saml_too() {
+        let s = nature_off_campus()
+            .on(
+                redirector_load,
+                browser_landing(900, NATURE_URL, AccessHint::NoAccess, Vec::new(), 5),
+            )
+            .on(
+                is_type("run_translators"),
+                Reply::ok(100, translators_ok(None)),
+            )
+            .on(saml_load, browser_pdf(900, NATURE_PDF, 7));
+        let config = kcl_with_saml();
+        let mut rig = Rig::with_config(config.clone(), s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+        let Outcome::NotEntitled { handoff: h } = &outcome else {
+            panic!("{outcome:?}")
+        };
+        assert_eq!(
+            loads(&rig).len(),
+            1,
+            "the same institution would say no again"
+        );
+        assert!(h.wayfless_url.is_some(), "the link is still offered: {h:?}");
+        assert_eq!(session(&rig, Realm::Saml), SessionState::SignedOut);
+    }
+
+    #[test]
+    fn inst_saml_is_off_with_use_saml_false_or_without_an_entity_id() {
+        for mutate in [
+            (|c: &mut EngineConfig| c.inst.use_saml = false) as fn(&mut EngineConfig),
+            |c| c.institution.saml_entity_id = None,
+            |c| c.institution.saml_entity_id = Some("   ".into()),
+        ] {
+            let mut config = kcl_with_saml();
+            mutate(&mut config);
+            let s = nature_off_campus().on(redirector_load, unknown_at_the_redirector());
+            let mut rig = Rig::with_config(config, s);
+            let outcome = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+            assert!(
+                matches!(outcome, Outcome::NotEntitled { .. }),
+                "{outcome:?}"
+            );
+            assert_eq!(loads(&rig).len(), 1, "only the redirector");
+            assert!(
+                !effect_urls(&rig)
+                    .iter()
+                    .any(|u| u.contains("sp.nature.com"))
+            );
+        }
+    }
+
+    #[test]
+    fn inst_saml_prefers_the_page_that_was_reached_over_the_doi() {
+        // OUP has no DOI-only WAYFless form; the page doi.org reached supplies the article URL.
+        let oup_doi = "10.1093/bjs/znab001";
+        let oup_page = "https://academic.oup.com/bjs/article/108/1/1/6065";
+        let s = kcl()
+            .on(
+                url_has("https://doi.org/"),
+                landing(80, oup_page, AccessHint::NoAccess, Vec::new(), 3),
+            )
+            .on(
+                is_type("run_translators"),
+                Reply::ok(100, translators_ok(None)),
+            )
+            .on(
+                is_type("browser_load"),
+                browser_pdf(900, "https://academic.oup.com/bjs/article-pdf/1.pdf", 7),
+            );
+        let mut config = saml_only();
+        config.institution.alma = None;
+        let mut rig = Rig::with_config(config, s);
+        let outcome = run_one(&mut rig, fixtures::item(1, oup_doi));
+        assert_eq!(saved_source(&outcome), Some("saml"), "{outcome:?}");
+        assert_eq!(
+            loads(&rig).first().map(|r| r.url.clone()),
+            Some(wayfless_of(oup_page))
+        );
+    }
+
+    // ---- EZproxy for every host
+
+    fn ezproxy_all_entry(target: &str) -> String {
+        pure::ezproxy_login_url(&ezproxy_all_only().institution, target)
+            .expect("the institution has an EZproxy")
+    }
+
+    #[test]
+    fn inst_ezproxy_only_institution_tries_any_host_and_builds_no_redirector_url() {
+        // Nothing is listed, the host is unknown (doi.org stands in for the DOI), the probe cannot tell: try it.
+        let s = nature_off_campus().on(ezproxy_load, browser_pdf(900, NATURE_PDF, 7));
+        let mut rig = Rig::with_config(ezproxy_all_only(), s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+        assert_eq!(saved_source(&outcome), Some("ezproxy"), "{outcome:?}");
+        assert_eq!(
+            loads(&rig)
+                .iter()
+                .map(|r| r.url.clone())
+                .collect::<Vec<_>>(),
+            vec![ezproxy_all_entry(NATURE_DOI_URL)]
+        );
+        assert_eq!(
+            heads(&rig).len(),
+            1,
+            "one probe of the proxified host: {:?}",
+            heads(&rig)
+        );
+        assert_eq!(
+            session(&rig, Realm::Ezproxy),
+            SessionState::SignedIn { verified: true }
+        );
+        assert_eq!(session(&rig, Realm::Openathens), SessionState::SignedOut);
+        assert_persist_before_barrier(&rig);
+        for url in effect_urls(&rig) {
+            assert!(!url.contains("openathens"), "{url}");
+        }
+    }
+
+    #[test]
+    fn inst_ezproxy_all_hosts_learns_from_the_probe_and_skips_unconfigured_hosts() {
+        let s = nature_off_campus()
+            .on(
+                head_rule,
+                probe_reply(100, 302, PageClass::EzproxyHostNotConfigured, None),
+            )
+            .on(ezproxy_load, browser_pdf(900, NATURE_PDF, 7));
+        let mut rig = Rig::with_config(ezproxy_all_only(), s);
+        let want = |doi: &str| Outcome::NotEntitled {
+            handoff: handoff(&ezproxy_all_only().institution, &ids_of(doi)),
+        };
+        assert_eq!(
+            run_one(&mut rig, fixtures::item(1, NATURE_DOI)),
+            want(NATURE_DOI)
+        );
+        assert_eq!(heads(&rig).len(), 1);
+        assert!(loads(&rig).is_empty(), "the proxy does not know the host");
+        assert_eq!(
+            rig.exec(fixtures::item(9, NATURE_DOI), |cx| async move {
+                cx.ezproxy_known("doi.org")
+            }),
+            Some(Some(false))
+        );
+        assert!(rig.host.persisted.contains_key(&PersistKey::Ezproxy));
+        // The next item does not ask again.
+        let other = "10.1038/nature99999";
+        assert_eq!(run_one(&mut rig, fixtures::item(2, other)), want(other));
+        assert_eq!(heads(&rig).len(), 1, "cached for seven days");
+        assert!(loads(&rig).is_empty());
+    }
+
+    #[test]
+    fn inst_ezproxy_all_hosts_learns_from_the_proxy_needhost_page() {
+        // The probe cannot tell; the load ends on the proxy's own "cannot serve this address" page.
+        let needhost = browser_page(
+            500,
+            "https://login.kcl.idm.oclc.org/login",
+            PageClass::EzproxyError { suspend: false },
+        );
+        let s = nature_off_campus().on(ezproxy_load, needhost);
+        let mut rig = Rig::with_config(ezproxy_all_only(), s);
+        let first = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+        assert!(matches!(first, Outcome::NotEntitled { .. }), "{first:?}");
+        assert_eq!(loads(&rig).len(), 1);
+        assert_eq!(
+            rig.exec(fixtures::item(9, NATURE_DOI), |cx| async move {
+                cx.ezproxy_known("doi.org")
+            }),
+            Some(Some(false)),
+            "learnt false from the page"
+        );
+        let second = run_one(&mut rig, fixtures::item(2, "10.1038/nature99999"));
+        assert!(matches!(second, Outcome::NotEntitled { .. }), "{second:?}");
+        assert_eq!(loads(&rig).len(), 1, "skipped next time");
+        assert_eq!(heads(&rig).len(), 1, "and not probed again either");
+    }
+
+    #[test]
+    fn inst_ezproxy_without_all_hosts_still_skips_a_host_nobody_listed() {
+        let mut config = ezproxy_all_only();
+        config.institution.ezproxy_all_hosts = false;
+        let s = nature_off_campus().on(ezproxy_load, browser_pdf(900, NATURE_PDF, 7));
+        let mut rig = Rig::with_config(config, s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+        assert!(
+            matches!(
+                outcome,
+                Outcome::NeedsUser { .. } | Outcome::NotEntitled { .. }
+            ),
+            "{outcome:?}"
+        );
+        assert!(
+            loads(&rig).is_empty(),
+            "the old rule: a listed or confirmed host only"
+        );
+    }
+
+    #[test]
+    fn inst_ezproxy_all_hosts_remembers_a_host_the_proxy_served() {
+        let mut link = pdf_cand(NATURE_PDF);
+        link.record_doi = Some(NATURE_DOI.to_owned());
+        let s = nature_off_campus()
+            .on(
+                ezproxy_load,
+                browser_landing(900, NATURE_URL, AccessHint::Unknown, vec![link], 5),
+            )
+            .on(url_has("nature12373.pdf"), pdf(400, NATURE_PDF, 6));
+        let mut rig = Rig::with_config(ezproxy_all_only(), s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NATURE_DOI));
+        assert_eq!(saved_source(&outcome), Some("ezproxy"), "{outcome:?}");
+        assert_eq!(
+            rig.exec(fixtures::item(9, NATURE_DOI), |cx| async move {
+                cx.ezproxy_known("doi.org")
+            }),
+            Some(Some(true))
+        );
     }
 }

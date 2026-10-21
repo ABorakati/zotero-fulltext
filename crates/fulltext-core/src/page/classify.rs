@@ -8,7 +8,10 @@
 //! 1. `Pdf { junk_prefix }`: content type `application/pdf`, or `%PDF-` within the first KiB.
 //! 2. `EzproxyNeedLogin`, `EzproxyHostNotConfigured`, `EzproxyError { suspend }`.
 //! 3. `IdpLogin { idp, ca_error }` (Entra `login.microsoftonline.com`, `login.live.com`, `login.openathens.net/auth`,
-//!    `kclidp.kcl.ac.uk`; title "Sign in to your account"; `AADSTS5xxxx` text becomes `ca_error`), `SamlAutoPost`
+//!    `kclidp.kcl.ac.uk`; title "Sign in to your account"; `AADSTS5xxxx` text becomes `ca_error`; any other
+//!    institution's Shibboleth / SAML IdP as `Idp::Other`: an IdP profile path such as `/idp/profile/SAML2/Redirect/SSO`,
+//!    an `idp.*` host, or a form that posts to `/idp/profile/...` or carries Shibboleth flow fields, status below
+//!    400), `SamlAutoPost`
 //!    (POST form with `SAMLRequest` / `SAMLResponse` / `RelayState` and an onload submit), `OpenathensWait`,
 //!    `OpenathensUnknownResource`, `OpenathensBadOrg`, `PublisherSsoHop` (`/action/ssostart`, `/Shibboleth.sso/Login`,
 //!    `auth.elsevier.com/ShibAuth`, `fsso.springer.com`, `sp.nature.com/saml`, `oup-sp.sams-sigma.com`).
@@ -65,8 +68,7 @@ const ENTRA_HOSTS: &[&str] = &[
 
 /// Substrings (lower-case) of URLs that are publisher-side SP-initiated SSO hops.
 const SSO_HOP_MARKERS: &[&str] = &[
-    "/shibboleth.sso/login",
-    "/shibboleth.sso/discovery",
+    "/shibboleth.sso/",
     "/action/ssostart",
     "auth.elsevier.com/shibauth",
     "fsso.springer.com",
@@ -370,6 +372,8 @@ fn sso(cx: &Cx<'_>) -> Option<PageClass> {
         Some(Idp::Openathens)
     } else if host == "kclidp.kcl.ac.uk" {
         Some(Idp::Kcl)
+    } else if cx.status() < 400 && is_shibboleth_idp(cx) {
+        Some(Idp::Other)
     } else {
         None
     };
@@ -415,6 +419,33 @@ fn sso(cx: &Cx<'_>) -> Option<PageClass> {
         return Some(PageClass::PublisherSsoHop);
     }
     None
+}
+
+/// Form field names of the Shibboleth IdP login flow (v2 to v5): the username / password fields of the default
+/// login view, the `_eventId*` flow events of every view (login, attribute release, local-storage read), and the
+/// `shib_idp_ls_*` fields of the "Loading Session Information" interstitial.
+fn is_shibboleth_field(name: &str) -> bool {
+    let n = name.to_ascii_lowercase();
+    n == "j_username"
+        || n == "j_password"
+        || n.starts_with("_eventid")
+        || n.starts_with("shib_idp_")
+}
+
+/// A page of a generic SAML / Shibboleth identity provider (any institution's own IdP, not only KCL's): by URL (an
+/// IdP profile path, an `idp.*` host: [`crate::urls::is_generic_idp`]) or by the markup of the Shibboleth IdP's views
+/// (a form posting to `/idp/profile/...`, or Shibboleth flow fields).
+fn is_shibboleth_idp(cx: &Cx<'_>) -> bool {
+    if crate::urls::is_generic_idp(&cx.host, cx.path) {
+        return true;
+    }
+    cx.f.doc.forms.iter().any(|form| {
+        form.action.to_ascii_lowercase().contains("/idp/profile/")
+            || form
+                .inputs
+                .iter()
+                .any(|i| i.attr("name").is_some_and(is_shibboleth_field))
+    })
 }
 
 /// `AADSTS` followed by digits, taken from the page text (`AADSTS53000`, `AADSTS50105`, ...).

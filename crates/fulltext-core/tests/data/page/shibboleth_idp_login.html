@@ -1,0 +1,46 @@
+<!-- Hand-made, shaped like the default login view of a Shibboleth IdP v4/v5 ("login.vm": a post form to
+     /idp/profile/SAML2/Redirect/SSO?execution=eNsM with j_username, j_password and _eventId_proceed). No real institution.
+     Used by tests/classify.rs: it must be IdpLogin { idp: Other } on ANY host, because the markup alone identifies it. -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Login Service</title>
+    <link rel="stylesheet" type="text/css" href="/idp/css/main.css">
+</head>
+<body>
+<main class="main">
+    <section>
+        <header>
+            <img src="/idp/images/university-logo.png" alt="University of Example">
+        </header>
+        <h1>Web Login Service</h1>
+        <p class="form-error">Please enter your username and password to sign in to the service you requested.</p>
+        <form action="/idp/profile/SAML2/Redirect/SSO?execution=e1s2" method="post">
+            <input type="hidden" name="csrf_token" value="_5a1f0d2c0b6e4c7d9a1e3b5f7c9d1e3a5b7c9d1e">
+            <div class="form-element-wrapper">
+                <label for="username">Username</label>
+                <input class="form-element form-field" id="username" name="j_username" type="text"
+                       value="" autocomplete="username" autofocus>
+            </div>
+            <div class="form-element-wrapper">
+                <label for="password">Password</label>
+                <input class="form-element form-field" id="password" name="j_password" type="password"
+                       value="" autocomplete="off">
+            </div>
+            <div class="form-element-wrapper">
+                <input id="_shib_idp_revokeConsent" type="checkbox" name="_shib_idp_revokeConsent" value="true">
+                <label for="_shib_idp_revokeConsent">Clear prior granting of permission for release of your information to this service.</label>
+            </div>
+            <div class="form-element-wrapper">
+                <button class="form-element form-button" type="submit" name="_eventId_proceed">Login</button>
+            </div>
+        </form>
+        <a href="https://help.example.ac.uk/password">Forgot your password?</a>
+    </section>
+</main>
+<footer class="footer"><p>University of Example</p></footer>
+</body>
+</html>

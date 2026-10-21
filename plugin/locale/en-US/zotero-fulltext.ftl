@@ -10,7 +10,7 @@ zotero-fulltext-menu-get =
 zotero-fulltext-menu-get-oa =
     .label = Get Full Text (open access only)
 zotero-fulltext-menu-signin =
-    .label = Sign In to King's for Full Text{ "\u2026" }
+    .label = Sign In to { $institution } for Full Text{ "\u2026" }
 zotero-fulltext-menu-progress =
     .label = Show Full Text Progress
 zotero-fulltext-menu-prefs =
@@ -50,7 +50,7 @@ zotero-fulltext-status-login-declined = Sign-in was skipped
 zotero-fulltext-status-login-timeout = Sign-in took too long
 zotero-fulltext-status-login-refused = Your institution refused the sign-in ({ $code })
 zotero-fulltext-status-login-ineffective = Signed in, but the publisher still did not grant access
-zotero-fulltext-status-misconfigured = Institution settings need attention
+zotero-fulltext-status-misconfigured = Institution settings need attention: no sign-in method is set up
 zotero-fulltext-status-needs-user = Needs you: open it in your browser
 zotero-fulltext-status-no-pdf-link = Found the article page but no PDF link
 zotero-fulltext-status-group-library = Not saved into a group library without your confirmation
@@ -70,7 +70,8 @@ zotero-fulltext-status-failed = Failed ({ $code })
 ## Row action buttons (RowAction kinds and RowAction.OpenBrowser.l10n)
 
 zotero-fulltext-action-open-browser = Open in browser
-zotero-fulltext-action-open-redirector = Open with King's sign-in
+zotero-fulltext-action-open-redirector = Open with your institution's sign-in (OpenAthens)
+zotero-fulltext-action-open-wayfless = Open with the publisher's institutional login
 zotero-fulltext-action-open-ezproxy = Open through the library proxy
 zotero-fulltext-action-open-libkey = Open in LibKey
 zotero-fulltext-action-open-doi = Open the article page
@@ -207,3 +208,109 @@ zotero-fulltext-prefs-unavailable = The Full Text plugin is not running. Restart
 zotero-fulltext-prefs-clear-state-confirm = Forget the saved sign-in pauses and the institutional download counters? The hourly and daily limits protect your library's licence, so only continue if you are sure.
 zotero-fulltext-prefs-state-cleared = The saved sign-in pauses and download counters were cleared. Restart Zotero to apply this fully.
 zotero-fulltext-prefs-institution-restored = King's College London defaults were restored.
+
+## Institution picker
+
+zotero-fulltext-prefs-inst-keep-session = Keep my institutional sign-in between Zotero sessions
+zotero-fulltext-prefs-institution-preset = My institution
+zotero-fulltext-prefs-institution-preset-kcl = King's College London
+zotero-fulltext-prefs-institution-preset-city = City St George's, University of London
+zotero-fulltext-prefs-institution-preset-leeds = University of Leeds
+zotero-fulltext-prefs-institution-preset-reading = University of Reading
+zotero-fulltext-prefs-institution-preset-sgul = St George's, University of London
+zotero-fulltext-prefs-institution-preset-ucl = University College London
+zotero-fulltext-prefs-institution-preset-uea = University of East Anglia
+zotero-fulltext-prefs-institution-preset-warwick = University of Warwick
+zotero-fulltext-prefs-institution-preset-other = Other{ "\u2026" }
+zotero-fulltext-prefs-institution-preset-none = None (open access only)
+zotero-fulltext-prefs-institution-other-hint = Enter your institution's name and its OpenAthens domain, for example kcl.ac.uk. If you are not sure of the domain, ask your library. The library proxy (EZproxy) fields are optional.
+zotero-fulltext-prefs-institution-advanced = Advanced institution details
+zotero-fulltext-prefs-institution-applied = Institution set to { $name }.
+zotero-fulltext-prefs-institution-other-applied = Fill in your institution's details below.
+zotero-fulltext-prefs-institution-none-applied = Institutional access is off. Only open-access sources will be used.
+zotero-fulltext-prefs-institution-test = Test
+zotero-fulltext-prefs-institution-test-checking = Asking OpenAthens{ "\u2026" }
+zotero-fulltext-prefs-institution-test-ok = OpenAthens recognises "{ $domain }". Nothing was signed in or stored.
+zotero-fulltext-prefs-institution-test-unknown = OpenAthens does not know "{ $domain }" (unknown organisation). Check the spelling or ask your library for its OpenAthens domain.
+zotero-fulltext-prefs-institution-test-failed = Could not check with OpenAthens: { $reason }
+zotero-fulltext-prefs-institution-domain-invalid = That is not a valid domain name. Use letters, digits, dots and hyphens only, for example kcl.ac.uk.
+zotero-fulltext-prefs-institution-test-needs-domain = Enter a valid OpenAthens domain first.
+zotero-fulltext-prefs-problem-openathens-domain-format = The OpenAthens domain is not a valid domain name.
+
+## Login window (bug fixes)
+
+zotero-fulltext-login-stay-signed-in-tip = Tip: when Microsoft asks "Stay signed in?", choose Yes so you will not be asked again.
+zotero-fulltext-login-load-failed = This page did not load: { $url }. Wait a moment, or use "Open in my browser".
+zotero-fulltext-login-load-error-page = The browser could not open { $url }. Check your connection, or use "Open in my browser".
+zotero-fulltext-login-notify-title = Sign-in needed for full text
+zotero-fulltext-login-notify-text = A sign-in window is waiting for you. Click here to show it.
+zotero-fulltext-progress-signin-needed = Sign-in needed. A sign-in window is open and the items wait for it.
+zotero-fulltext-progress-signin-show = Show sign-in window
+
+## Access methods
+
+zotero-fulltext-prefs-inst-use-saml = Use my institution's Shibboleth / UK federation sign-in
+zotero-fulltext-prefs-method-select = How does your library sign you in?
+zotero-fulltext-prefs-method-openathens = OpenAthens
+zotero-fulltext-prefs-method-saml = Shibboleth / UK federation
+zotero-fulltext-prefs-method-ezproxy = Library proxy (EZproxy)
+zotero-fulltext-prefs-methods-uses = Uses:
+zotero-fulltext-prefs-methods-none = No sign-in method is set up yet.
+zotero-fulltext-prefs-other-hint = Enter your institution's name, then choose how its library signs you in. You can set up more than one method. If you are not sure, ask your library.
+zotero-fulltext-prefs-saml-hint = Many universities sign you in through the UK Access Management Federation (Shibboleth) instead of OpenAthens. Search for your institution by name. Only the text you type is sent, to the public SeamlessAccess directory (md.seamlessaccess.org); nothing is signed in.
+zotero-fulltext-prefs-saml-query = Search for your institution
+zotero-fulltext-prefs-saml-search = Search
+zotero-fulltext-prefs-saml-use = Use this identity provider
+zotero-fulltext-prefs-saml-results = Matching identity providers
+zotero-fulltext-prefs-saml-searching = Searching{ "\u2026" }
+zotero-fulltext-prefs-saml-found = { $count ->
+    [one] One identity provider found. Pick it and press the button.
+   *[other] { $count } identity providers found. Pick yours and press the button.
+  }
+zotero-fulltext-prefs-saml-no-results = No identity provider matches that name. Try a shorter or different part of the name.
+zotero-fulltext-prefs-saml-failed = Could not search the federation directory: { $reason }
+zotero-fulltext-prefs-saml-query-short = Type at least three letters of your institution's name.
+zotero-fulltext-prefs-saml-chosen = Selected identity provider: { $name }
+zotero-fulltext-prefs-saml-chosen-none = No identity provider selected.
+zotero-fulltext-prefs-saml-picked = Identity provider set to { $name }.
+zotero-fulltext-prefs-saml-entity-id = Identity provider ID (entityID)
+zotero-fulltext-prefs-saml-entity-invalid = That is not a valid identity provider ID. It is a web address such as https://idp.example.ac.uk/shibboleth.
+zotero-fulltext-prefs-proxy-hint = Paste the address your library tells you to put in front of a link to reach an article off campus, for example https://ezproxy.example.ac.uk/login?url=
+zotero-fulltext-prefs-proxy-prefix = Library proxy address
+zotero-fulltext-prefs-proxy-all-hosts = Use the proxy for every publisher
+zotero-fulltext-prefs-proxy-saved = Library proxy set to { $host }.
+zotero-fulltext-prefs-proxy-invalid = That does not look like a library proxy address. Use something like https://ezproxy.example.ac.uk/login?url=
+zotero-fulltext-prefs-proxy-invalid-path = Only proxy addresses that end in /login?url= are supported.
+zotero-fulltext-prefs-proxy-invalid-port = Proxy addresses with a port number are not supported.
+zotero-fulltext-prefs-proxy-invalid-credentials = A proxy address must not contain a user name or password.
+zotero-fulltext-prefs-proxy-test = Test
+zotero-fulltext-prefs-proxy-test-checking = Asking the library proxy{ "\u2026" }
+zotero-fulltext-prefs-proxy-test-ok = { $host } answered with a library sign-in page. Nothing was signed in or stored.
+zotero-fulltext-prefs-proxy-test-unknown = { $host } did not answer like a library proxy sign-in page. Check the address with your library.
+zotero-fulltext-prefs-proxy-test-failed = Could not check the library proxy: { $reason }
+zotero-fulltext-prefs-proxy-test-needs-address = Paste a valid library proxy address first.
+zotero-fulltext-prefs-problem-no-method = Institutional access is on, but no sign-in method is set up. Choose your institution, or add an OpenAthens domain, a Shibboleth identity provider or a library proxy.
+zotero-fulltext-prefs-problem-saml-entity-id = The Shibboleth identity provider ID is not valid.
+zotero-fulltext-prefs-institution-preset-bath = University of Bath
+zotero-fulltext-prefs-institution-preset-birmingham = University of Birmingham
+zotero-fulltext-prefs-institution-preset-bristol = University of Bristol
+zotero-fulltext-prefs-institution-preset-cambridge = University of Cambridge
+zotero-fulltext-prefs-institution-preset-cardiff = Cardiff University
+zotero-fulltext-prefs-institution-preset-edinburgh = University of Edinburgh
+zotero-fulltext-prefs-institution-preset-exeter = University of Exeter
+zotero-fulltext-prefs-institution-preset-glasgow = University of Glasgow
+zotero-fulltext-prefs-institution-preset-imperial = Imperial College London
+zotero-fulltext-prefs-institution-preset-lancaster = Lancaster University
+zotero-fulltext-prefs-institution-preset-leicester = University of Leicester
+zotero-fulltext-prefs-institution-preset-lse = London School of Economics and Political Science
+zotero-fulltext-prefs-institution-preset-manchester = University of Manchester
+zotero-fulltext-prefs-institution-preset-newcastle = Newcastle University
+zotero-fulltext-prefs-institution-preset-nottingham = University of Nottingham
+zotero-fulltext-prefs-institution-preset-oxford = University of Oxford
+zotero-fulltext-prefs-institution-preset-qmul = Queen Mary University of London
+zotero-fulltext-prefs-institution-preset-qub = Queen's University Belfast
+zotero-fulltext-prefs-institution-preset-sheffield = University of Sheffield
+zotero-fulltext-prefs-institution-preset-southampton = University of Southampton
+zotero-fulltext-prefs-institution-preset-standrews = University of St Andrews
+zotero-fulltext-prefs-institution-preset-sussex = University of Sussex
+zotero-fulltext-prefs-institution-preset-york = University of York

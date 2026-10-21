@@ -676,3 +676,62 @@ test('every id the window script looks up exists in progress.xhtml', () => {
   assert.ok(ids.size >= 5);
   for (const id of ids) assert.ok(markup.includes(`id="${id}"`), id);
 });
+
+// ------------------------------------------------------------------------------------------ "Sign-in needed" banner
+
+test('model.setSignIn(): stores the banner data, notifies once per change, ignores junk and a second clear', () => {
+  const { ZFT } = setup();
+  const model = ZFT.progress.open(7, SNAPSHOTS, {});
+  let notified = 0;
+  model.subscribe(() => { notified += 1; });
+  assert.equal(model.signIn(), null);
+  const show = () => {};
+  model.setSignIn({ show, waiting: 3 });
+  assert.equal(model.signIn().show, show);
+  assert.equal(model.signIn().waiting, 3);
+  assert.equal(notified, 1);
+  model.setSignIn(null);
+  assert.equal(model.signIn(), null);
+  assert.equal(notified, 2);
+  model.setSignIn(null);
+  model.setSignIn({ nothing: true });
+  assert.equal(notified, 2, 'clearing a cleared banner, or junk, is not a change');
+});
+
+test('ZFT.progress.setSignIn(): the banner goes to the run that opened the window, or to every unfinished run; the taskbar of the progress window is flashed', () => {
+  const { ZFT, windows } = setup();
+  const m7 = ZFT.progress.open(7, SNAPSHOTS, { interactive: true });
+  const m8 = ZFT.progress.open(8, SNAPSHOTS, { interactive: true });
+  windows[0].getAttention = function () { this.attention = (this.attention || 0) + 1; };
+  const info = { show() {}, waiting: 2 };
+  ZFT.progress.setSignIn(7, info);
+  assert.ok(m7.signIn());
+  assert.equal(m8.signIn(), null);
+  assert.equal(windows[0].attention, 1);
+  ZFT.progress.setSignIn(7, null);
+  assert.equal(m7.signIn(), null);
+  // unknown run (or none): every run that has not finished
+  m8.setReport(report([]));
+  ZFT.progress.setSignIn(null, info);
+  assert.ok(m7.signIn());
+  assert.equal(m8.signIn(), null, 'a finished run gets no banner');
+  assert.doesNotThrow(() => ZFT.progress.setSignIn(123, info));
+});
+
+test('window: the banner is hidden until a sign-in window exists, shows at once (no animation frame needed), its button runs show(), and it goes away', () => {
+  const { w, model } = openWindowScript();
+  const banner = w.byId('zft-progress-signin');
+  assert.equal(banner.hidden, true);
+  let shown = 0;
+  model.setSignIn({ show: () => { shown += 1; }, waiting: 1 });
+  assert.equal(banner.hidden, false, 'rendered synchronously: an occluded window gets no frames');
+  const markup = fs.readFileSync(path.join(CONTENT, 'progress.xhtml'), 'utf8');
+  assert.match(markup, /id="zft-progress-signin-text" data-l10n-id="zotero-fulltext-progress-signin-needed"/);
+  assert.match(markup, /id="zft-progress-signin-show" data-l10n-id="zotero-fulltext-progress-signin-show"/);
+  w.byId('zft-progress-signin-show').click();
+  assert.equal(shown, 1);
+  model.setSignIn(null);
+  assert.equal(banner.hidden, true);
+  w.byId('zft-progress-signin-show').click();
+  assert.equal(shown, 1, 'no banner, no action');
+});

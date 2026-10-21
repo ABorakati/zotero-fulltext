@@ -420,6 +420,166 @@ fn idp_login_page_and_conditional_access_codes() {
     }
 }
 
+fn other_idp() -> PageClass {
+    PageClass::IdpLogin {
+        idp: Idp::Other,
+        ca_error: None,
+    }
+}
+
+#[test]
+fn generic_shibboleth_idp_by_url() {
+    // The Shibboleth IdP v4/v5 profile endpoints, whatever the institution.
+    for url in [
+        "https://idp.shibboleth.ox.ac.uk/idp/profile/SAML2/Redirect/SSO?execution=e1s1",
+        "https://idp.shibboleth.ox.ac.uk/idp/profile/SAML2/POST/SSO",
+        "https://shibboleth.imperial.ac.uk/idp/profile/Authn/SAML2/POST/SSO/start?conversation=e1s1",
+        "https://sso.example.ac.uk/idp/profile/Shibboleth/SSO",
+        "https://sso.example.ac.uk/idp/profile/cas/login?service=x",
+        "https://sso.example.ac.uk/idp/Authn/UserPassword",
+        "https://sso.example.ac.uk/adfs/ls/?SAMLRequest=x",
+        "https://login.example.ac.uk/simplesaml/saml2/idp/SSOService.php?spentityid=x",
+        // `idp`, `idp1`, `idp2` as the first host label.
+        "https://idp.warwick.ac.uk/",
+        "https://idp2.example.ac.uk/any/path",
+    ] {
+        assert_eq!(class(200, url, &[], b""), other_idp(), "{url}");
+    }
+    // A redirect issued BY the IdP (to an upstream Entra tenant) is still "at the IdP".
+    assert_eq!(
+        class(
+            302,
+            "https://shibboleth.imperial.ac.uk/idp/profile/Authn/SAML2/POST/SSO/start?conversation=e1s1",
+            &[(
+                "location",
+                "https://login.microsoftonline.com/2b897507-ee8c-4575-830b-4f8267c3d307/saml2?SAMLRequest=x"
+            )],
+            b""
+        ),
+        other_idp()
+    );
+    // The KCL and OpenAthens IdPs keep their own labels (rule order).
+    assert_eq!(
+        class(
+            200,
+            "https://kclidp.kcl.ac.uk/idp/profile/SAML2/Redirect/SSO",
+            &[],
+            b""
+        ),
+        idp(Idp::Kcl)
+    );
+    // An IdP that answers with an error is an error, not a sign-in page.
+    assert_eq!(
+        class(404, "https://idp.warwick.ac.uk/nothing", &[], b"Not found"),
+        PageClass::NotFound
+    );
+    assert_ne!(
+        class(
+            503,
+            "https://idp.warwick.ac.uk/",
+            &[],
+            b"Service unavailable"
+        ),
+        other_idp()
+    );
+    // Look-alikes are not IdPs: a publisher page whose path merely mentions "idp", a host that only contains it.
+    for url in [
+        "https://www.nature.com/articles/idp-binding-protein",
+        "https://example.org/idp",
+        "https://idpath.example.org/x",
+        "https://rapid.example.org/idp/x",
+        "https://idp/x",
+    ] {
+        assert_ne!(class(200, url, &[], b""), other_idp(), "{url}");
+    }
+}
+
+fn idp(idp: Idp) -> PageClass {
+    PageClass::IdpLogin {
+        idp,
+        ca_error: None,
+    }
+}
+
+#[test]
+fn generic_shibboleth_idp_by_markup() {
+    // The default login view of a Shibboleth IdP v4/v5: recognised on a host and path that say nothing.
+    let login = data("shibboleth_idp_login.html");
+    for url in [
+        "https://sso.example.ac.uk/login",
+        "https://idp.example.ac.uk/idp/profile/SAML2/Redirect/SSO?execution=e1s2",
+        "https://campus.example.ac.uk/auth?session=1",
+    ] {
+        assert_eq!(class(200, url, &[], &login), other_idp(), "{url}");
+    }
+    // The "Loading Session Information" interstitial (JavaScript submit, no SAMLRequest field).
+    let loading = data("shibboleth_idp_session_loading.html");
+    assert_eq!(
+        class(200, "https://sso.example.ac.uk/login", &[], &loading),
+        other_idp()
+    );
+    // Flow fields alone are enough; so is a form that posts to an IdP profile endpoint.
+    assert_eq!(
+        class(
+            200,
+            "https://sso.example.ac.uk/x",
+            &[],
+            &html("<form method=post action=/n><input name=_eventId_proceed type=hidden></form>")
+        ),
+        other_idp()
+    );
+    assert_eq!(
+        class(
+            200,
+            "https://sso.example.ac.uk/x",
+            &[],
+            &html("<form method=post action='/idp/profile/SAML2/POST/SSO'><input name=x></form>")
+        ),
+        other_idp()
+    );
+    // A generic username / password form (a publisher's own login) is NOT a Shibboleth IdP.
+    assert_eq!(
+        class(
+            200,
+            "https://pub.example.org/login",
+            &[],
+            &html(
+                "<title>Sign in</title><form method=post action=/login><input name=username><input type=password name=password></form>"
+            )
+        ),
+        PageClass::Html
+    );
+    // An error status never classifies as a sign-in page.
+    assert_ne!(
+        class(500, "https://sso.example.ac.uk/login", &[], &login),
+        other_idp()
+    );
+    // SAML auto-post to an IdP host that has no profile path keeps its own class.
+    let post = html(
+        "<form method=POST action=https://sso.example.org/x><input name=SAMLRequest value=x></form>",
+    );
+    assert_eq!(
+        class(200, "https://pub.example.org/x", &[], &post),
+        PageClass::SamlAutoPost
+    );
+}
+
+#[test]
+fn shibboleth_sp_paths_are_publisher_sso_hops() {
+    for url in [
+        "https://pubs.acs.org/Shibboleth.sso/Login?entityID=x&target=y",
+        "https://www.sciencedirect.com/Shibboleth.sso/SAML2/POST",
+        "https://publisher.example.org/Shibboleth.sso/Session",
+        "https://publisher.example.org/shibboleth.sso/DS",
+    ] {
+        assert_eq!(
+            class(200, url, &[], b""),
+            PageClass::PublisherSsoHop,
+            "{url}"
+        );
+    }
+}
+
 #[test]
 fn saml_auto_post_needs_a_post_form_with_a_saml_field() {
     let page = data("saml_autopost.html");

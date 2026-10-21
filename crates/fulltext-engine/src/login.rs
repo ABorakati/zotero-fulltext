@@ -408,6 +408,7 @@ impl LoginGate {
         let mut realms = BTreeMap::new();
         realms.insert(Realm::Openathens, RealmState::new());
         realms.insert(Realm::Ezproxy, RealmState::new());
+        realms.insert(Realm::Saml, RealmState::new());
         Self {
             realms,
             interactive: InteractiveGate::default(),

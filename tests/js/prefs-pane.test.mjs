@@ -221,15 +221,20 @@ test('problems are listed (as l10n ids) and cleared as the prefs change', async 
   const box = env.byId('zft-prefs-problems');
   assert.equal(box.hidden, true);
   const domain = control(env, 'institution.openathens_domain');
-  domain.value = '';
-  await domain.fire('change');
+  // King's has three sign-in methods: the problem only appears once the last of them is gone.
+  for (const key of ['institution.openathens_domain', 'institution.saml_entity_id', 'institution.ezproxy_login_host']) {
+    const c = control(env, key);
+    assert.equal(box.hidden, true, 'still a method left before clearing ' + key);
+    c.value = '';
+    await c.fire('change');
+  }
   assert.equal(box.hidden, false);
-  assert.deepEqual(box.children.map((p) => p.getAttribute('data-l10n-id')), ['zotero-fulltext-prefs-problem-openathens-domain']);
+  assert.deepEqual(box.children.map((p) => p.getAttribute('data-l10n-id')), ['zotero-fulltext-prefs-problem-no-method']);
   const email = control(env, 'oa.unpaywall_email');
   email.value = 'nope';
   await email.fire('change');
   assert.deepEqual(box.children.map((p) => p.getAttribute('data-l10n-id')), [
-    'zotero-fulltext-prefs-problem-openathens-domain', 'zotero-fulltext-prefs-problem-unpaywall-email',
+    'zotero-fulltext-prefs-problem-no-method', 'zotero-fulltext-prefs-problem-unpaywall-email',
   ]);
   domain.value = 'kcl.ac.uk';
   await domain.fire('change');
@@ -260,7 +265,8 @@ test('reset-institution restores every institution.* default, refreshes the cont
   const defaults = plain(env.ZFT.config.DEFAULTS);
   for (const key of Object.keys(defaults).filter((k) => k.startsWith('institution.'))) {
     assert.strictEqual(pref(env, key), defaults[key], key);
-    assert.equal(control(env, key).value, String(defaults[key]), `${key} control`);
+    if (typeof defaults[key] === 'boolean') assert.equal(control(env, key).checked, defaults[key], `${key} control`);
+    else assert.equal(control(env, key).value, String(defaults[key]), `${key} control`);
   }
   assert.strictEqual(pref(env, 'run.item_concurrency'), 7, 'non-institution prefs are untouched');
   assert.equal(env.calls.filter((c) => c[0] === 'reconfigure').length, 1);

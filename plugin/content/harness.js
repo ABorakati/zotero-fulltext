@@ -21,7 +21,9 @@
  *   prefpane  ZFT.plugin.paneID was returned by PreferencePanes.register
  *   prefpane_ui  the real preferences window shows the pane: a control per pref, translated labels, no problems for the
  *             stock prefs, window.ZoteroFullTextPrefs published, and one edit (run.item_concurrency = 99) is clamped to 8
- *             through the pane's own change handler (the pref is restored afterwards)
+ *             through the pane's own change handler (the pref is restored afterwards); the method selector and "Uses:" line exist,
+ *             choosing the Imperial preset writes its Shibboleth identity provider, and a pasted library proxy address is parsed
+ *             into the proxy prefs (every institution pref is restored afterwards)
  *   ftl       ZFT.l10n.format('zotero-fulltext-prefs-title') is not the bare id. (The menu messages carry only a
  *             .label attribute and no value, so formatValueSync cannot resolve them; a value message is the right probe.)
  *   windows   progress.xhtml and login.xhtml open and close; console errors from zotero-fulltext sources fail the check
@@ -250,6 +252,9 @@
     if (!win) throw new Error('the preferences window did not open');
     const key = 'run.item_concurrency';
     const before = ZFT.config.getPref(key);
+    const accessKeys = ZFT.config.INSTITUTION_KEYS.concat(['institution.preset', 'inst.enabled', 'inst.use_openathens', 'inst.use_saml', 'inst.use_ezproxy']);
+    const savedAccess = {};
+    for (const k of accessKeys) savedAccess[k] = ZFT.config.getPref(k);
     try {
       const root = await pollFor(() => {
         const r = win.document.getElementById('zft-prefs-root');
@@ -273,8 +278,40 @@
       const clamped = await pollFor(() => ZFT.config.getPref(key) === 8, TIMEOUTS.edit);
       if (!clamped) throw new Error(`an edit did not reach the pref (value ${ZFT.config.getPref(key)})`);
       if (control.value !== '8') throw new Error('the control did not show the clamped value ' + control.value);
-      return { controls: found };
+
+      // Access methods: the method selector and the "Uses:" line exist, and choosing a preset / typing a proxy address writes prefs
+      // through the pane's own handlers (all of it is restored below).
+      const doc = win.document;
+      const methodSelect = doc.getElementById('zft-institution-method');
+      const options = methodSelect ? Array.from(methodSelect.querySelectorAll('option')).map((o) => o.getAttribute('value')).join(',') : '';
+      if (options !== 'openathens,saml,ezproxy') throw new Error('the method selector is missing or wrong: ' + options);
+      const translated = await pollFor(() => Array.from(methodSelect.querySelectorAll('option')).every((o) => {
+        const text = String(o.textContent || '').trim();
+        return text && text.indexOf('zotero-fulltext-') !== 0;
+      }), TIMEOUTS.edit);
+      if (!translated) throw new Error('the method selector shows message ids instead of names');
+      const uses = doc.getElementById('zft-institution-methods');
+      if (!uses || uses.hidden || !uses.childElementCount) throw new Error('the "Uses:" line is missing or empty');
+      const picker = doc.getElementById('zft-pref-institution-preset');
+      picker.value = 'imperial';
+      picker.dispatchEvent(new win.Event('change'));
+      const preset = await pollFor(() => ZFT.config.getPref('institution.saml_entity_id') === 'https://shibboleth.imperial.ac.uk/shibboleth'
+        && ZFT.config.getPref('institution.openathens_domain') === '', TIMEOUTS.edit);
+      if (!preset) throw new Error('choosing Imperial did not write the Shibboleth identity provider');
+      picker.value = 'other';
+      picker.dispatchEvent(new win.Event('change'));
+      const proxyInput = doc.getElementById('zft-proxy-prefix');
+      if (!proxyInput) throw new Error('the library proxy address field is missing');
+      proxyInput.value = 'https://ezproxy.example.ac.uk/login?url=';
+      proxyInput.dispatchEvent(new win.Event('change'));
+      const proxy = await pollFor(() => ZFT.config.getPref('institution.ezproxy_login_host') === 'ezproxy.example.ac.uk'
+        && ZFT.config.getPref('institution.ezproxy_suffix') === 'ezproxy.example.ac.uk', TIMEOUTS.edit);
+      if (!proxy) throw new Error('a pasted proxy address did not reach the prefs');
+      return { controls: found, access: { options, preset: 'imperial', proxy: 'ezproxy.example.ac.uk' } };
     } finally {
+      for (const k of accessKeys) {
+        try { ZFT.config.setPref(k, savedAccess[k]); } catch (e) { ZFT.util.log('warn', 'harness could not restore ' + k); }
+      }
       try { ZFT.config.setPref(key, before); } catch (e) { ZFT.util.log('warn', 'harness could not restore ' + key); }
       try { win.close(); } catch (e) { /* already closed */ }
     }

@@ -69,6 +69,8 @@ pub(crate) mod action {
     pub const OPEN_BROWSER: &str = "zotero-fulltext-action-open-browser";
     pub const OPEN_LIBKEY: &str = "zotero-fulltext-action-open-libkey";
     pub const OPEN_REDIRECTOR: &str = "zotero-fulltext-action-open-redirector";
+    /// The publisher's SAML / Shibboleth "institutional login" link (`Handoff.wayfless_url`).
+    pub const OPEN_WAYFLESS: &str = "zotero-fulltext-action-open-wayfless";
     pub const OPEN_EZPROXY: &str = "zotero-fulltext-action-open-ezproxy";
     pub const OPEN_DOI: &str = "zotero-fulltext-action-open-doi";
 }
@@ -108,13 +110,20 @@ impl ProgressRow {
 #[derive(Clone, Copy)]
 enum Link {
     Redirector,
+    Wayfless,
     Ezproxy,
     Libkey,
     Doi,
 }
 
-/// All four links, in the order a user is most likely to want them (King's sign-in first).
-const ALL_LINKS: [Link; 4] = [Link::Redirector, Link::Ezproxy, Link::Libkey, Link::Doi];
+/// All five links, in the order a user is most likely to want them (the institution's sign-in links first).
+const ALL_LINKS: [Link; 5] = [
+    Link::Redirector,
+    Link::Wayfless,
+    Link::Ezproxy,
+    Link::Libkey,
+    Link::Doi,
+];
 
 /// One `OpenBrowser` action per available link in `which`.
 fn open_actions(handoff: &Handoff, which: &[Link]) -> Vec<RowAction> {
@@ -123,6 +132,7 @@ fn open_actions(handoff: &Handoff, which: &[Link]) -> Vec<RowAction> {
         .filter_map(|link| {
             let (url, label) = match link {
                 Link::Redirector => (&handoff.redirector_url, action::OPEN_REDIRECTOR),
+                Link::Wayfless => (&handoff.wayfless_url, action::OPEN_WAYFLESS),
                 Link::Ezproxy => (&handoff.ezproxy_url, action::OPEN_EZPROXY),
                 Link::Libkey => (&handoff.libkey_url, action::OPEN_LIBKEY),
                 Link::Doi => (&handoff.doi_url, action::OPEN_DOI),
@@ -257,6 +267,7 @@ mod tests {
             ezproxy_url: Some("https://login.kcl.idm.oclc.org/login?qurl=x".into()),
             libkey_url: Some("https://libkey.io/libraries/286/10.1/x".into()),
             doi_url: Some("https://doi.org/10.1/x".into()),
+            wayfless_url: None,
         }
     }
 
@@ -572,6 +583,55 @@ mod tests {
                 open("https://doi.org/10.1/x", action::OPEN_DOI),
                 RowAction::Retry
             ]
+        );
+    }
+
+    #[test]
+    fn the_wayfless_link_is_offered_after_the_redirector_and_before_the_proxy() {
+        let handoff = Handoff {
+            wayfless_url: Some("https://sp.nature.com/saml/login?idp=x".into()),
+            ..full_handoff()
+        };
+        let r = outcome_row(&Outcome::NeedsUser {
+            why: NeedsWhy::HandoffRequested,
+            handoff: handoff.clone(),
+        });
+        let labels: Vec<&str> = r
+            .actions
+            .iter()
+            .filter_map(|a| match a {
+                RowAction::OpenBrowser { l10n, .. } => Some(l10n.as_str()),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(
+            labels,
+            vec![
+                action::OPEN_REDIRECTOR,
+                action::OPEN_WAYFLESS,
+                action::OPEN_EZPROXY,
+                action::OPEN_LIBKEY,
+                action::OPEN_DOI
+            ]
+        );
+        // Without a redirector (a SAML-only institution) it comes first.
+        let saml_only = Handoff {
+            redirector_url: None,
+            ezproxy_url: None,
+            libkey_url: None,
+            ..handoff
+        };
+        let r = outcome_row(&Outcome::Halted { handoff: saml_only });
+        assert_eq!(
+            r.actions.first(),
+            Some(&open(
+                "https://sp.nature.com/saml/login?idp=x",
+                action::OPEN_WAYFLESS
+            ))
+        );
+        assert_eq!(
+            action::OPEN_WAYFLESS,
+            "zotero-fulltext-action-open-wayfless"
         );
     }
 

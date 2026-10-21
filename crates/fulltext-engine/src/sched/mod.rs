@@ -439,6 +439,7 @@ pub(crate) mod testkit {
                 try_direct: true,
                 use_openathens: true,
                 use_ezproxy: true,
+                use_saml: true,
                 check_alma: true,
                 login_mode: LoginMode::Window,
                 auto_open_login: true,
@@ -465,6 +466,8 @@ pub(crate) mod testkit {
                     suffix: "kcl.idm.oclc.org".into(),
                 }),
                 ezproxy_hosts: vec!["doi.org".into(), "www.bmj.com".into()],
+                ezproxy_all_hosts: false,
+                saml_entity_id: None,
                 alma: Some(Alma {
                     base: "https://librarysearch.kcl.ac.uk".into(),
                     inst: "44KCL_INST".into(),

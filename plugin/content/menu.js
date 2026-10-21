@@ -98,16 +98,24 @@
     try { context.setVisible(visible); } catch (e) { ZFT.util.log('warn', 'setVisible failed: ' + ZFT.util.errText(e)); }
   }
 
-  /** onShowing of the sign-in entry: only meaningful while institutional access is on. */
+  /** Fluent args for the sign-in label: the institution chosen in the prefs pane (a JSON string, as MenuManager wants). */
+  function signinArgs() {
+    let name = '';
+    try { name = ZFT.config.institutionName() || ''; } catch (e) { /* fall back below */ }
+    return JSON.stringify({ institution: name || 'your institution' });
+  }
+
+  /** onShowing of the sign-in entry: only meaningful while institutional access is on; the label follows the pane. */
   function onShowingSignin(event, context) {
     try { context.setEnabled(!!ZFT.config.getPref('inst.enabled')); } catch (e) { ZFT.util.log('warn', 'setEnabled failed: ' + ZFT.util.errText(e)); }
+    try { context.setL10nArgs(signinArgs()); } catch (e) { ZFT.util.log('warn', 'setL10nArgs failed: ' + ZFT.util.errText(e)); }
   }
 
   function toolsMenus() {
     return [
       { menuType: 'separator' },
       {
-        menuType: 'menuitem', l10nID: 'zotero-fulltext-menu-signin', onShowing: onShowingSignin,
+        menuType: 'menuitem', l10nID: 'zotero-fulltext-menu-signin', l10nArgs: signinArgs(), onShowing: onShowingSignin,
         onCommand: () => guarded(() => ZFT.login.warmUp(ZFT.config.buildEngineConfig())),
       },
       {

@@ -69,6 +69,7 @@ function setup(o = {}) {
       for (const ev of scripts[url] || []) {
         timers.setTimeout(() => {
           this.currentURI = { spec: ev.url };
+          if (ev.docUrl) this._browser.documentURI = { spec: ev.docUrl };
           for (const l of [...this.listeners]) l.onLocationChange({ isTopLevel: ev.topLevel !== false }, null, { spec: ev.url }, ev.flags || 0);
         }, ev.atMs);
       }
@@ -327,6 +328,25 @@ test('browser error pages end the load: neterror is network, certerror is tls', 
     assert.equal(err.kind, kind);
     assert.equal(env.instances[0].destroyed, 1);
   }
+});
+
+test('an error page reported under the FAILED address (LOCATION_CHANGE_ERROR_PAGE flag) ends the load too, instead of being returned as the site', async () => {
+  // Zotero 10.0.6, verified in the login-probe harness: a DNS failure arrives as onLocationChange(failed URL, flags & 2).
+  for (const [docUrl, kind] of [
+    ['about:neterror?e=dnsNotFound&u=https%3A//nope.invalid/', 'network'],
+    ['about:certerror?e=nssFailure2&u=https%3A//bad.example/', 'tls'],
+    [undefined, 'network'],
+  ]) {
+    const env = setup({ scripts: { 'https://start.example/go': [{ atMs: 100, url: 'https://nope.invalid/', flags: 2, docUrl }] } });
+    const err = await env.run(req({ want_page: true })).catch((e) => e);
+    assert.equal(err.kind, kind, String(docUrl));
+    assert.equal(env.instances[0].destroyed, 1);
+    assert.equal(env.instances[0].pageDataCalls.length, 0, 'the error page is never read as a page');
+  }
+  // an ordinary location change without the flag is untouched
+  const ok = setup({ scripts: { 'https://start.example/go': [{ atMs: 100, url: 'https://nope.invalid/', flags: 0 }] } });
+  const out = await ok.run(req());
+  assert.equal(out.final_url, 'https://nope.invalid/');
 });
 
 test('cancel destroys the browser, removes the listener and capture, frees the slot and rejects cancelled', async () => {

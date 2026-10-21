@@ -14,6 +14,12 @@
   </linkset>
   <script src="chrome://zotero-fulltext/content/progress-window.js"/>
   <vbox flex="1">
+    <html:div id="zft-progress-signin" role="alert" hidden="true" style="padding:8px 12px;border-bottom:1px solid #888;font:13px system-ui,sans-serif;background:#7a4a00;color:#fff;">
+      <html:div style="display:flex;gap:10px;align-items:center;">
+        <html:span id="zft-progress-signin-text" data-l10n-id="zotero-fulltext-progress-signin-needed" style="flex:1;min-width:0;font-weight:bold;"></html:span>
+        <html:button id="zft-progress-signin-show" data-l10n-id="zotero-fulltext-progress-signin-show"/>
+      </html:div>
+    </html:div>
     <html:div id="zft-progress-header" role="status" style="padding:8px 12px;border-bottom:1px solid #888;font:13px system-ui,sans-serif;"></html:div>
     <html:div id="zft-progress-rows" role="list" style="flex:1;min-height:0;overflow:auto;padding:4px 12px;font:13px system-ui,sans-serif;"></html:div>
     <html:div id="zft-progress-ledger" hidden="true" style="padding:6px 12px;border-top:1px solid #888;font:12px system-ui,sans-serif;opacity:0.8;"></html:div>

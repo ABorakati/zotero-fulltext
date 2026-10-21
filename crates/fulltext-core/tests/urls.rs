@@ -817,6 +817,7 @@ fn junk_input_never_panics() {
                     openathens_domain: "kcl.ac.uk",
                     ezproxy: Some(KCL),
                     libkey_library_id: Some(286),
+                    saml_entity_id: Some(s),
                 },
                 &Ids {
                     doi: Some(s.to_owned()),
@@ -940,6 +941,37 @@ fn url_class_publisher_sso_hops() {
 }
 
 #[test]
+fn url_class_generic_shibboleth_idps_are_idp_logins() {
+    for url in [
+        "https://idp.shibboleth.ox.ac.uk/idp/profile/SAML2/Redirect/SSO?execution=e1s1",
+        "https://shibboleth.imperial.ac.uk/idp/profile/Authn/SAML2/POST/SSO/start?conversation=e1s1",
+        "https://sso.example.ac.uk/idp/profile/SAML2/POST/SSO",
+        "https://sso.example.ac.uk/IDP/Profile/Shibboleth/SSO",
+        "https://sso.example.ac.uk/idp/Authn/UserPassword",
+        "https://sso.example.ac.uk/adfs/ls/?SAMLRequest=x",
+        "https://idp.warwick.ac.uk/",
+        "https://idp1.example.ac.uk/login",
+    ] {
+        assert_eq!(url_class(None, url), UrlClassKind::IdpLogin, "{url}");
+    }
+    // Shibboleth SERVICE PROVIDER endpoints are publisher hops, not identity providers.
+    for url in [
+        "https://publisher.example.org/Shibboleth.sso/SAML2/POST",
+        "https://publisher.example.org/Shibboleth.sso/Session",
+    ] {
+        assert_eq!(url_class(None, url), UrlClassKind::PublisherSsoHop, "{url}");
+    }
+    for url in [
+        "https://idp/x",
+        "https://idpath.example.org/",
+        "https://example.org/idp",
+        "https://www.nature.com/articles/idp-1",
+    ] {
+        assert_eq!(url_class(None, url), UrlClassKind::Other, "{url}");
+    }
+}
+
+#[test]
 fn url_class_precedence_and_other() {
     // Redirector before IdP before EZproxy before SSO hop.
     assert_eq!(
@@ -1054,6 +1086,7 @@ fn full_conf() -> HandoffConf<'static> {
         openathens_domain: "kcl.ac.uk",
         ezproxy: Some(KCL),
         libkey_library_id: Some(286),
+        saml_entity_id: None,
     }
 }
 
@@ -1079,6 +1112,7 @@ fn handoff_for_the_bjs_example() {
             ezproxy_url: Some("https://login.kcl.idm.oclc.org/login?qurl=https%3A%2F%2Fdoi.org%2F10.1002%2Fbjs.11646".into()),
             libkey_url: Some("https://libkey.io/libraries/286/10.1002/bjs.11646".into()),
             doi_url: Some("https://doi.org/10.1002/bjs.11646".into()),
+            wayfless_url: None,
         }
     );
 }
@@ -1226,6 +1260,7 @@ fn handoff_follows_the_configuration() {
         openathens_domain: "",
         ezproxy: None,
         libkey_library_id: None,
+        saml_entity_id: None,
     };
     assert_eq!(
         handoff(&bare, &doi, None),
@@ -1238,6 +1273,7 @@ fn handoff_follows_the_configuration() {
         openathens_domain: "  ",
         ezproxy: Some(KCL),
         libkey_library_id: None,
+        saml_entity_id: None,
     };
     let h = handoff(&only_ezproxy, &doi, None);
     assert!(h.redirector_url.is_none() && h.libkey_url.is_none() && h.ezproxy_url.is_some());
@@ -1257,6 +1293,7 @@ fn handoff_follows_the_configuration() {
         openathens_domain: "ox.ac.uk",
         ezproxy: None,
         libkey_library_id: Some(7),
+        saml_entity_id: None,
     };
     let h = handoff(&other, &doi, None);
     assert!(h.redirector_url.unwrap().contains("/redirector/ox.ac.uk?"));
@@ -1266,13 +1303,98 @@ fn handoff_follows_the_configuration() {
     );
 }
 
-#[test]
-fn handoff_serialises_only_the_links_that_exist() {
-    let bare = HandoffConf {
+const OX_IDP: &str = "https://registry.shibboleth.ox.ac.uk/idp";
+
+fn saml_conf() -> HandoffConf<'static> {
+    HandoffConf {
         openathens_domain: "",
         ezproxy: None,
         libkey_library_id: None,
+        saml_entity_id: Some(OX_IDP),
+    }
+}
+
+#[test]
+fn handoff_adds_the_wayfless_link_for_a_saml_only_institution() {
+    // SAML-only: no redirector, no EZproxy; the link comes from the DOI of a Nature article.
+    let h = handoff(
+        &saml_conf(),
+        &ids_with(Some("10.1038/nature12373"), None),
+        None,
+    );
+    assert_eq!(
+        h,
+        Handoff {
+            doi_url: Some("https://doi.org/10.1038/nature12373".into()),
+            wayfless_url: Some(
+                "https://sp.nature.com/saml/login?idp=https%3A%2F%2Fregistry.shibboleth.ox.ac.uk%2Fidp&targetUrl=https%3A%2F%2Fwww.nature.com%2Farticles%2Fnature12373".into()
+            ),
+            ..Handoff::default()
+        }
+    );
+    // A reached publisher page beats the DOI-derived article.
+    let h = handoff(
+        &saml_conf(),
+        &ids_with(Some("10.1093/bjs/znab001"), None),
+        Some("https://academic.oup.com/bjs/article/108/1/1/6065"),
+    );
+    assert!(
+        h.wayfless_url
+            .as_deref()
+            .is_some_and(|u| u.starts_with("https://oup-sp.sams-sigma.com/Shibboleth.sso/Login?entityID=https%3A%2F%2Fregistry.shibboleth.ox.ac.uk%2Fidp&target=")),
+        "{h:?}"
+    );
+    // The item URL is the fallback target; a proxified one is un-proxied first.
+    let with_ezproxy = HandoffConf {
+        ezproxy: Some(KCL),
+        ..saml_conf()
     };
+    let h = handoff(
+        &with_ezproxy,
+        &ids_with(
+            None,
+            Some("https://www-bmj-com.kcl.idm.oclc.org/content/372/bmj.n71"),
+        ),
+        None,
+    );
+    assert!(
+        h.wayfless_url.as_deref().is_some_and(|u| u
+            .contains("hw-shib-return-uri=https%3A%2F%2Fwww.bmj.com%2Fcontent%2F372%2Fbmj.n71")),
+        "{h:?}"
+    );
+    // No link: unsupported publisher, no entityID, blank entityID.
+    let unsupported = handoff(
+        &saml_conf(),
+        &ids_with(None, Some("https://journals.lww.com/annalsofsurgery/x")),
+        None,
+    );
+    assert_eq!(unsupported.wayfless_url, None);
+    let no_entity = HandoffConf {
+        saml_entity_id: None,
+        ..saml_conf()
+    };
+    assert_eq!(
+        handoff(
+            &no_entity,
+            &ids_with(Some("10.1038/nature12373"), None),
+            None
+        )
+        .wayfless_url,
+        None
+    );
+    let blank = HandoffConf {
+        saml_entity_id: Some("  "),
+        ..saml_conf()
+    };
+    assert_eq!(
+        handoff(&blank, &ids_with(Some("10.1038/nature12373"), None), None).wayfless_url,
+        None
+    );
+}
+
+#[test]
+fn handoff_serialises_only_the_links_that_exist() {
+    let bare = HandoffConf::default();
     let h = handoff(&bare, &ids_with(Some("10.1/x"), None), None);
     assert_eq!(
         serde_json::to_string(&h).unwrap(),

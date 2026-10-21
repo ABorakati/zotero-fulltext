@@ -121,7 +121,7 @@ export function makeShellEnv(opts = {}) {
       shutdown: recorder(calls, 'runs.shutdown', async () => {}),
       reconfigure: recorder(calls, 'runs.reconfigure', async () => {}),
     };
-    ZFT.login = { closeAll: recorder(calls, 'login.closeAll'), warmUp: recorder(calls, 'login.warmUp', async () => {}) };
+    ZFT.login = { closeAll: recorder(calls, 'login.closeAll'), persistSession: recorder(calls, 'login.persistSession', () => 0), warmUp: recorder(calls, 'login.warmUp', async () => {}) };
     ZFT.progress = { closeAll: recorder(calls, 'progress.closeAll'), show: recorder(calls, 'progress.show') };
     ZFT.wasmHost = { shutdown: recorder(calls, 'wasmHost.shutdown', async () => {}) };
     ZFT.items = { menuEligible: recorder(calls, 'items.menuEligible', () => true) };

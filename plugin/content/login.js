@@ -13,10 +13,11 @@
  *  - implement nsIBrowserDOMWindow (window.browserDOMWindow = new ZftBrowserAccess()) so window.open / target=_blank
  *    pages open in the visible popup pane (#zft-login-popup-box) instead of a hidden browser; count popups;
  *  - wire the three buttons to args.onEvent({type: 'skip'|'handoff'|'keep_waiting'}); the controller does the rest;
- *  - setLabels({waiting, hint, showKeepWaiting}): called by the controller through window.zftLogin.setLabels() to update
- *    the "N items waiting" text (data-l10n-id zotero-fulltext-login-waiting with {count}), the hint line (a string, or
- *    {id, args} for a Fluent message; '' clears it) and the visibility of the Keep waiting button. Labels that arrive
- *    before the page has loaded are kept and applied on load;
+ *  - setLabels({waiting, hint, error, showKeepWaiting, showTip}): called by the controller through window.zftLogin.setLabels()
+ *    to update the "N items waiting" text (data-l10n-id zotero-fulltext-login-waiting with {count}), the hint line (a string, or
+ *    {id, args} for a Fluent message; '' clears it), the load-problem line `error` (same shapes; it shows the address that
+ *    did not load, so a blank page is never silent) and the visibility of the Keep waiting button and the "Stay signed in"
+ *    tip (shown from the start for kind 'login'). Labels that arrive before the page has loaded are kept and applied on load;
  *  - 'unload' -> args.onEvent({type: 'closed'}).
  * It never loads a URL itself and never reads credentials.
  */
@@ -98,6 +99,26 @@
       const keep = el('zft-login-keep');
       if (keep) {
         keep.hidden = !labels.showKeepWaiting;
+      }
+    }
+    if ('error' in labels) {
+      // The load-problem line: a Fluent message ({id, args}), a plain string, or '' to clear it. Hidden while empty.
+      const errEl = el('zft-login-error');
+      const err = labels.error;
+      if (errEl) {
+        if (err && typeof err === 'object') {
+          setMessage(errEl, String(err.id || ''), err.args || null);
+        } else {
+          setMessage(errEl, '');
+          errEl.textContent = err ? String(err) : '';
+        }
+        errEl.hidden = !err;
+      }
+    }
+    if ('showTip' in labels) {
+      const tip = el('zft-login-tip');
+      if (tip) {
+        tip.hidden = !labels.showTip;
       }
     }
   }
@@ -241,6 +262,10 @@
     wire('zft-login-keep', 'keep_waiting');
     wire('zft-login-handoff', 'handoff');
     wire('zft-login-skip', 'skip');
+    // "Stay signed in" tip: only a sign-in window leads to Microsoft's question; a bot-check window does not.
+    if (args.kind !== 'challenge') {
+      applyLabels({ showTip: true });
+    }
     applyLabels(pendingLabels);
     pendingLabels = {};
     updateBar();

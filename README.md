@@ -9,6 +9,11 @@ using open-access sources first and then King's College London institutional acc
   (`go.openathens.net/redirector/kcl.ac.uk`), which goes through KCL's Microsoft sign-in to the publisher. KCL's
   EZproxy (`login.kcl.idm.oclc.org`) is used only for the ~19 sites it covers. The research found that the major
   medical publishers go through OpenAthens, not EZproxy (`research/04-kcl-institutional-access.md`).
+- **Not only OpenAthens:** institutions can also use **Shibboleth / UK federation** sign-in. The plugin then goes
+  straight to your university's sign-in page on Wiley, Taylor & Francis, SAGE, NEJM, Elsevier/Lancet/Cell, Springer,
+  Nature, OUP, Cambridge, BMJ, Thieme, JAMA, ACS, Karger and others. They can also use a **library proxy for every
+  publisher**, which remembers the sites the proxy doesn't cover. The route order is: direct, then OpenAthens, then
+  Shibboleth, then the proxy, then a hand-off link to open in your browser.
 - **Concurrent and async:** 4 items at a time by default. Each item queries its sources in parallel and the first
   valid PDF wins. Nothing blocks Zotero's window.
 - **Rust where possible:** about 49,000 lines of Rust against about 8,600 lines of plugin JavaScript. The Rust is
@@ -59,7 +64,9 @@ window opens and you complete it yourself.
 
 - **Unpaywall email:** empty by default. Unpaywall needs an email; add yours to turn it on.
 - **OpenAlex API key:** optional.
-- **Institution:** King's College London by default. You can change the OpenAthens domain and the EZproxy hosts.
+- **Institution:** a dropdown with King's College London (the default) and other UK universities whose OpenAthens
+  sign-in was confirmed, plus "Other…" (enter your OpenAthens domain and press **Test**) and "None (open access
+  only)". Your choice is remembered, and the Tools menu's sign-in entry follows it.
 - **Item concurrency:** default 4.
 
 ## Status — what has and has not been tested

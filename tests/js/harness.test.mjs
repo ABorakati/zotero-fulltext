@@ -491,7 +491,13 @@ test('prefpane_ui: the real pane builds a control per pref, labels are translate
   const env = paneUiEnv();
   env.zotero.Prefs.set('extensions.zotero-fulltext.run.item_concurrency', 3);
   const detail = plain(await env.ZFT.harness.CHECKS.prefpane_ui());
-  assert.deepEqual(detail, { controls: Object.keys(plain(env.ZFT.config.DEFAULTS)).length });
+  assert.deepEqual(detail, {
+    controls: Object.keys(plain(env.ZFT.config.DEFAULTS)).length,
+    access: { options: 'openathens,saml,ezproxy', preset: 'imperial', proxy: 'ezproxy.example.ac.uk' },
+  });
+  const store = env.zotero.Prefs.store;
+  assert.strictEqual(store.get('extensions.zotero-fulltext.institution.saml_entity_id'), 'https://kclidp.kcl.ac.uk/idp/shibboleth', 'the access-method edits are undone');
+  assert.strictEqual(store.get('extensions.zotero-fulltext.institution.ezproxy_login_host') ?? 'login.kcl.idm.oclc.org', 'login.kcl.idm.oclc.org');
   assert.deepEqual(plain(env.calls.find((c) => c[0] === 'openPreferences')[1]), ['pane-1']);
   assert.strictEqual(env.zotero.Prefs.store.get('extensions.zotero-fulltext.run.item_concurrency'), 3, 'the harness edit is undone');
   assert.equal(env.closed.length, 1);
@@ -507,7 +513,7 @@ test('prefpane_ui: failures are reported and the pref is still restored and the 
   assert.equal(ids.closed.length, 1);
 
   const problem = paneUiEnv();
-  problem.zotero.Prefs.set('extensions.zotero-fulltext.institution.openathens_domain', '');
+  for (const key of ['openathens_domain', 'saml_entity_id', 'ezproxy_login_host']) problem.zotero.Prefs.set('extensions.zotero-fulltext.institution.' + key, '');
   await assert.rejects(problem.ZFT.harness.CHECKS.prefpane_ui(), /lists problems for the stock prefs/);
   assert.equal(problem.closed.length, 1);
 

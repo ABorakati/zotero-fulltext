@@ -134,7 +134,7 @@ walled), EZproxy "host configured" cache (7 days) and Alma holdings cache (1 day
 
 ## 6. Login gate (login.rs)
 
-Single-flight per realm with epochs; states `SignedOut / Probing / LoginOpen / SignedIn / Refused / Halted`
+Single-flight per realm (`Openathens`, `Ezproxy`, `Saml`) with epochs; states `SignedOut / Probing / LoginOpen / SignedIn / Refused / Halted`
 (diagram in the file header). Twenty items needing sign-in produce **one** `LoginWindow` effect: the first
 `session_login` call spawns a `System` window-driver task, later callers only increment `waiting` and trigger
 `LoginUpdate`. `session_admit` makes the first item probe alone so N parallel hidden loads do not all bounce.
@@ -173,10 +173,33 @@ Candidate URLs dedupe by core's `canonical_key` (query included); a page already
 *Landing* (landing.rs): Rust candidates (from `Inspection::Page`) merged with Zotero translators (`RunTranslators`,
 8 s); on institutional pages translators run only when Rust found nothing and count against the fetch budget.
 
-*Institutional route* (inst.rs header has the steps): Alma entitlement -> direct (`doi.org`) -> OpenAthens redirector
-in a hidden browser (plain UA, `barrier`) -> login gate -> extract -> PDF -> EZproxy for configured hosts -> hand-off
-links on every failure. Limits: 4 fetches per item, no retries except the single post-login retry, stop signals
-halt the route.
+*Institutional route* (inst.rs header has the steps): configuration check -> Alma entitlement -> direct (`doi.org`) ->
+OpenAthens redirector in a hidden browser (plain UA, `barrier`) -> publisher SAML / Shibboleth (WAYFless link) ->
+login gate -> extract -> PDF -> EZproxy -> hand-off links on every failure. Limits: 4 fetches per item, no retries
+except the single post-login retry, stop signals halt the route.
+
+*Route order and the new institutions* (SAML / EZproxy-for-every-host work). Direct/campus -> OpenAthens (`use_openathens`
+and a non-blank `openathens_domain`; a blank domain never builds a redirector URL: `pure::redirector_url` returns
+`None`) -> **SAML WAYFless** (`use_saml`, a well-formed `Institution.saml_entity_id`) -> EZproxy -> hand-off.
+* The SAML entry is `pure::wayfless_url`: the first page the item reached, else its own URL, else the article its DOI
+  stands for (`fulltext_core::wayfless`, core.md section 3.4); an unsupported publisher skips the step with
+  `Miss::NotKnown`. It runs only while the best explanation so far is "not known" or weaker: if OpenAthens reached the
+  publisher and was refused, found no PDF link or met a bot check, the same identity provider would say the same.
+* Same machinery as OpenAthens: a silent hidden load (plain UA, `barrier`, `hold_while [PublisherSsoHop]` so the
+  publisher's auto-posting SSO start page is not mistaken for a settled page), the single-flight session gate, a visible
+  window (`LoginReq.realm = saml`, entry = the WAYFless link) only when the load ends on an interactive page (`IdpLogin`,
+  which core now classifies for any Shibboleth / SAML IdP). `Realm::Saml` is a realm of its own (own epoch, own
+  prompts-per-run budget); windows of different realms are still one at a time (the interactive gate is global).
+  Saves record `source = "saml"`.
+* `Institution.ezproxy_all_hosts`: EZproxy is tried for any publisher host (a DOI with no known host starts from
+  `doi.org`). Order of knowledge for a host: the persisted cache (7 days; what the proxy said last) -> `ezproxy_hosts` ->
+  the no-follow probe of the proxified host; an unanswered probe means "try" instead of "skip". A host is learnt
+  `false` from the probe, from the `EzproxyHostNotConfigured` page and from the proxy's own needhost page
+  (`EzproxyError { suspend: false }` on the EZproxy realm), and learnt `true` when a page came back through the proxy.
+* A configuration with no usable route (no direct access, and no switched-on route with its settings: OpenAthens
+  domain, SAML entityID, EZproxy login host and suffix) ends the item as `NeedsUser { Misconfigured }` before any
+  request (row `zotero-fulltext-status-misconfigured`).
+* Hand-off: `Handoff.wayfless_url` (row action `zotero-fulltext-action-open-wayfless`, offered after the redirector link).
 
 *Save* (save.rs): `validate(&PdfVerdict)`, trim prefix, `mark_saving` (no longer cancellable), save slot,
 `SavePdf` with the un-proxied URL from `pure::storable_url`; `AlreadyHasPdf` -> `Skipped(PdfAddedMeanwhile)`.

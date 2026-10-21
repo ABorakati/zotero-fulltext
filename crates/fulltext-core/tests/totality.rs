@@ -73,7 +73,7 @@ fn hash(s: &str) -> u64 {
 // ---------------------------------------------------------------------------------------------------- specs
 
 /// Every `Source`; the exhaustive `match` below fails to compile when a variant is added without being listed here.
-const ALL_SOURCES: [Source; 16] = [
+const ALL_SOURCES: [Source; 17] = [
     Source::Openalex,
     Source::Europepmc,
     Source::Biorxiv,
@@ -90,6 +90,7 @@ const ALL_SOURCES: [Source; 16] = [
     Source::Extractor,
     Source::Redirector,
     Source::Ezproxy,
+    Source::Saml,
 ];
 
 fn source_index(s: Source) -> usize {
@@ -110,6 +111,7 @@ fn source_index(s: Source) -> usize {
         Source::Extractor => 13,
         Source::Redirector => 14,
         Source::Ezproxy => 15,
+        Source::Saml => 16,
     }
 }
 

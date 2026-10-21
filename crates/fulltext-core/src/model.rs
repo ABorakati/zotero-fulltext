@@ -35,7 +35,9 @@ plain_enum!(Source {
     Translator,
     Extractor,
     Redirector,
-    Ezproxy
+    Ezproxy,
+    /// The publisher's own SAML / Shibboleth "institutional login" (WAYFless deep link).
+    Saml
 });
 plain_enum!(Version {
     Published,
@@ -55,7 +57,10 @@ plain_enum!(CandKind { Pdf, Landing });
 plain_enum!(Ua { Default, Plain });
 plain_enum!(Realm {
     Openathens,
-    Ezproxy
+    Ezproxy,
+    /// Publisher SAML / Shibboleth sign-in through the institution's own identity provider (UK Access
+    /// Management Federation). Its own single-flight login realm, separate from OpenAthens.
+    Saml
 });
 plain_enum!(Vendor {
     Cloudflare,
@@ -369,6 +374,10 @@ pub struct Handoff {
     pub libkey_url: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub doi_url: Option<String>,
+    /// Publisher WAYFless sign-in deep link (SAML / Shibboleth) for the institution's IdP, when the publisher is
+    /// a supported platform.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wayfless_url: Option<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

@@ -17,6 +17,7 @@ both an unpacked plugin directory and a packed `.xpi`.
 | `probe-wasm/` | Rust `cdylib` with a hand-written ABI (`zf_alloc`, `zf_dealloc`, `zf_process_json`), serde_json, no wasm-bindgen. |
 | `probe-wasm-bindgen/` | Same logic through `wasm-bindgen = "=0.2.126"` (must match the installed CLI). |
 | `test-plugins/noop-plugin/` | Never writes a result. Use it to test the timeout and kill path. |
+| `login-probe.ps1`, `login-probe/plugin/` | Opens zotero-fulltext's REAL sign-in window (`ZFT.login.open`) or a full engine run on PUBLIC pages in a visible throwaway Zotero and records what rendered: `currentURI`, remoteness, bar, banner, tip, error line, the `<browser>` size, focus, the progress-window banner, a PNG per sample (`<run>\shots`), the `[zotero-fulltext] login` debug lines. Scenarios (`-Scenarios` JSON): `{kind:'login'\|'challenge', url}`, `{kind:'hidden', url}` (HiddenBrowser load), `{doi}` (engine run, institutional access on). `-CookieTest` checks `persistSession` on synthetic cookies. Never types into a page or signs in. |
 
 Run output goes to `C:\Users\abora\zotero-fulltext\.ref\harness-runs\<RunName>\`:
 `profile\`, `data\`, `logs\zotero-stdout.log` (the `-ZoteroDebugText` output),

@@ -64,6 +64,15 @@
   const LOAD_POLL_MS = 50;
   const DEFAULT_TIMEOUT_MS = 300000;
   const WARM_KEY = 'warmup';
+  /** A browser still on about:blank this long after loadURI gets a visible "did not load" line (the address and a way out). */
+  const BLANK_AFTER_MS = 6000;
+  /** While the window is not the active one, the taskbar button is flashed again this often. */
+  const NUDGE_MS = 30000;
+  /** Session cookies of the institution (OpenAthens, EZproxy) are kept across a restart for at most this long (pref keep_session). */
+  const SESSION_COOKIE_MAX_MS = 12 * 60 * 60 * 1000;
+  const KEEP_SESSION_PREF = 'extensions.zotero-fulltext.inst.keep_session';
+  const LOAD_FAILED_L10N = 'zotero-fulltext-login-load-failed';
+  const LOAD_ERROR_L10N = 'zotero-fulltext-login-load-error-page';
 
   /** op (or WARM_KEY) -> live session. */
   const sessions = new Map();
@@ -98,6 +107,48 @@
     const out = { done: null };
     if (st === 'challenge_shown') out.showChallengeHint = true;
     if (!input.extended && timeout > 0 && elapsed >= KEEP_WAITING_AT * timeout) out.offerKeepWaiting = true;
+    return out;
+  }
+
+  /**
+   * Pure: is the window's <browser> in a state the user must be told about? (exported for table tests)
+   * @param {{spec: string, docSpec?: string, elapsedMs: number, loadFailed: boolean}} s spec = browser.currentURI.spec, docSpec =
+   *        browser.documentURI.spec, elapsedMs = time since loadURI, loadFailed = loadURI threw
+   * @returns {null|'blank'|'error_page'|'load_failed'}
+   *   error_page   Gecko's own about:neterror / about:certerror / about:blocked page
+   *   load_failed  loadURI threw (nothing was ever started)
+   *   blank        still about:blank BLANK_AFTER_MS after the load started (slow, hung or silently dropped)
+   */
+  function loadProblem(s) {
+    const input = s || {};
+    const spec = String(input.spec || '');
+    // Gecko reports an error page under the address that FAILED (currentURI), while documentURI is the about: page.
+    if (/^about:(neterror|certerror|blocked)/i.test(spec) || /^about:(neterror|certerror|blocked)/i.test(String(input.docSpec || ''))) return 'error_page';
+    if (input.loadFailed) return 'load_failed';
+    const blank = spec === '' || spec === 'about:blank';
+    if (blank && (Number(input.elapsedMs) || 0) >= BLANK_AFTER_MS) return 'blank';
+    return null;
+  }
+
+  /**
+   * Pure: which cookies to re-save with an expiry, and until when. Only SESSION cookies (the ones Gecko drops at restart) of
+   * the matching hosts, each until creationTime + maxMs; one already past that (or within a minute of it) is left alone.
+   * @param {Array<{host: string, isSession: boolean, creationTime: number}>} cookies nsICookie-like; creationTime in microseconds
+   * @param {number} nowMs @param {(host: string) => boolean} matches @param {number} maxMs
+   * @returns {Array<{cookie: object, expirySec: number}>}
+   */
+  function planCookieRewrites(cookies, nowMs, matches, maxMs) {
+    const out = [];
+    for (const c of cookies || []) {
+      if (!c || !c.isSession) continue;
+      const host = String(c.host || '').replace(/^\./, '').toLowerCase();
+      if (!host || !matches(host)) continue;
+      const created = Number(c.creationTime) / 1000;
+      if (!(created > 0)) continue;
+      const untilMs = Math.min(created + maxMs, nowMs + maxMs);
+      if (untilMs - nowMs < 60 * 1000) continue;
+      out.push({ cookie: c, expirySec: Math.floor(untilMs / 1000) });
+    }
     return out;
   }
 
@@ -149,8 +200,81 @@
     } catch (e) { /* best effort */ }
   }
 
+  /** Flash the taskbar button (Windows) / bounce the dock icon until the window is used. Best effort. */
+  function flashWindow(win) {
+    try { if (win && !win.closed && typeof win.getAttention === 'function') win.getAttention(); } catch (e) { /* best effort */ }
+  }
+
+  /** True when `win` is the window that has the keyboard focus. Unknown (no Services.focus) counts as active, so nothing nags. */
+  function isActive(win) {
+    try {
+      if (typeof Services === 'undefined' || !Services.focus) return true;
+      return Services.focus.activeWindow === win;
+    } catch (e) { return true; }
+  }
+
+  /** A system notification (Windows toast, notification centre); clicking it shows the window. Best effort. */
+  function notifyUser(session) {
+    try {
+      if (typeof Services === 'undefined' || !Services.alerts || typeof Services.alerts.showAlertNotification !== 'function') return;
+      const listener = { observe(subject, topic) { if (topic === 'alertclickcallback' && isOpen(session.win)) bringToFront(session.win); } };
+      Services.alerts.showAlertNotification(
+        null,
+        ZFT.l10n.format('zotero-fulltext-login-notify-title'),
+        ZFT.l10n.format('zotero-fulltext-login-notify-text'),
+        true, 'zft-login-alert', listener, 'zft-login-alert'
+      );
+    } catch (e) {
+      ZFT.util.log('debug', 'login: notification unavailable: ' + ZFT.util.errText(e));
+    }
+  }
+
+  /**
+   * Make a newly opened sign-in window hard to miss: raise and focus it, flash the taskbar, show a system notification, and put a
+   * "Sign-in needed - Show sign-in window" banner in the progress window of the run. The window can still end up behind other
+   * windows (the OS may refuse to move focus to a background application), which is why the taskbar flash, the toast and the banner exist.
+   */
+  function announce(session) {
+    const win = session.win;
+    bringToFront(win);
+    flashWindow(win);
+    session.lastNudge = ZFT.util.monoNow();
+    if (session.warm) return; // the user asked for this window from the Tools menu: they are already looking for it
+    notifyUser(session);
+    try {
+      if (ZFT.progress && typeof ZFT.progress.setSignIn === 'function') {
+        ZFT.progress.setSignIn(session.run, { show: () => { if (isOpen(session.win)) { bringToFront(session.win); flashWindow(session.win); } }, waiting: session.waiting });
+        session.bannerShown = true;
+      }
+    } catch (e) {
+      ZFT.util.log('warn', 'login: progress banner failed: ' + ZFT.util.errText(e));
+    }
+  }
+
+  /** While the window is not the active one, flash the taskbar again now and then (never steals focus a second time). */
+  function nudge(session) {
+    if (session.warm || !isOpen(session.win)) return;
+    const now = ZFT.util.monoNow();
+    if (now - (session.lastNudge || 0) < NUDGE_MS) return;
+    if (isActive(session.win)) { session.lastNudge = now; return; }
+    session.lastNudge = now;
+    flashWindow(session.win);
+  }
+
+  function clearBanner(session) {
+    if (!session.bannerShown) return;
+    session.bannerShown = false;
+    try {
+      if (ZFT.progress && typeof ZFT.progress.setSignIn === 'function') ZFT.progress.setSignIn(session.run, null);
+    } catch (e) { /* the progress window may be gone */ }
+  }
+
   function currentSpec(browser) {
     try { return browser && browser.currentURI ? String(browser.currentURI.spec || '') : ''; } catch (e) { return ''; }
+  }
+
+  function documentSpec(browser) {
+    try { return browser && browser.documentURI ? String(browser.documentURI.spec || '') : ''; } catch (e) { return ''; }
   }
 
   /** Reject if `promise` takes longer than ms (the late settlement is swallowed). */
@@ -231,6 +355,11 @@
       wake: null,
       forced: ZFT.util.Deferred(),
       lastLabels: { hint: null, keep: false }, // the Keep waiting button starts hidden (markup)
+      loadAt: 0,
+      loadFailed: false,
+      lastError: '',
+      lastNudge: 0,
+      bannerShown: false,
       t0: 0,
     };
   }
@@ -296,7 +425,7 @@
       return false;
     }
     session.browser = browser;
-    bringToFront(win);
+    announce(session);
 
     try {
       browser.browsingContext.customUserAgent = Zotero.VersionHeader.getPlainFirefoxUA();
@@ -319,16 +448,42 @@
         ZFT.util.log('warn', 'login: PDF capture unavailable: ' + ZFT.util.errText(e));
       }
     }
-    try {
-      browser.loadURI(Services.io.newURI(req.entry_url), {
-        triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
-      });
-    } catch (e) {
-      ZFT.util.log('error', `login: loadURI failed for ${redact(req.entry_url)}: ${ZFT.util.errText(e)}`);
-      return false;
-    }
+    startLoad(session);
     ZFT.util.log('info', `login: window open at ${redact(req.entry_url)} (realm ${session.realm}, ${req.kind})`);
     return true;
+  }
+
+  /**
+   * Start (or restart) the sign-in page in the window's <browser>. A throw does NOT close the window any more: the window stays,
+   * the poll loop shows the address and the error, and the user can use "Open in my browser" or Skip. Returns true when loadURI ran.
+   */
+  function startLoad(session) {
+    session.loadAt = ZFT.util.monoNow();
+    try {
+      session.browser.loadURI(Services.io.newURI(session.req.entry_url), {
+        triggeringPrincipal: Services.scriptSecurityManager.getSystemPrincipal(),
+      });
+      session.loadFailed = false;
+      return true;
+    } catch (e) {
+      session.loadFailed = true;
+      ZFT.util.log('error', `login: loadURI failed for ${redact(session.req.entry_url)}: ${ZFT.util.errText(e)}`);
+      return false;
+    }
+  }
+
+  /** Show / clear the load-problem line in the window (only when it changed). */
+  function pushError(session, problem) {
+    const key = problem || '';
+    if (session.lastError === key) return;
+    session.lastError = key;
+    let label = '';
+    if (problem) {
+      const shown = stripUrl(session.req.entry_url) || redact(session.req.entry_url);
+      label = { id: problem === 'error_page' ? LOAD_ERROR_L10N : LOAD_FAILED_L10N, args: { url: shown } };
+      ZFT.util.log('warn', `login: ${problem} for ${redact(session.req.entry_url)}`);
+    }
+    setLabels(session, { error: label });
   }
 
   /** documentHTML of the window's page, capped; '' when the actor is not ready. */
@@ -392,8 +547,14 @@
 
       // 2. The page: URL + html -> wasm login state.
       const url = currentSpec(session.browser);
-      const html = await readHtml(session);
-      const state = await readState(session, url, html);
+      // A page that never arrives must be visible: show the address and the reason; "Open in my browser" stays available.
+      // (No automatic second loadURI: with a PDF capture a big download looks blank too, and a restart would throw it away.)
+      const problem = loadProblem({ spec: url, docSpec: documentSpec(session.browser), elapsedMs: ZFT.util.monoNow() - session.loadAt, loadFailed: session.loadFailed });
+      pushError(session, problem);
+      nudge(session);
+      // A Gecko error page is never classified: its address is the page that failed, which the classifier would call "landed".
+      const html = problem === 'error_page' ? '' : await readHtml(session);
+      const state = problem === 'error_page' ? { state: 'pending' } : await readState(session, url, html);
       if (session.over) break;
       if (state.state && state.state !== 'pending') session.sawState = true;
 
@@ -455,6 +616,7 @@
     } finally {
       session.over = true;
       offCancel();
+      clearBanner(session);
       if (session.wake) session.wake();
       if (session.capture) {
         try { session.capture.dispose(); } catch (e) { /* idempotent */ }
@@ -525,6 +687,64 @@
     return ok;
   }
 
+  // ------------------------------------------------------------------------------------------ stay signed in (keep_session)
+
+  function keepSessionEnabled() {
+    try {
+      return Services.prefs.getBoolPref(KEEP_SESSION_PREF, true);
+    } catch (e) {
+      return true;
+    }
+  }
+
+  /** Host predicate for the institution's own session cookies: OpenAthens and the EZproxy suffix. Never Microsoft's (they persist by themselves). */
+  function institutionHostTest() {
+    let suffixes = ['openathens.net'];
+    try {
+      const ez = ZFT.config.buildEngineConfig().institution.ezproxy;
+      if (ez) {
+        for (const h of [ez.suffix, ez.login_host]) {
+          const v = String(h || '').trim().toLowerCase().replace(/^\./, '');
+          if (v) suffixes.push(v);
+        }
+      }
+    } catch (e) { /* defaults only */ }
+    suffixes = Array.from(new Set(suffixes));
+    return (host) => suffixes.some((s) => host === s || host.endsWith('.' + s));
+  }
+
+  /**
+   * Keep the institution's session cookies across a Zotero restart. Gecko drops cookies without an expiry when it quits; the OpenAthens
+   * and EZproxy session cookies are of that kind, so every start would need the whole redirect chain again. Each such cookie is saved
+   * again with an expiry of (when it was created + 12 hours). Microsoft's cookies are not touched, a persistent cookie keeps its own
+   * expiry, and a cookie already older than 12 hours stays a session cookie. Cookie values are never logged. Pref
+   * extensions.zotero-fulltext.inst.keep_session (default true). Best effort: it never throws.
+   * @returns {number} how many cookies were re-saved
+   */
+  function persistSession() {
+    try {
+      if (!keepSessionEnabled()) return 0;
+      const jar = typeof Services !== 'undefined' ? Services.cookies : null;
+      if (!jar || typeof jar.add !== 'function') return 0;
+      const all = Array.from(jar.cookies || []);
+      const plan = planCookieRewrites(all, Date.now(), institutionHostTest(), SESSION_COOKIE_MAX_MS);
+      let done = 0;
+      for (const { cookie: c, expirySec } of plan) {
+        try {
+          jar.add(c.host, c.path, c.name, c.value, c.isSecure, c.isHttpOnly, false, expirySec, c.originAttributes, c.sameSite, c.schemeMap);
+          done += 1;
+        } catch (e) {
+          ZFT.util.log('debug', 'login: a session cookie could not be kept: ' + ZFT.util.errText(e));
+        }
+      }
+      if (done) ZFT.util.log('info', `login: kept ${done} institution session cookie(s) for up to 12 h`);
+      return done;
+    } catch (e) {
+      ZFT.util.log('warn', 'login: could not keep the session: ' + ZFT.util.errText(e));
+      return 0;
+    }
+  }
+
   // ------------------------------------------------------------------------------------------ public API
 
   /**
@@ -556,6 +776,7 @@
       outcome = { result: 'closed_by_user', finalUrl: '', caError: null, html: '', blob: null };
     } else {
       outcome = await drive(session, new Set(['ca_blocked']));
+      if (outcome.result === 'landed' || outcome.result === 'pdf') persistSession();
     }
     return buildLoginOk(session, outcome);
   }
@@ -570,8 +791,9 @@
 
   /**
    * Tools menu "Sign in to King's...": open the same window at institution.warmup_url, or at
-   * https://go.openathens.net/redirector/<openathens_domain>?url=<encoded https://doi.org/> when empty, with no
-   * capture and no item; resolves when the user closes the window or the page lands. Cookies stay in the default jar
+   * https://go.openathens.net/redirector/<openathens_domain>?url=<encoded https://doi.org/> when empty, else (no OpenAthens
+   * domain, e.g. a Shibboleth + library-proxy institution) at https://<ezproxy login host>/login?url=<encoded https://doi.org/>,
+   * with no capture and no item; resolves when the user closes the window or the page lands. Cookies stay in the default jar
    * for the batches that follow. @param {object} config EngineConfig @returns {Promise<void>}
    */
   async function warmUp(config) {
@@ -582,9 +804,15 @@
     }
     const inst = (config && config.institution) || {};
     let url = String(inst.warmup_url || '').trim();
+    let realm = 'openathens';
     if (!url) {
       const domain = String(inst.openathens_domain || '').trim();
+      const proxyHost = inst.ezproxy && inst.ezproxy.login_host ? String(inst.ezproxy.login_host).trim() : '';
       if (domain) url = 'https://go.openathens.net/redirector/' + encodeURIComponent(domain) + '?url=' + encodeURIComponent('https://doi.org/');
+      else if (proxyHost) {
+        url = 'https://' + proxyHost + '/login?url=' + encodeURIComponent('https://doi.org/');
+        realm = 'ezproxy';
+      }
     }
     if (!isHttpUrl(url)) {
       ZFT.util.log('warn', 'login: warm-up has no usable start address');
@@ -599,10 +827,13 @@
     }
     const again = sessions.get(WARM_KEY);
     if (again && !again.over) return again.done; // a concurrent warm-up won the race while we awaited the host
-    const req = { kind: 'login', realm: 'openathens', entry_url: url, item_title: '', waiting: 0, timeout_ms: seconds > 0 ? seconds * 1000 : DEFAULT_TIMEOUT_MS, capture_pdf: false };
+    const req = { kind: 'login', realm, entry_url: url, item_title: '', waiting: 0, timeout_ms: seconds > 0 ? seconds * 1000 : DEFAULT_TIMEOUT_MS, capture_pdf: false };
     const session = createSession(WARM_KEY, { op: null, run: null, req, ctx: { host }, warm: true });
     sessions.set(WARM_KEY, session);
-    session.done = drive(session, new Set(['ca_blocked', 'landed'])).then(() => undefined, (e) => {
+    session.done = drive(session, new Set(['ca_blocked', 'landed'])).then((outcome) => {
+      if (outcome && outcome.result === 'landed') persistSession();
+      return undefined;
+    }, (e) => {
       ZFT.util.log('warn', 'login: warm-up ended: ' + ZFT.util.errText(e));
     });
     return session.done;
@@ -619,5 +850,8 @@
     }
   }
 
-  ZFT.login = { WINDOW_URL, WINDOW_TYPE, POLL_MS, KEEP_WAITING_AT, LINGER_MS, decide, open, update, warmUp, closeAll };
+  ZFT.login = {
+    WINDOW_URL, WINDOW_TYPE, POLL_MS, KEEP_WAITING_AT, LINGER_MS, BLANK_AFTER_MS, SESSION_COOKIE_MAX_MS,
+    decide, loadProblem, planCookieRewrites, persistSession, open, update, warmUp, closeAll,
+  };
 })(this);

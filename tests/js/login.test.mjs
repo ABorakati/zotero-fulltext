@@ -68,7 +68,14 @@ class FakeBrowser {
   }
   navigate(spec, html = '') {
     this.currentURI = { spec, prePath: new URL(spec).origin };
+    this.documentURI = this.currentURI;
     this.html = html;
+  }
+  /** Gecko shows an error page under the address that failed; documentURI is the about: page. */
+  navigateToErrorPage(failed, kind = 'neterror?e=dnsNotFound') {
+    this.currentURI = { spec: failed, prePath: new URL(failed).origin };
+    this.documentURI = { spec: 'about:' + kind };
+    this.html = '<html><body>Server not found</body></html>';
   }
 }
 
@@ -78,6 +85,7 @@ class FakeLoginWindow {
     this.args = holder.wrappedJSObject;
     this.closed = false;
     this.activated = 0;
+    this.attention = 0;
     this.labels = [];
     this.browser = new FakeBrowser();
     this.loadListeners = [];
@@ -89,6 +97,7 @@ class FakeLoginWindow {
     };
   }
   addEventListener(type, fn) { if (type === 'load') this.loadListeners.push(fn); }
+  getAttention() { this.attention += 1; }
   makeReady() {
     this.document.readyState = 'complete';
     this.document.documentURI = WINDOW_URL;
@@ -117,6 +126,7 @@ function setup(o = {}) {
   });
   const Services = {
     startup: { shuttingDown: false },
+    ...(o.services || {}),
     io: { newURI: (s) => ({ spec: s }) },
     scriptSecurityManager: { getSystemPrincipal: () => 'SYSTEM' },
     ww: {
@@ -642,16 +652,80 @@ test('a slow load works: the load event wakes the wait', async () => {
   assert.equal(p.value.result, 'landed');
 });
 
-test('loadURI throwing closes the window and finishes closed_by_user (logged without the query string)', async () => {
+test('loadURI throwing does NOT close the window silently: the address and the error are shown, the user can skip (logged without the query string)', async () => {
   const env = setup({ loadThrows: true });
   const p = watch(env.ZFT.login.open({ op: 1, run: 1, item: 1, req: LOGIN_REQ }, env.ctxFor()));
+  await advance(env.timers, 600);
+  assert.equal(p.settled, false, 'the window stays up');
+  assert.equal(env.win().closed, false);
+  assert.deepEqual(plain(env.win().lastLabels.error), { id: 'zotero-fulltext-login-load-failed', args: { url: 'https://go.openathens.net/redirector/kcl.ac.uk' } });
+  assert.ok(env.zotero.debugLog.some(([, m]) => m.includes('loadURI failed for go.openathens.net/redirector/kcl.ac.uk:')));
+  assert.ok(env.zotero.debugLog.every(([, m]) => !/SECRET|doi\.org%2F10/.test(m)), 'no query string in any log line');
+  env.win().event({ type: 'skip' });
   await advance(env.timers, 100);
   assert.equal(p.value.result, 'closed_by_user');
   assert.equal(env.win().closed, true);
   assert.equal(env.captureState.disposed, 1, 'the capture armed before loadURI is released');
-  assert.ok(env.zotero.debugLog.some(([, m]) => m.includes('loadURI failed for go.openathens.net/redirector/kcl.ac.uk:')));
-  assert.ok(env.zotero.debugLog.every(([, m]) => !/SECRET|doi\.org%2F10/.test(m)), 'no query string in any log line');
   assert.equal(env.timers.pendingCount(), 0);
+});
+
+test('loadProblem(): blank only after 6 s, Gecko error pages at once, a thrown loadURI at once', () => {
+  const { ZFT } = setup();
+  const lp = (s) => ZFT.login.loadProblem(s);
+  assert.equal(ZFT.login.BLANK_AFTER_MS, 6000);
+  assert.equal(lp({ spec: 'about:blank', elapsedMs: 5999, loadFailed: false }), null);
+  assert.equal(lp({ spec: 'about:blank', elapsedMs: 6000, loadFailed: false }), 'blank');
+  assert.equal(lp({ spec: '', elapsedMs: 60000, loadFailed: false }), 'blank');
+  assert.equal(lp({ spec: 'https://publisher.example/x', elapsedMs: 60000, loadFailed: false }), null, 'a real page is never a problem');
+  assert.equal(lp({ spec: 'about:neterror?e=dnsNotFound&u=https%3A//x', elapsedMs: 0, loadFailed: false }), 'error_page');
+  assert.equal(lp({ spec: 'about:certerror?e=x', elapsedMs: 0, loadFailed: false }), 'error_page');
+  assert.equal(lp({ spec: 'about:blocked?e=x', elapsedMs: 0, loadFailed: false }), 'error_page');
+  assert.equal(lp({ spec: 'about:blank', elapsedMs: 0, loadFailed: true }), 'load_failed');
+  assert.equal(lp({ spec: 'about:neterror', elapsedMs: 0, loadFailed: true }), 'error_page');
+  assert.equal(lp({ spec: 'https://x.example/', docSpec: 'about:neterror?e=dnsNotFound', elapsedMs: 0, loadFailed: false }), 'error_page', 'Gecko keeps the failed address as currentURI');
+  assert.equal(lp({ spec: 'https://x.example/', docSpec: 'https://x.example/', elapsedMs: 0, loadFailed: false }), null);
+  assert.equal(lp(undefined), null, 'total on garbage input');
+});
+
+test('a page that stays blank gets a visible "did not load" line with the address (no query string) and it clears when the page arrives', async () => {
+  const env = setup({ states: (url) => (url === PUBLISHER ? { state: 'landed' } : { state: 'pending' }) });
+  const p = watch(env.ZFT.login.open({ op: 1, run: 1, item: 1, req: LOGIN_REQ }, env.ctxFor()));
+  await advance(env.timers, 5500);
+  assert.equal(env.win().lastLabels.error, undefined, 'not before 6 s');
+  await advance(env.timers, 1500);
+  assert.deepEqual(plain(env.win().lastLabels.error), { id: 'zotero-fulltext-login-load-failed', args: { url: 'https://go.openathens.net/redirector/kcl.ac.uk' } });
+  const shown = env.win().labels.filter((l) => 'error' in l).length;
+  await advance(env.timers, 2000);
+  assert.equal(env.win().labels.filter((l) => 'error' in l).length, shown, 'pushed once, not on every poll');
+  env.win().browser.navigate(IDP);
+  await advance(env.timers, 600);
+  assert.equal(env.win().lastLabels.error, '', 'cleared once a real page is there');
+  assert.equal(p.settled, false);
+  env.win().event({ type: 'skip' });
+  await advance(env.timers, 100);
+  assert.equal(p.value.result, 'closed_by_user');
+  assert.ok(env.zotero.debugLog.every(([, m]) => !/SECRET|doi\.org%2F10/.test(m)));
+});
+
+test('a Gecko error page shows the "browser could not open" line at once and is never classified as landed', async () => {
+  // the classifier would call an ordinary-looking address "landed": the controller must not ask it
+  const env = setup({ states: () => ({ state: 'landed' }) });
+  const p = watch(env.ZFT.login.open({ op: 1, run: 1, item: 1, req: LOGIN_REQ }, env.ctxFor()));
+  await advance(env.timers, 100);
+  env.win().browser.navigateToErrorPage('https://go.openathens.net/redirector/kcl.ac.uk?url=SECRET');
+  await advance(env.timers, 1200);
+  assert.equal(p.settled, false, 'still waiting for the user');
+  assert.deepEqual(plain(env.win().lastLabels.error), { id: 'zotero-fulltext-login-load-error-page', args: { url: 'https://go.openathens.net/redirector/kcl.ac.uk' } });
+  assert.deepEqual(env.rec.states.filter(([u]) => u.includes('SECRET')), [], 'the error page was not sent to the classifier');
+  // the same for a certificate error, and a page that really loads afterwards clears the line
+  env.win().browser.navigateToErrorPage('https://go.openathens.net/x', 'certerror?e=y');
+  await advance(env.timers, 600);
+  assert.equal(env.win().lastLabels.error.id, 'zotero-fulltext-login-load-error-page');
+  env.win().browser.navigate(IDP);
+  await advance(env.timers, 100);
+  assert.equal(env.win().lastLabels.error, '');
+  env.ZFT.login.closeAll();
+  await advance(env.timers, 100);
 });
 
 test('openWindow throwing resolves closed_by_user', async () => {
@@ -752,6 +826,23 @@ test('warmUp: institution.warmup_url wins; an empty config is a no-op; the user 
   await e2.ZFT.login.warmUp({ institution: {}, inst: {} });
   await e2.ZFT.login.warmUp(undefined);
   await e2.ZFT.login.warmUp({ institution: { warmup_url: 'javascript:alert(1)' } });
+  assert.equal(e2.rec.windows.length, 0);
+});
+
+test('warmUp: with no OpenAthens domain the library proxy login page is the start address (Shibboleth + proxy institutions)', async () => {
+  const env = setup();
+  const p = watch(env.ZFT.login.warmUp({
+    institution: { openathens_domain: '', warmup_url: '', ezproxy: { login_host: 'login.eux.idm.oclc.org', suffix: 'eux.idm.oclc.org' } }, inst: {},
+  }));
+  await advance(env.timers, 100);
+  assert.equal(env.win().args.entryUrl, 'https://login.eux.idm.oclc.org/login?url=https%3A%2F%2Fdoi.org%2F');
+  assert.equal(env.win().args.realm, 'ezproxy');
+  env.win().close();
+  await advance(env.timers, 0);
+  assert.equal(p.settled, true);
+  // A Shibboleth-only institution has no generic start address: still a no-op.
+  const e2 = setup();
+  await e2.ZFT.login.warmUp({ institution: { openathens_domain: '', warmup_url: '', ezproxy: null, saml_entity_id: 'https://idp.example.ac.uk/shibboleth' }, inst: {} });
   assert.equal(e2.rec.windows.length, 0);
 });
 
@@ -919,4 +1010,221 @@ test('every id the login window script looks up exists in login.xhtml', () => {
   for (const id of ids) assert.ok(markup.includes(`id="${id}"`), id);
   // the <browser> must not carry messagemanagergroup: Zotero's ExternalLinkHandler would send link clicks to the system browser
   assert.doesNotMatch(markup.replace(/<!--[\s\S]*?-->/g, ''), /messagemanagergroup/);
+});
+
+// ------------------------------------------------------------------------------------------ layout regression, tip, error line
+
+test('login.xhtml: the page area can not collapse (xul.css maps only flex="0" and flex="1")', () => {
+  const markup = fs.readFileSync(path.join(CONTENT, 'login.xhtml'), 'utf8').replace(/<!--[\s\S]*?-->/g, '');
+  const flexAttrs = [...markup.matchAll(/\sflex="(\d+)"/g)].map((m) => m[1]);
+  assert.ok(flexAttrs.every((v) => v === '0' || v === '1'), 'flex attributes other than 0/1 do nothing: ' + flexAttrs.join());
+  const browser = markup.match(/<browser\b[^>]*>/)[0];
+  assert.match(browser, /style="[^"]*flex:\s*3 1 0%/, 'the <browser> grows through CSS');
+  assert.match(browser, /min-height:\s*\d+px/, 'and has a minimum height');
+  assert.doesNotMatch(browser, /\sflex=/);
+});
+
+test('login.js: the "Stay signed in" tip shows for a sign-in window, not for a bot-check window; the error line shows and clears', () => {
+  const a = loginWindow({ kind: 'login' });
+  assert.equal(a.w.byId('zft-login-tip').hidden, true, 'hidden in the markup');
+  a.w.fire('load');
+  assert.equal(a.w.byId('zft-login-tip').hidden, false);
+  const err = a.w.byId('zft-login-error');
+  assert.equal(err.hidden, true);
+  a.w.zftLogin.setLabels({ error: { id: 'zotero-fulltext-login-load-failed', args: { url: 'https://x.example/p' } } });
+  assert.equal(err.hidden, false);
+  assert.equal(err.l10nId, 'zotero-fulltext-login-load-failed');
+  assert.deepEqual(plain(err.l10nArgs), { url: 'https://x.example/p' });
+  a.w.zftLogin.setLabels({ error: 'plain text' });
+  assert.equal(err.textContent, 'plain text');
+  a.w.zftLogin.setLabels({ error: '' });
+  assert.equal(err.hidden, true);
+  assert.equal(err.l10nId, '');
+
+  const b = loginWindow({ kind: 'challenge' });
+  b.w.fire('load');
+  assert.equal(b.w.byId('zft-login-tip').hidden, true);
+});
+
+// ------------------------------------------------------------------------------------------ hard to miss
+
+test('a new sign-in window is raised, flashed, announced by a notification and shown in the progress window; the banner goes with the window', async () => {
+  const alerts = [];
+  const focus = { activeWindow: null };
+  const env = setup({ services: { focus, alerts: { showAlertNotification: (...a) => alerts.push(a) } } });
+  const banner = [];
+  env.ZFT.progress = { setSignIn: (run, info) => banner.push([run, info === null ? null : typeof info.show, info && info.waiting]) };
+  env.ZFT.l10n = { format: (id) => '<' + id + '>' };
+  const p = watch(env.ZFT.login.open({ op: 5, run: 8, item: 1, req: LOGIN_REQ }, env.ctxFor()));
+  await advance(env.timers, 100);
+  const win = env.win();
+  assert.equal(win.activated, 1, 'raised and focused');
+  assert.equal(win.attention, 1, 'taskbar flashed');
+  assert.equal(alerts.length, 1, 'one notification');
+  assert.equal(alerts[0][1], '<zotero-fulltext-login-notify-title>');
+  assert.equal(alerts[0][2], '<zotero-fulltext-login-notify-text>');
+  assert.equal(alerts[0][3], true, 'clickable');
+  alerts[0][5].observe(null, 'alertclickcallback');
+  assert.equal(win.activated, 2, 'a click on the notification brings the window back');
+  assert.deepEqual(banner, [[8, 'function', 3]], 'banner for the run, with the waiting count');
+  win.event({ type: 'skip' });
+  await advance(env.timers, 100);
+  assert.equal(p.value.result, 'closed_by_user');
+  assert.deepEqual(banner[banner.length - 1], [8, null, null], 'cleared when the window ends');
+});
+
+test('the banner button of the progress window shows the sign-in window again (focus + flash)', async () => {
+  const env = setup();
+  let info = null;
+  env.ZFT.progress = { setSignIn: (run, i) => { if (i) info = i; } };
+  watch(env.ZFT.login.open({ op: 5, run: 8, item: 1, req: LOGIN_REQ }, env.ctxFor()));
+  await advance(env.timers, 100);
+  const win = env.win();
+  info.show();
+  assert.equal(win.activated, 2);
+  assert.equal(win.attention, 2);
+  env.ZFT.login.closeAll();
+  await advance(env.timers, 100);
+  info.show(); // the window is gone: nothing happens, nothing throws
+  assert.equal(win.activated, 2);
+});
+
+test('a warm-up window (asked for from the Tools menu) does not nag: no notification, no banner', async () => {
+  const alerts = [];
+  const env = setup({ services: { alerts: { showAlertNotification: (...a) => alerts.push(a) } } });
+  let banner = 0;
+  env.ZFT.progress = { setSignIn: () => { banner += 1; } };
+  env.ZFT.login.warmUp(WARM_CONFIG);
+  await advance(env.timers, 100);
+  assert.equal(env.win().activated, 1);
+  assert.equal(env.win().attention, 1);
+  assert.equal(alerts.length, 0);
+  assert.equal(banner, 0);
+  env.ZFT.login.closeAll();
+  await advance(env.timers, 100);
+});
+
+test('while the window is not the active one the taskbar is flashed again every 30 s; an active window is left alone; focus is not stolen again', async () => {
+  const focus = { activeWindow: null };
+  const env = setup({ services: { focus } });
+  watch(env.ZFT.login.open({ op: 5, run: 8, item: 1, req: { ...LOGIN_REQ, timeout_ms: 600000 } }, env.ctxFor()));
+  await advance(env.timers, 100);
+  const win = env.win();
+  assert.equal(win.attention, 1);
+  await advance(env.timers, 29000);
+  assert.equal(win.attention, 1, 'not yet');
+  await advance(env.timers, 2000);
+  assert.equal(win.attention, 2, 'flashed again after 30 s');
+  assert.equal(win.activated, 1, 'focus is only taken once');
+  focus.activeWindow = win;
+  await advance(env.timers, 31000);
+  assert.equal(win.attention, 2, 'active: no flashing');
+  env.ZFT.login.closeAll();
+  await advance(env.timers, 100);
+});
+
+test('notification trouble is contained: a missing or throwing Services.alerts never breaks the sign-in', async () => {
+  for (const alerts of [undefined, { showAlertNotification: () => { throw new Error('no toast'); } }]) {
+    const env = setup({ services: { alerts } });
+    const p = watch(env.ZFT.login.open({ op: 5, run: 8, item: 1, req: LOGIN_REQ }, env.ctxFor()));
+    await advance(env.timers, 100);
+    assert.equal(env.win().closed, false);
+    env.win().event({ type: 'skip' });
+    await advance(env.timers, 100);
+    assert.equal(p.value.result, 'closed_by_user');
+  }
+});
+
+// ------------------------------------------------------------------------------------------ stay signed in: institution session cookies
+
+const NOW = Date.parse('2026-10-21T10:00:00Z');
+const HOUR = 3600 * 1000;
+const cookie = (host, over = {}) => ({
+  host, path: '/', name: 'sess', value: 'VALUE-' + host, isSecure: true, isHttpOnly: true, isSession: true, expiry: 0,
+  creationTime: (NOW - 2 * HOUR) * 1000, originAttributes: {}, sameSite: 0, schemeMap: 2, ...over,
+});
+
+test('planCookieRewrites(): only session cookies of the matching hosts, until creation + 12 h, never one already past it', () => {
+  const { ZFT } = setup();
+  const m = (host) => host === 'openathens.net' || host.endsWith('.openathens.net');
+  const plan = ZFT.login.planCookieRewrites([
+    cookie('.login.openathens.net'),
+    cookie('login.microsoftonline.com'),
+    cookie('.openathens.net', { isSession: false, expiry: 123 }),
+    cookie('.openathens.net', { creationTime: (NOW - 13 * HOUR) * 1000 }),
+    cookie('.openathens.net', { creationTime: (NOW - 11.99 * HOUR) * 1000 }),
+    cookie('www.example.org'),
+    null,
+  ], NOW, m, 12 * HOUR);
+  assert.equal(plan.length, 1, 'the one on login.openathens.net; MS, persistent, too old, within the last minute and unrelated are skipped');
+  assert.equal(plan[0].cookie.host, '.login.openathens.net');
+  assert.equal(plan[0].expirySec, Math.floor((NOW - 2 * HOUR + 12 * HOUR) / 1000));
+  assert.deepEqual(plain(ZFT.login.planCookieRewrites(undefined, NOW, m, HOUR)), []);
+});
+
+function cookieEnv(prefValue, jarCookies) {
+  const adds = [];
+  const jar = { cookies: jarCookies, add: (...a) => adds.push(a) };
+  const prefs = { getBoolPref: (name, def) => (name === 'extensions.zotero-fulltext.inst.keep_session' && prefValue !== undefined ? prefValue : def) };
+  const env = setup({ services: { cookies: jar, prefs } });
+  env.ZFT.config = { buildEngineConfig: () => ({ institution: { ezproxy: { login_host: 'login.kcl.idm.oclc.org', suffix: 'kcl.idm.oclc.org' } } }) };
+  return { env, adds };
+}
+
+test('persistSession(): re-saves OpenAthens and EZproxy session cookies with a 12 h expiry, not Microsoft ones, and never logs a value', () => {
+  const jarCookies = [
+    cookie('.login.openathens.net', { name: 'oa' }),
+    cookie('login.kcl.idm.oclc.org', { name: 'ez' }),
+    cookie('.www-sciencedirect-com.login.kcl.idm.oclc.org', { name: 'ez2' }),
+    cookie('login.microsoftonline.com', { name: 'ms' }),
+    cookie('.doi.org', { name: 'other' }),
+  ];
+  const { env, adds } = cookieEnv(undefined, jarCookies);
+  const real = Date.now;
+  Date.now = () => NOW;
+  try {
+    assert.equal(env.ZFT.login.persistSession(), 3);
+  } finally {
+    Date.now = real;
+  }
+  assert.deepEqual(adds.map((a) => a[2]).sort(), ['ez', 'ez2', 'oa']);
+  for (const a of adds) {
+    assert.equal(a.length, 11);
+    assert.equal(a[6], false, 'isSession false');
+    assert.equal(a[7], Math.floor((NOW - 2 * HOUR + 12 * HOUR) / 1000));
+    assert.equal(a[3], 'VALUE-' + a[0], 'same value, same host and path');
+  }
+  assert.ok(env.zotero.debugLog.length > 0 && env.zotero.debugLog.every(([, m]) => !/VALUE-/.test(m)), 'no cookie value in any log line');
+});
+
+test('persistSession(): pref off, no cookie service, or a throwing add is harmless', () => {
+  const off = cookieEnv(false, [cookie('.login.openathens.net')]);
+  assert.equal(off.env.ZFT.login.persistSession(), 0);
+  assert.equal(off.adds.length, 0);
+  const none = setup();
+  assert.equal(none.ZFT.login.persistSession(), 0);
+  const bad = cookieEnv(undefined, [cookie('.login.openathens.net'), cookie('.login.openathens.net', { name: 'two' })]);
+  bad.env.Services.cookies.add = () => { throw new Error('refused'); };
+  assert.equal(bad.env.ZFT.login.persistSession(), 0);
+});
+
+test('a finished sign-in (landed) keeps the session; a skipped one does not', async () => {
+  const states = (url) => (url === PUBLISHER ? { state: 'landed' } : { state: 'pending' });
+  const adds = [];
+  const env = setup({ states, services: { cookies: { cookies: [cookie('.login.openathens.net')], add: (...x) => adds.push(x) } } });
+  const p = watch(env.ZFT.login.open({ op: 1, run: 1, item: 1, req: LOGIN_REQ }, env.ctxFor()));
+  await advance(env.timers, 100);
+  env.win().browser.navigate(PUBLISHER, PUBLISHER_HTML);
+  await advance(env.timers, 500);
+  assert.equal(p.value.result, 'landed');
+  assert.equal(adds.length, 1);
+
+  const skipped = [];
+  const env2 = setup({ services: { cookies: { cookies: [cookie('.login.openathens.net')], add: (...x) => skipped.push(x) } } });
+  const q = watch(env2.ZFT.login.open({ op: 1, run: 1, item: 1, req: LOGIN_REQ }, env2.ctxFor()));
+  await advance(env2.timers, 100);
+  env2.win().event({ type: 'skip' });
+  await advance(env2.timers, 100);
+  assert.equal(q.value.result, 'closed_by_user');
+  assert.equal(skipped.length, 0);
 });

@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "zotero-fulltext login probe",
+  "version": "0.1.0",
+  "description": "Throwaway driver that opens zotero-fulltext's real sign-in window on PUBLIC pages and records what rendered. Only for tools/zotero-harness/login-probe.ps1, never for a real profile.",
+  "author": "zotero-fulltext",
+  "applications": {
+    "zotero": {
+      "id": "login-probe@zotero-fulltext.local",
+      "update_url": "https://127.0.0.1/zotero-fulltext-login-probe/never-used.json",
+      "strict_min_version": "6.999",
+      "strict_max_version": "10.*"
+    }
+  }
+}

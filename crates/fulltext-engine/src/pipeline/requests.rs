@@ -249,7 +249,8 @@ pub(crate) fn api_requests(src: Source, ids: &Ids, oa: &OaConfig) -> Vec<(HttpRe
         | Source::Translator
         | Source::Extractor
         | Source::Redirector
-        | Source::Ezproxy => Vec::new(),
+        | Source::Ezproxy
+        | Source::Saml => Vec::new(),
     };
     reqs.into_iter().map(|req| (req, spec(src, ids))).collect()
 }

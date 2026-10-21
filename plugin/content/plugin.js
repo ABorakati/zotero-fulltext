@@ -101,6 +101,8 @@
     }
     cancelPreload();
     // Both paths flush the engine and state first; Zotero tears the rest down itself when the whole app exits.
+    // Institution session cookies (OpenAthens / EZproxy) are kept for the next start (pref inst.keep_session, default on).
+    await step('keep institution session', () => ZFT.login.persistSession());
     await step('runs.shutdown', () => ZFT.runs.shutdown());
     if (reason !== REASON.APP_SHUTDOWN) {
       await step('menu.unregister', () => ZFT.menu.unregister());

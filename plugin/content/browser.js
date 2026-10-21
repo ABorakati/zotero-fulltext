@@ -43,6 +43,8 @@
   const TRAIL_PATH_MAX = 80;
   /** nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT and nsIWebProgress.NOTIFY_LOCATION, used if Ci is absent. */
   const SAME_DOCUMENT_FLAG = 0x1;
+  /** nsIWebProgressListener.LOCATION_CHANGE_ERROR_PAGE, used if Ci is absent. */
+  const ERROR_PAGE_FLAG = 0x2;
   const NOTIFY_LOCATION_FLAG = 0x100;
 
   /** Live HiddenBrowser count and the FIFO of loads waiting for a slot. */
@@ -161,6 +163,21 @@
     return null;
   }
 
+  /** The error page was found by its location-change flag (the URL is the failed address): tell tls from network by documentURI. */
+  async function refineErrorKind(hb, st, scope) {
+    for (let i = 0; i < 5; i++) {
+      let doc = '';
+      try { doc = hb._browser && hb._browser.documentURI ? String(hb._browser.documentURI.spec || '') : ''; } catch (e) { doc = ''; }
+      const kind = errorPageKind(doc);
+      if (kind) {
+        st.errorKind = kind;
+        return;
+      }
+      if (!hb._browser || !hb._browser.documentURI) return; // nothing to read (never in a real browser)
+      await ZFT.util.sleep(100, scope);
+    }
+  }
+
   // ------------------------------------------------------------------ the load
 
   async function isHeld(host, url, holdWhile) {
@@ -229,6 +246,7 @@
       // held weakly by webProgress (HiddenBrowser keeps its own in a module Set for the same reason).
       const iface = ci();
       const sameDocument = (iface && iface.nsIWebProgressListener && iface.nsIWebProgressListener.LOCATION_CHANGE_SAME_DOCUMENT) || SAME_DOCUMENT_FLAG;
+      const errorPage = (iface && iface.nsIWebProgressListener && iface.nsIWebProgressListener.LOCATION_CHANGE_ERROR_PAGE) || ERROR_PAGE_FLAG;
       const notifyLocation = (iface && iface.nsIWebProgress && iface.nsIWebProgress.NOTIFY_LOCATION) || NOTIFY_LOCATION_FLAG;
       listener = {
         QueryInterface: global.ChromeUtils.generateQI(['nsIWebProgressListener', 'nsISupportsWeakReference']),
@@ -244,6 +262,13 @@
             const entry = trailEntry(spec);
             if (st.trail.length < URL_TRAIL_MAX && st.trail[st.trail.length - 1] !== entry) st.trail.push(entry);
             if (!st.errorKind) st.errorKind = errorPageKind(spec);
+            // Gecko reports an error page under the address that FAILED, with LOCATION_CHANGE_ERROR_PAGE set (verified in Zotero
+            // 10.0.6: a DNS failure gave the Gecko error page's HTML back as if it were the site). The kind is refined below
+            // from documentURI (about:certerror -> tls).
+            if (!st.errorKind && (flags & errorPage)) {
+              st.errorKind = 'network';
+              st.errorByFlag = true;
+            }
           } catch (e) {
             U.log('warn', 'onLocationChange: ' + U.errText(e));
           }
@@ -278,6 +303,7 @@
       let pdf = null;
       if (cap && cap.found()) pdf = await cap.promise;
       if (!pdf && st.errorKind) {
+        if (st.errorByFlag) await refineErrorKind(hb, st, scope);
         throw new U.OpError(st.errorKind, 'the browser showed an error page for ' + trailEntry(st.lastUrl));
       }
 

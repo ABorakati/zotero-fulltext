@@ -76,6 +76,7 @@ The engine (`crates/fulltext-engine`) and the JS plugin belong to other areas. T
 | `page` | `inspect_page(&RespMeta,&Ids,Route,&[u8]) -> PageInspection`, `classify_response(&RespMeta,&[u8]) -> PageClass` | core-page |
 | `pdf` | `sniff(head, tail, len) -> PdfVerdict`, `verdict(&RespMeta,&[u8])` | core-pdf-urls-inspect |
 | `urls` | `parse_http`, `host_of`, `host_key`, `resolve`, `canonical_key`, `percent_encode_component`, `percent_decode`, `doi_url`, `redirector_url`, `ezproxy_login_url`, `libkey_url` (all implemented); `proxify`, `unproxify`, `url_class`, `strip_tracking`, `handoff` (to do) | core-pdf-urls-inspect |
+| `wayfless` | `wayfless_url(proxy, entity_id, url)`, `wayfless_for(proxy, entity_id, doi, urls)`, `target_for_doi`, `platform_of`, `valid_entity_id`, `is_supported` (publisher SAML / Shibboleth sign-in links, section 3.4) | institutions-saml |
 | `text` | `decode`, `head`, `tail`, `contains_ci`, `MAX_TEXT_BYTES` (implemented) | core-pdf-urls-inspect |
 | `inspect` | `inspect(&InspectMeta,&[u8]) -> Inspection`, `login_state(&str,Option<&str>) -> LoginState` | core-pdf-urls-inspect |
 
@@ -107,6 +108,78 @@ other head metas > JSON state > scored anchors > frames > interstitial redirects
 `urls::host_key(host)` of the UNPROXIED host, and also on its proxified form by prefix. Rejections are reported, not
 silently dropped (`PageInspection.rejected`), so the failure catalogue can assert them. Acceptance oracle:
 `fixtures/html/expected.json` (31 pages; 16 are archived, so tests assert structure).
+
+### 3.4 SAML / Shibboleth: WAYFless links and generic identity-provider pages
+
+Institutions that are not on OpenAthens (Imperial, Oxford, Cambridge, QMUL, Manchester, Edinburgh ...) sign in through
+the UK Access Management Federation: the publisher's own "institutional login" with the university's IdP `entityID`.
+`wayfless::wayfless_url(proxy, entity_id, url)` builds the publisher deep link that already names the IdP (no "find your
+institution" page). Input is an article/landing URL (EZproxy-proxified or OpenAthens-wrapped input is un-proxified
+first with `urls::unproxify`; detection uses `urls::host_key`) or, through `wayfless_for` / `target_for_doi`, a DOI.
+The target is always the real https article URL without tracking parameters or fragment; IP literals and non-default
+ports give `None`. `E` below is `percent_encode_component(entityID)`, `T` the same for the target.
+
+**Evidence (2026-10-21).** The IdP used for verification is KCL's, `https://kclidp.kcl.ac.uk/idp/shibboleth`, taken
+from `https://md.seamlessaccess.org/entities/?q=king%27s%20college%20london` (JSON `entityID`; the same search finds
+Oxford `https://registry.shibboleth.ox.ac.uk/idp` and Imperial `https://shibboleth.imperial.ac.uk/shibboleth`). Every
+request was an unauthenticated `GET` (redirects followed by hand until the first IdP host; nothing posted, no
+credentials, no CAPTCHA bypass). Two kinds of evidence:
+
+* **chain**: our URL was followed to the IdP's SSO endpoint (`login.openathens.net/saml/2/sso/kcl.ac.uk/...`, which hosts
+  KCL's IdP; for Oxford `idp.shibboleth.ox.ac.uk/idp/profile/SAML2/Redirect/SSO`, for Imperial an Entra tenant).
+* **redirector**: the publisher answers non-browser clients with a Cloudflare "Just a moment..." challenge (403), so the
+  chain cannot be followed; the OpenAthens redirector (`go.openathens.net/redirector/kcl.ac.uk?url=<target>`, which
+  publishes the WAYFless link it knows for each target) returned exactly this URL shape for a real article of the host.
+  The URL form is therefore the publisher's own, but the last hop (the publisher answering a browser) is unverified.
+
+| platform (`Platform`) | hosts | URL | evidence |
+|---|---|---|---|
+| `Atypon` | `onlinelibrary.wiley.com`, `tandfonline.com`, `journals.sagepub.com`, `nejm.org`, `science.org`, `pnas.org`, `ascopubs.org`, `embopress.org`, `ahajournals.org` | `https://<host>/action/ssostart?idp=E&redirectUri=T` | redirector (all nine) |
+| `Elsevier` | `sciencedirect.com`, `linkinghub.elsevier.com` (page as is); `thelancet.com`, `cell.com` (PII from the path, return via linkinghub); `10.1016/S...` DOIs (PII from the DOI) | `https://auth.elsevier.com/ShibAuth/institutionLogin?entityID=E&appReturnURL=T` | chain: 200 with the auto-POST form to `/SHIRE/Login?SAMLDS=1&entityID=E` (not submitted); redirector for sciencedirect and DOI. No PII, no link |
+| `Springer` | `link.springer.com`, `springer.com` | `https://fsso.springer.com/federation/init?entityId=E&returnUrl=T` | chain to the IdP |
+| `Nature` | `nature.com` | `https://sp.nature.com/saml/login?idp=E&targetUrl=T` | chain to the IdP (KCL, Oxford, Imperial) |
+| `Oup` | `academic.oup.com` (BJS and other OUP journals) | `https://oup-sp.sams-sigma.com/Shibboleth.sso/Login?entityID=E&target=enc(https://oup-sp.sams-sigma.com/shib?dest=https://www.academic.oup.com/SHIBBOLETH?dest=<T raw>)` | chain to the IdP (KCL, Oxford, Imperial) |
+| `ShibbolethSso` | `jamanetwork.com`, `pubs.acs.org`, `emerald.com` | `https://<host>/Shibboleth.sso/Login?entityID=E&target=T` | redirector |
+| `Cambridge` | `cambridge.org` | `https://shibboleth.cambridge.org/Shibboleth.sso/discovery?SAMLDS=1&target=enc(https://shibboleth.cambridge.org/CJOShibb2/index?app=https://www.cambridge.org/core/shibboleth?ref=<T raw>)&entityID=E` | chain to the IdP |
+| `HighWire` | `bmj.com` and every `*.bmj.com` | `https://shibboleth.highwire.org/session/init?entityID=E&hw-shib-return-uri=T&subcode=bmjjournals&env=prod` | chain to the IdP (needs cookies: 4 hops through `/shibboleth-v2/`, `/applications/secure-sp/Shibboleth.sso/Login`); redirector for `www`, `bmjopen`, `gut` |
+| `Karger` | `karger.com` | `https://karger.com/ExternalAuthentication/KeystoneDeeplink?entityId=E&destination=T` | redirector |
+| `Thieme` | `thieme-connect.com`, `thieme-connect.de` | `https://profile.thieme.de/HTML/sso/ejournals/shibboleth.htm?federationid=http%3A%2F%2Fukfederation.org.uk&entityid=E&hook_url=T` | chain to the IdP (UK federation only) |
+| `AnnualReviews` | `annualreviews.org` | `https://www.annualreviews.org/session/ext/athens?url=T&entityId=E` | redirector (Annual Reviews is Atypon, but not by the `ssostart` form) |
+
+Differences from the brief: Atypon's `redirectUri` is the full article URL (not a path); ACS is not an `ssostart` site
+(it runs a Shibboleth SP, `ShibbolethSso`); Springer's `wayf.springernature.com?redirect_uri=&entityID=` is only a
+discovery page ("Access through your institution") and is NOT used (`fsso.springer.com/federation/init` is the
+WAYFless form); `wayf.springernature.com/sso` is a 404. Other identity providers were checked for Nature and OUP only
+(Oxford and Imperial: the chain reached `idp.shibboleth.ox.ac.uk` and Imperial's Entra tenant); everything else is
+assumed to differ from the KCL check only in `E`.
+`Elsevier` with an arbitrary `appReturnURL` (even `https://example.com/`) is accepted by the first hop, so the
+allow-list (if any) acts after authentication and was not tested: only Elsevier hosts (and linkinghub PII links, the
+form the redirector itself emits for DOIs) are ever used as the return target.
+
+**Not supported (`None`)**: Wolters Kluwer / LWW `journals.lww.com` (the redirector passes the target through
+unchanged: no WAYFless form), OUP/JAMA/Cambridge/Karger/LWW and non-`S` Elsevier DOIs from a DOI alone (the article URL
+is not a function of the DOI), any other host. `target_for_doi` covers 10.1002/10.1111 (Wiley), 10.1080, 10.1177,
+10.1056, 10.1126, 10.1073, 10.1200, 10.15252, 10.1161, 10.1021, 10.1146, 10.1055, 10.1007 (`article` or, for
+`978-`, `chapter`), 10.1038, `10.1016/S...` and `10.1136/bmj.*`.
+
+**Generic IdP pages.** `urls::is_generic_idp(host, path)` (used by `url_class`, and by `page::classify` for the
+`Idp::Other` label) recognises a Shibboleth IdP v2-v5 / CAS / AD FS / SimpleSAMLphp / NetIQ page by path
+(`/idp/profile/`, `/idp/Authn/`, `/idp/shibboleth`, `/adfs/ls`, `/simplesaml/saml2/idp/`, ...) or by a host whose first
+label is `idp`, `idp1`, `idp2`... (not by a bare `shibboleth.` host: `shibboleth.cambridge.org` and
+`shibboleth.highwire.org` are SPs). `classify` also recognises the IdP's own views by markup on any host: a form posting to
+`/idp/profile/...`, or Shibboleth flow fields (`j_username`, `j_password`, `_eventId*`, `shib_idp_*`), at a status
+below 400, as `IdpLogin { idp: Other }` (the Entra, OpenAthens and KCL hosts keep their labels). Publisher-side
+Shibboleth SP paths (`/Shibboleth.sso/...`, any endpoint) are `PublisherSsoHop` / `UrlClassKind::PublisherSsoHop`, not
+IdP pages (the brief's "/Shibboleth.sso/ as IdpLogin" was read as "interactive page": an SP endpoint is a hop that
+leads to one). `state_of` maps `IdpLogin` to `Pending`, so the visible window keeps waiting while the IdP is shown.
+Fixtures: `crates/fulltext-core/tests/data/page/shibboleth_idp_login.html` (hand-made, shaped like the v4/v5 default
+login view) and `shibboleth_idp_session_loading.html` (the real "Loading Session Information" interstitial of an
+Oxford-style IdP, captured by an unauthenticated GET, institution name and per-request tokens replaced).
+
+**Hand-off.** `Handoff.wayfless_url` (additive, `skip_serializing_if = None`) carries the link; `urls::handoff` fills it
+from `HandoffConf.saml_entity_id` (reached page, else item URL, else DOI). Contract additions of this work: `Realm::Saml`,
+`Source::Saml`, `Handoff.wayfless_url`, and in the engine protocol `Institution.saml_entity_id`,
+`Institution.ezproxy_all_hosts`, `InstPrefs.use_saml` (see `engine.md` section 8).
 
 ## 4. fulltext-wasm ABI v1
 

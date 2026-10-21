@@ -41,7 +41,7 @@ const EXPECTED_DEFAULT = {
     version_order: ['published', 'accepted', 'submitted'],
   },
   inst: {
-    enabled: true, try_direct: true, use_openathens: true, use_ezproxy: true, check_alma: true, login_mode: 'window',
+    enabled: true, try_direct: true, use_openathens: true, use_saml: true, use_ezproxy: true, check_alma: true, login_mode: 'window',
     auto_open_login: true, login_timeout_sec: 300, group_libraries: 'ask', confirm_above: 10, batch_max: 20,
     hourly_cap: 30, daily_cap: 80, mb_per_hour: 300, min_gap_sec: 5, challenge_windows: true,
   },
@@ -56,6 +56,8 @@ const EXPECTED_DEFAULT = {
     entra_tenant: '8370cf14-16f3-4c16-b83c-724071654356',
     passthrough_hosts: ['journals.lww.com'],
     warmup_url: '',
+    saml_entity_id: 'https://kclidp.kcl.ac.uk/idp/shibboleth',
+    ezproxy_all_hosts: false,
   },
   endpoint_map: [],
   trace: false,
@@ -229,6 +231,12 @@ const PROTO_CONFIGURE_EXAMPLE = {
 /** serde(default) fields the proto example may omit. */
 const OPTIONAL_TOP_LEVEL = ['endpoint_map', 'trace'];
 
+/**
+ * Fields added for the access-method picker (all optional on the Rust side, serde(default)); docs/design/contracts/proto.rs may or
+ * may not list them yet, so the shape checks accept both.
+ */
+const OPTIONAL_NEW = { 'config.inst': ['use_saml'], 'config.institution': ['saml_entity_id', 'ezproxy_all_hosts'] };
+
 function compareShape(example, actual, where) {
   if (Array.isArray(example)) {
     assert.ok(Array.isArray(actual), `${where} must be an array`);
@@ -238,7 +246,9 @@ function compareShape(example, actual, where) {
   if (example !== null && typeof example === 'object') {
     assert.ok(actual !== null && typeof actual === 'object', `${where} must be an object`);
     const want = Object.keys(example).sort();
-    const have = Object.keys(actual).filter((k) => !(where === 'config' && OPTIONAL_TOP_LEVEL.includes(k))).sort();
+    const have = Object.keys(actual)
+      .filter((k) => !(where === 'config' && OPTIONAL_TOP_LEVEL.includes(k)))
+      .filter((k) => !(OPTIONAL_NEW[where] || []).includes(k) || k in example).sort();
     assert.deepEqual(have, want, `${where} keys`);
     for (const k of want) compareShape(example[k], actual[k], `${where}.${k}`);
     return;
@@ -258,9 +268,10 @@ test('every config group has exactly the fields of its Rust struct in docs/desig
   const sorted = (o) => Object.keys(o).sort();
   assert.deepEqual(sorted(cfg), rustStructFields(src, 'EngineConfig'));
   assert.deepEqual(sorted(cfg.oa), rustStructFields(src, 'OaConfig'));
-  assert.deepEqual(sorted(cfg.inst), rustStructFields(src, 'InstPrefs'));
+  const withNew = (fields, extra) => [...new Set([...fields, ...extra])].sort();
+  assert.deepEqual(sorted(cfg.inst), withNew(rustStructFields(src, 'InstPrefs'), ['use_saml']));
   assert.deepEqual(sorted(cfg.run), rustStructFields(src, 'RunPrefs'));
-  assert.deepEqual(sorted(cfg.institution), rustStructFields(src, 'Institution'));
+  assert.deepEqual(sorted(cfg.institution), withNew(rustStructFields(src, 'Institution'), ['saml_entity_id', 'ezproxy_all_hosts']));
   assert.deepEqual(sorted(cfg.institution.ezproxy), rustStructFields(src, 'Ezproxy'));
   assert.deepEqual(sorted(cfg.institution.alma), rustStructFields(src, 'Alma'));
 });
@@ -286,21 +297,23 @@ test('the config serialises to JSON serde accepts: unsigned 32-bit integers, kno
 
 // --- validate / problems -------------------------------------------------------------------------------------------
 
-test('validate() reports the three misconfigurations by l10n id and nothing else', () => {
+test('validate() reports the misconfigurations by l10n id and nothing else', () => {
   const { C, validate, problems } = env();
   assert.deepEqual(validate(C.buildEngineConfig()), []);
   const base = plain(C.buildEngineConfig());
   const withInst = (patch) => ({ ...base, inst: { ...base.inst, ...(patch.inst || {}) }, institution: { ...base.institution, ...(patch.institution || {}) }, oa: { ...base.oa, ...(patch.oa || {}) } });
-  assert.deepEqual(validate(withInst({ institution: { openathens_domain: '  ' } })), ['zotero-fulltext-prefs-problem-openathens-domain']);
-  assert.deepEqual(validate(withInst({ inst: { enabled: false }, institution: { openathens_domain: '' } })), [], 'no domain needed while institutional access is off');
+  const noMethod = { openathens_domain: '  ', saml_entity_id: null, ezproxy: null };
+  assert.deepEqual(validate(withInst({ institution: { openathens_domain: '  ' } })), [], "King's still has Shibboleth and the proxy");
+  assert.deepEqual(validate(withInst({ institution: noMethod })), ['zotero-fulltext-prefs-problem-no-method']);
+  assert.deepEqual(validate(withInst({ inst: { enabled: false }, institution: noMethod })), [], 'no method needed while institutional access is off');
   assert.deepEqual(validate(withInst({ inst: { login_timeout_sec: 29 } })), ['zotero-fulltext-prefs-problem-login-timeout']);
   assert.deepEqual(validate(withInst({ inst: { login_timeout_sec: 30 } })), []);
   assert.deepEqual(validate(withInst({ oa: { unpaywall_email: 'not-an-email' } })), ['zotero-fulltext-prefs-problem-unpaywall-email']);
   assert.deepEqual(validate(withInst({ oa: { unpaywall_email: ' me@kcl.ac.uk ' } })), []);
   assert.deepEqual(validate(withInst({ oa: { unpaywall_email: '' } })), []);
   assert.deepEqual(
-    validate(withInst({ institution: { openathens_domain: '' }, inst: { login_timeout_sec: 1 }, oa: { unpaywall_email: 'x' } })),
-    ['zotero-fulltext-prefs-problem-openathens-domain', 'zotero-fulltext-prefs-problem-login-timeout', 'zotero-fulltext-prefs-problem-unpaywall-email'],
+    validate(withInst({ institution: noMethod, inst: { login_timeout_sec: 1 }, oa: { unpaywall_email: 'x' } })),
+    ['zotero-fulltext-prefs-problem-no-method', 'zotero-fulltext-prefs-problem-login-timeout', 'zotero-fulltext-prefs-problem-unpaywall-email'],
   );
 });
 
@@ -308,7 +321,7 @@ test('validate() tolerates partial and empty configs', () => {
   const { C, validate, problems } = env();
   assert.deepEqual(validate({}), []);
   assert.deepEqual(validate(null), []);
-  assert.deepEqual(validate({ inst: { enabled: true } }), ['zotero-fulltext-prefs-problem-openathens-domain']);
+  assert.deepEqual(validate({ inst: { enabled: true } }), ['zotero-fulltext-prefs-problem-no-method']);
 });
 
 test('problems() also reports a hand-edited login timeout that buildEngineConfig() clamped away', () => {
@@ -317,8 +330,10 @@ test('problems() also reports a hand-edited login timeout that buildEngineConfig
   assert.equal(C.buildEngineConfig(get).inst.login_timeout_sec, 30, 'the config is clamped');
   assert.deepEqual(problems(get), ['zotero-fulltext-prefs-problem-login-timeout']);
   assert.deepEqual(problems(), []);
-  assert.deepEqual(problems((k) => ({ 'institution.openathens_domain': '', 'inst.login_timeout_sec': 10 })[k]), [
-    'zotero-fulltext-prefs-problem-openathens-domain', 'zotero-fulltext-prefs-problem-login-timeout',
+  assert.deepEqual(problems((k) => ({
+    'institution.openathens_domain': '', 'institution.saml_entity_id': '', 'institution.ezproxy_login_host': '', 'inst.login_timeout_sec': 10,
+  })[k]), [
+    'zotero-fulltext-prefs-problem-no-method', 'zotero-fulltext-prefs-problem-login-timeout',
   ]);
 });
 
@@ -387,9 +402,83 @@ test('PANE_LAYOUT: every heading, label and option id exists in the FTL', () => 
 test('validate() problem ids and the pane texts the shell uses exist in the FTL', () => {
   const ids = ftlIds();
   for (const id of [
-    'zotero-fulltext-prefs-problem-openathens-domain', 'zotero-fulltext-prefs-problem-login-timeout',
+    'zotero-fulltext-prefs-problem-no-method', 'zotero-fulltext-prefs-problem-saml-entity-id', 'zotero-fulltext-prefs-problem-login-timeout',
     'zotero-fulltext-prefs-problem-unpaywall-email', 'zotero-fulltext-prefs-title', 'zotero-fulltext-prefs-show-secret',
     'zotero-fulltext-prefs-hide-secret', 'zotero-fulltext-prefs-unavailable', 'zotero-fulltext-prefs-clear-state-confirm',
     'zotero-fulltext-prefs-state-cleared', 'zotero-fulltext-prefs-institution-restored',
   ]) assert.ok(ids.has(id), id);
+});
+
+// --- access methods in the EngineConfig ------------------------------------------------------------------------------------
+
+test('buildEngineConfig: saml_entity_id is null when empty, a trimmed string otherwise; ezproxy_all_hosts and use_saml are booleans', () => {
+  const empty = build({ 'institution.saml_entity_id': '' });
+  assert.strictEqual(empty.institution.saml_entity_id, null);
+  assert.strictEqual(build({ 'institution.saml_entity_id': '   ' }).institution.saml_entity_id, null);
+  assert.strictEqual(build({ 'institution.saml_entity_id': ' https://idp.example.ac.uk/shibboleth ' }).institution.saml_entity_id, 'https://idp.example.ac.uk/shibboleth');
+  assert.strictEqual(build({}).institution.ezproxy_all_hosts, false);
+  assert.strictEqual(build({ 'institution.ezproxy_all_hosts': true }).institution.ezproxy_all_hosts, true);
+  assert.strictEqual(build({ 'institution.ezproxy_all_hosts': 'true' }).institution.ezproxy_all_hosts, true);
+  assert.strictEqual(build({}).inst.use_saml, true);
+  assert.strictEqual(build({ 'inst.use_saml': false }).inst.use_saml, false);
+  const json = JSON.stringify(build({ 'institution.saml_entity_id': '' }));
+  assert.ok(json.includes('"saml_entity_id":null'), 'serialised as null, not omitted');
+  assert.ok(!/undefined/.test(json));
+});
+
+test('the new access-method prefs exist in DEFAULTS with the expected types and in PANE_LAYOUT', () => {
+  const { C } = env();
+  assert.strictEqual(C.DEFAULTS['inst.use_saml'], true);
+  assert.strictEqual(C.DEFAULTS['institution.ezproxy_all_hosts'], false);
+  assert.strictEqual(typeof C.DEFAULTS['institution.saml_entity_id'], 'string');
+  assert.equal(C.typeOf('inst.use_saml'), 'bool');
+  assert.equal(C.typeOf('institution.ezproxy_all_hosts'), 'bool');
+  assert.equal(C.typeOf('institution.saml_entity_id'), 'string');
+  const rows = Object.fromEntries(plain(C.PANE_LAYOUT).flatMap((g) => g.rows).map((r) => [r.key, r]));
+  assert.equal(rows['inst.use_saml'].widget, 'checkbox');
+  assert.equal(rows['institution.saml_entity_id'].format, 'entityid');
+  assert.equal(rows['institution.ezproxy_all_hosts'].section, 'proxy');
+  assert.equal(rows['institution.openathens_domain'].section, 'openathens');
+  assert.ok(!(plain(C.PLUGIN_ONLY).includes('institution.saml_entity_id')), 'forwarded to the engine');
+});
+
+test('activeMethods: configured AND switched on, in a fixed order; partial configs count a missing flag as on', () => {
+  const { C } = env();
+  const cfg = (inst, institution) => plain(C.activeMethods({ inst, institution }));
+  const full = { openathens_domain: 'x.ac.uk', saml_entity_id: 'https://idp.x.ac.uk/shibboleth', ezproxy: { login_host: 'a.b.c', suffix: 'b.c' } };
+  assert.deepEqual(cfg({}, full), ['openathens', 'saml', 'ezproxy']);
+  assert.deepEqual(cfg({ use_saml: false }, full), ['openathens', 'ezproxy']);
+  assert.deepEqual(cfg({ use_openathens: false, use_ezproxy: false }, full), ['saml']);
+  assert.deepEqual(cfg({}, { openathens_domain: ' ', saml_entity_id: null, ezproxy: null }), []);
+  assert.deepEqual(plain(C.activeMethods(null)), []);
+  assert.deepEqual(plain(C.currentMethods()), ['openathens', 'saml', 'ezproxy'], "King's defaults");
+});
+
+test('validate: no method configured is one problem line only while institutional access is on; a bad entityID is flagged', () => {
+  const { C, validate } = env();
+  const none = { openathens_domain: '', saml_entity_id: null, ezproxy: null };
+  const base = plain(C.buildEngineConfig());
+  const mk = (inst, institution) => ({ ...base, inst: { ...base.inst, ...inst }, institution: { ...base.institution, ...institution } });
+  assert.deepEqual(validate(mk({}, none)), ['zotero-fulltext-prefs-problem-no-method']);
+  assert.deepEqual(validate(mk({ enabled: false }, none)), []);
+  assert.deepEqual(validate(mk({}, { ...none, saml_entity_id: 'https://idp.x.ac.uk/shibboleth' })), []);
+  assert.deepEqual(validate(mk({}, { ...none, ezproxy: { login_host: 'ezproxy.x.ac.uk', suffix: 'ezproxy.x.ac.uk' } })), []);
+  assert.deepEqual(validate(mk({ use_saml: false }, { ...none, saml_entity_id: 'https://idp.x.ac.uk/shibboleth' })), ['zotero-fulltext-prefs-problem-no-method'], 'switched off counts as not set up');
+  assert.deepEqual(validate(mk({}, { ...none, openathens_domain: 'not a domain', saml_entity_id: 'idp x' })), [
+    'zotero-fulltext-prefs-problem-openathens-domain-format', 'zotero-fulltext-prefs-problem-saml-entity-id',
+  ]);
+});
+
+test('isEntityId: http(s) URLs and urn: ids only, no whitespace, bounded', () => {
+  const { C } = env();
+  for (const ok of ['https://idp.example.ac.uk/shibboleth', 'http://idp.example.org/entity', 'urn:mace:ac.uk:sdss.ac.uk:provider:identity:dur.ac.uk']) assert.equal(C.isEntityId(ok), true, ok);
+  for (const bad of ['', ' ', null, undefined, 42, 'idp.example.ac.uk', 'ftp://idp.example.ac.uk/x', 'https://', 'https://idp x/y', 'https://idp.example.ac.uk/\nx', 'urn:', 'https://a.example/' + 'x'.repeat(1100)]) assert.equal(C.isEntityId(bad), false, String(bad).slice(0, 40));
+});
+
+test('withIdpHost adds the host of an https entityID once and leaves urn: ids alone', () => {
+  const { C } = env();
+  assert.equal(C.withIdpHost('login.openathens.net', 'https://idp.x.ac.uk/shibboleth'), 'login.openathens.net,idp.x.ac.uk');
+  assert.equal(C.withIdpHost('idp.x.ac.uk', 'https://IDP.x.ac.uk/shibboleth'), 'idp.x.ac.uk');
+  assert.equal(C.withIdpHost('a.b', 'urn:mace:x'), 'a.b');
+  assert.equal(C.withIdpHost('', 'https://idp.x.ac.uk/s'), 'idp.x.ac.uk');
 });

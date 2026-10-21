@@ -247,6 +247,15 @@
     needFull = false;
     dirty.clear();
     renderHeader(groups);
+    renderSignIn();
+  }
+
+  /** The "Sign-in needed" banner: visible while the model says a sign-in window is open (button = show that window). */
+  function renderSignIn() {
+    const banner = el('zft-progress-signin');
+    if (banner) {
+      banner.hidden = !(typeof model.signIn === 'function' && model.signIn());
+    }
   }
 
   function schedule() {
@@ -302,6 +311,16 @@
       }
     });
     el('zft-progress-close').addEventListener('click', () => window.close());
+    el('zft-progress-signin-show').addEventListener('click', () => {
+      try {
+        const info = typeof model.signIn === 'function' ? model.signIn() : null;
+        if (info && typeof info.show === 'function') {
+          info.show();
+        }
+      } catch (e) {
+        try { Components.utils.reportError(e); } catch (e2) { /* nothing left to do */ }
+      }
+    });
     el('zft-progress-copy').addEventListener('click', () => {
       try {
         copyDiagnostics();
@@ -313,6 +332,8 @@
       if (item !== null && item !== undefined) {
         dirty.add(item);
       }
+      // Not through the frame scheduler: an occluded window (the sign-in window sits on top of it) gets no animation frames.
+      renderSignIn();
       schedule();
     });
     render();

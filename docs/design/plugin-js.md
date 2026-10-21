@@ -106,6 +106,17 @@ Decisions where `proto.rs` leaves room; the engine area must agree (also listed 
 * **Memory**: PDFs are file-backed; page bodies are capped at 8 MiB each and 64 MiB total; `retain` decides what survives.
 * **Login**: one `LoginWindow` effect per sign-in epoch for all waiting items (engine side); the controller refuses a second
   concurrent window for the same realm. The window's own timer is authoritative (one "Keep waiting" extension).
+  The window opens only after the silent attempt (a HiddenBrowser load of the entry URL, `session_route` in `pipeline/inst.rs`)
+  ended on an interactive IdP or challenge page, so a start with persistent Entra cookies ("Stay signed in" = Yes) never shows it.
+  Layout: `xul.css` maps only `flex="0"` and `flex="1"`; the `<browser>` therefore grows through inline CSS (an earlier
+  `flex="3"` collapsed it to 0 px: a loaded page behind an empty dark rectangle). A page that stays about:blank for 6 s, a thrown
+  `loadURI` and a Gecko error page (`documentURI` = `about:neterror`, `currentURI` = the failed address) show the address and the
+  reason in the banner; the window stays open. A new window is focused, its taskbar button flashed (again every 30 s while it is
+  not the active window), announced by `Services.alerts`, and shown as a "Sign-in needed" banner in the progress window
+  (`ZFT.progress.setSignIn`). After a landed sign-in and at shutdown, `ZFT.login.persistSession()` re-saves the OpenAthens and
+  EZproxy session cookies with an expiry of creation + 12 h (pref `extensions.zotero-fulltext.inst.keep_session`, default true;
+  Microsoft's cookies are never touched, values are never logged). A Gecko error page in a HiddenBrowser load is detected by the
+  `LOCATION_CHANGE_ERROR_PAGE` flag (`OpError` network / tls) instead of being inspected as a page.
 
 ## 7. Zotero 10.0.6 APIs relied on (all read in `.ref/omni-app/chrome/content/zotero/`)
 

@@ -123,6 +123,11 @@ pub struct OaConfig {
     pub core_key: String,
     pub version_order: Vec<Version>,
 }
+/// `#[serde(default = ...)]` helper: a flag that is on when the JS side does not send it.
+fn default_true() -> bool {
+    true
+}
+
 plain_enum!(LoginMode { Window, Handoff });
 plain_enum!(GroupPolicy { Ask, Never, Allow });
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -131,6 +136,9 @@ pub struct InstPrefs {
     pub try_direct: bool,
     pub use_openathens: bool,
     pub use_ezproxy: bool,
+    /// Publisher SAML / Shibboleth sign-in (WAYFless deep links) with `Institution.saml_entity_id`. Absent = on.
+    #[serde(default = "default_true")]
+    pub use_saml: bool,
     pub check_alma: bool,
     pub login_mode: LoginMode,
     pub auto_open_login: bool,
@@ -163,11 +171,21 @@ pub struct Alma {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Institution {
     pub name: String,
+    /// OpenAthens domain (`kcl.ac.uk`); empty = the institution is not on OpenAthens (no redirector route).
+    #[serde(default)]
     pub openathens_domain: String,
     #[serde(default)]
     pub ezproxy: Option<Ezproxy>,
     #[serde(default)]
     pub ezproxy_hosts: Vec<String>,
+    /// The EZproxy proxies every subscribed host: try it for any publisher host (not only `ezproxy_hosts`) and
+    /// learn the hosts it does not know from its "host not configured" answers.
+    #[serde(default)]
+    pub ezproxy_all_hosts: bool,
+    /// The institution's SAML identity provider `entityID` (`https://shib.ox.ac.uk/idp/shibboleth`); with it the
+    /// publisher's own "institutional login" (WAYFless deep link) is a route.
+    #[serde(default)]
+    pub saml_entity_id: Option<String>,
     #[serde(default)]
     pub alma: Option<Alma>,
     #[serde(default)]
@@ -672,6 +690,50 @@ mod tests {
         })
         .unwrap();
         assert_eq!(ls, json!({"state":"refused","code":"AADSTS53000"}));
+    }
+
+    #[test]
+    fn saml_and_ezproxy_all_hosts_fields_are_additive() {
+        let prefs = json!({"enabled":true,"try_direct":true,"use_openathens":false,"use_ezproxy":true,"check_alma":false,
+            "login_mode":"window","auto_open_login":true,"login_timeout_sec":300,"group_libraries":"ask",
+            "confirm_above":10,"batch_max":20,"hourly_cap":30,"daily_cap":80,"mb_per_hour":300,"min_gap_sec":5,"challenge_windows":true});
+        // Old configs (no `use_saml`): SAML is on, as the contract says.
+        let old: InstPrefs = serde_json::from_value(prefs.clone()).unwrap();
+        assert!(old.use_saml);
+        let mut with = prefs;
+        with["use_saml"] = json!(false);
+        assert!(!serde_json::from_value::<InstPrefs>(with).unwrap().use_saml);
+
+        // Old institutions: no SAML, not all hosts.
+        let old: Institution =
+            serde_json::from_value(json!({"name":"KCL","openathens_domain":"kcl.ac.uk"})).unwrap();
+        assert_eq!((old.saml_entity_id, old.ezproxy_all_hosts), (None, false));
+        // A SAML-only / EZproxy-only institution may leave the OpenAthens domain out altogether.
+        let inst: Institution = serde_json::from_value(json!({
+            "name":"University of Oxford","saml_entity_id":"https://registry.shibboleth.ox.ac.uk/idp",
+            "ezproxy":{"login_host":"login.ezproxy.ox.ac.uk","suffix":"ezproxy.ox.ac.uk"},"ezproxy_all_hosts":true}))
+        .unwrap();
+        assert_eq!(inst.openathens_domain, "");
+        assert_eq!(
+            inst.saml_entity_id.as_deref(),
+            Some("https://registry.shibboleth.ox.ac.uk/idp")
+        );
+        assert!(inst.ezproxy_all_hosts);
+        let null: Institution =
+            serde_json::from_value(json!({"name":"x","saml_entity_id":null})).unwrap();
+        assert_eq!(null.saml_entity_id, None);
+
+        // The realm and the hand-off link on the wire.
+        assert_eq!(serde_json::to_value(Realm::Saml).unwrap(), json!("saml"));
+        let h = Handoff {
+            wayfless_url: Some("https://sp.nature.com/saml/login?idp=x".into()),
+            ..Default::default()
+        };
+        assert_eq!(
+            serde_json::to_value(&h).unwrap(),
+            json!({"wayfless_url":"https://sp.nature.com/saml/login?idp=x"})
+        );
+        assert_eq!(serde_json::to_value(Source::Saml).unwrap(), json!("saml"));
     }
 
     #[test]

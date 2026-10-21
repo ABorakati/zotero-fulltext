@@ -3,7 +3,7 @@
 //! forward, except `storable_url` (engine policy built from core's primitives).
 use crate::proto::Institution;
 use fulltext_core::urls::{self, ProxyConf};
-use fulltext_core::{ids, model::*, oa};
+use fulltext_core::{ids, model::*, oa, wayfless};
 use std::collections::BTreeMap;
 
 /// Identifiers of an item: DOI / PMID / PMCID / arXiv from fields and Extra, `rxiv`, the item URL.
@@ -66,16 +66,56 @@ pub(crate) fn zotero_hit_candidates(
     oa::zotero_oa::candidates_from_hit(url, page_url, version)
 }
 
-/// OpenAthens redirector deep link for `target` (must be a DOI URL; `thelancet.com` URLs 404).
-pub(crate) fn redirector_url(inst: &Institution, target: &str) -> String {
-    urls::redirector_url(&inst.openathens_domain, target)
+/// OpenAthens redirector deep link for `target` (must be a DOI URL; `thelancet.com` URLs 404). `None` when the
+/// institution has no OpenAthens domain: an empty-domain redirector URL is never built.
+pub(crate) fn redirector_url(inst: &Institution, target: &str) -> Option<String> {
+    let domain = inst.openathens_domain.trim();
+    (!domain.is_empty()).then(|| urls::redirector_url(domain, target))
+}
+
+/// The institution's SAML IdP `entityID`, when set and well formed.
+pub(crate) fn saml_entity(inst: &Institution) -> Option<&str> {
+    inst.saml_entity_id
+        .as_deref()
+        .map(str::trim)
+        .filter(|e| wayfless::valid_entity_id(e))
+}
+
+/// The institution's EZproxy settings as core's [`ProxyConf`]; `None` when it has no (usable) EZproxy.
+fn proxy_conf(inst: &Institution) -> Option<ProxyConf<'_>> {
+    inst.ezproxy
+        .as_ref()
+        .filter(|e| !e.login_host.trim().is_empty())
+        .map(|e| ProxyConf {
+            login_host: &e.login_host,
+            suffix: &e.suffix,
+        })
+}
+
+/// Publisher WAYFless sign-in link for the first of `urls` that is on a supported platform, else for the article the
+/// DOI stands for. `None` without an `entityID` or for an unsupported publisher.
+pub(crate) fn wayfless_url(inst: &Institution, doi: Option<&str>, urls: &[&str]) -> Option<String> {
+    wayfless::wayfless_for(proxy_conf(inst).as_ref(), saml_entity(inst)?, doi, urls)
+}
+
+/// True when the institution can use the OpenAthens redirector (a non-blank domain).
+pub(crate) fn has_openathens(inst: &Institution) -> bool {
+    !inst.openathens_domain.trim().is_empty()
+}
+
+/// True when the institution has a usable EZproxy (a login host and a suffix).
+pub(crate) fn has_ezproxy(inst: &Institution) -> bool {
+    inst.ezproxy
+        .as_ref()
+        .is_some_and(|e| !e.login_host.trim().is_empty() && !e.suffix.trim().is_empty())
 }
 
 /// EZproxy `login?qurl=` entry for `target`. `None` when the institution has no EZproxy.
 pub(crate) fn ezproxy_login_url(inst: &Institution, target: &str) -> Option<String> {
     inst.ezproxy
         .as_ref()
-        .map(|e| urls::ezproxy_login_url(&e.login_host, target))
+        .filter(|e| !e.login_host.trim().is_empty())
+        .map(|e| urls::ezproxy_login_url(e.login_host.trim(), target))
 }
 
 /// Direct proxified URL (`https://<host-with-hyphens>.<suffix>/...`) when the host can be proxified.
@@ -110,7 +150,18 @@ pub(crate) fn url_class(inst: &Institution, url: &str) -> UrlClassKind {
         login_host: &e.login_host,
         suffix: &e.suffix,
     });
-    urls::url_class(conf.as_ref(), url)
+    let class = urls::url_class(conf.as_ref(), url);
+    if class == UrlClassKind::Other && host_of(url).is_some_and(|h| is_idp_host(inst, &h)) {
+        return UrlClassKind::IdpLogin;
+    }
+    class
+}
+
+/// A host the institution lists as its sign-in host (`Institution.idp_hosts`, exact match).
+fn is_idp_host(inst: &Institution, host: &str) -> bool {
+    inst.idp_hosts
+        .iter()
+        .any(|h| !h.trim().is_empty() && h.trim().eq_ignore_ascii_case(host))
 }
 
 /// True when `url` is on the institution's EZproxy (the login host or a proxied `<label>.<suffix>` host).
@@ -265,6 +316,8 @@ mod tests {
                 suffix: "kcl.idm.oclc.org".into(),
             }),
             ezproxy_hosts: vec![],
+            ezproxy_all_hosts: false,
+            saml_entity_id: None,
             alma: None,
             libkey_library_id: Some(286),
             idp_hosts: vec![],

@@ -166,7 +166,8 @@ pub(crate) fn api_limits(src: Source) -> ApiLimits {
         | Source::Translator
         | Source::Extractor
         | Source::Redirector
-        | Source::Ezproxy => (4, 10, 100),
+        | Source::Ezproxy
+        | Source::Saml => (4, 10, 100),
     };
     ApiLimits {
         concurrency,

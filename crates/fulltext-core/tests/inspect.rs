@@ -515,6 +515,8 @@ fn login_state_never_reports_landed_at_an_sso_url() {
         "https://go.openathens.net/redirector/kcl.ac.uk?url=x",
         "https://login.kcl.idm.oclc.org/login?qurl=x",
         "https://jamanetwork.com/Shibboleth.sso/Login?entityID=E",
+        "https://idp.shibboleth.ox.ac.uk/idp/profile/SAML2/Redirect/SSO?execution=e1s1",
+        "https://sso.example.ac.uk/adfs/ls/?SAMLRequest=x",
     ] {
         let got = login_state(
             url,
@@ -524,6 +526,31 @@ fn login_state_never_reports_landed_at_an_sso_url() {
         );
         assert_ne!(got, LoginState::Landed, "{url}");
     }
+}
+
+#[test]
+fn login_state_of_a_generic_shibboleth_idp_is_pending() {
+    // By URL alone, and by the markup of the IdP's own views on a host that says nothing.
+    assert_eq!(
+        login_state(
+            "https://idp.shibboleth.ox.ac.uk/idp/profile/SAML2/Redirect/SSO?execution=e1s1",
+            None
+        ),
+        LoginState::Pending
+    );
+    let form = "<!doctype html><title>Web Login Service</title><form method=post action=/idp/profile/SAML2/Redirect/SSO?execution=e1s2><input name=j_username><input type=password name=j_password><button name=_eventId_proceed>Login</button></form>";
+    assert_eq!(
+        login_state("https://sso.example.ac.uk/x", Some(form)),
+        LoginState::Pending
+    );
+    // Back on the publisher: landed.
+    assert_eq!(
+        login_state(
+            "https://www.nature.com/articles/nature12373",
+            Some("<!doctype html><title>Article</title><meta name=citation_title content=x>")
+        ),
+        LoginState::Landed
+    );
 }
 
 #[test]

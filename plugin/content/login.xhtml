@@ -3,7 +3,11 @@
      A plain XUL window with ONE content <browser>. No messagemanagergroup attribute, so Zotero's ExternalLinkHandler
      actor does not attach and link clicks stay in this window. The bar shows the real origin and TLS state because the
      user types credentials here. Popups opened by the SSO pages appear in the visible pane below the page.
-     The title is set from login.js ("Sign in for full text: <origin>"); all other text is Fluent. -->
+     The title is set from login.js ("Sign in for full text: <origin>"); all other text is Fluent.
+
+     LAYOUT: Gecko's xul.css maps only flex="0" and flex="1" to CSS flex (xul.css:648-649). The spike used flex="3" on the
+     <browser>, which silently computed to flex-grow 0 and a height of 0 px here: the page loaded and the window showed an
+     empty dark rectangle. The proportions below are therefore inline CSS, and the browser has a minimum height. -->
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
@@ -16,12 +20,16 @@
   </linkset>
   <script src="chrome://zotero-fulltext/content/login.js"/>
   <vbox flex="1">
-    <html:div id="zft-login-banner" style="padding:6px 10px;border-bottom:1px solid #888;font:13px system-ui,sans-serif;display:flex;gap:10px;align-items:center;">
-      <html:span id="zft-login-waiting" style="flex:1;min-width:0;"></html:span>
-      <html:span id="zft-login-hint" role="status" style="flex:2;min-width:0;color:#a60;"></html:span>
-      <html:button id="zft-login-keep" data-l10n-id="zotero-fulltext-login-keep-waiting" hidden="true"/>
-      <html:button id="zft-login-handoff" data-l10n-id="zotero-fulltext-login-open-browser"/>
-      <html:button id="zft-login-skip" data-l10n-id="zotero-fulltext-login-skip"/>
+    <html:div id="zft-login-banner" style="padding:6px 10px;border-bottom:1px solid #888;font:13px system-ui,sans-serif;display:flex;flex-direction:column;gap:4px;">
+      <html:div id="zft-login-banner-row" style="display:flex;gap:10px;align-items:center;">
+        <html:span id="zft-login-waiting" style="flex:1;min-width:0;"></html:span>
+        <html:span id="zft-login-hint" role="status" style="flex:2;min-width:0;color:#a60;"></html:span>
+        <html:button id="zft-login-keep" data-l10n-id="zotero-fulltext-login-keep-waiting" hidden="true"/>
+        <html:button id="zft-login-handoff" data-l10n-id="zotero-fulltext-login-open-browser"/>
+        <html:button id="zft-login-skip" data-l10n-id="zotero-fulltext-login-skip"/>
+      </html:div>
+      <html:div id="zft-login-tip" hidden="true" data-l10n-id="zotero-fulltext-login-stay-signed-in-tip" style="opacity:0.85;"></html:div>
+      <html:div id="zft-login-error" role="alert" hidden="true" style="color:#e06060;font-weight:bold;overflow-wrap:anywhere;"></html:div>
     </html:div>
     <html:div id="zft-login-bar" style="display:flex;gap:10px;align-items:center;padding:6px 10px;border-bottom:1px solid #888;font:13px system-ui,sans-serif;">
       <html:span id="zft-login-secure" style="font-weight:bold;min-width:90px;"></html:span>
@@ -30,10 +38,10 @@
     </html:div>
     <browser id="zft-login-browser"
              type="content"
-             flex="3"
              remote="false"
              maychangeremoteness="true"
-             disableglobalhistory="true"/>
-    <vbox id="zft-login-popup-box" flex="2" hidden="true" style="border-top:3px solid #a00;"/>
+             disableglobalhistory="true"
+             style="flex: 3 1 0%; min-height: 200px;"/>
+    <vbox id="zft-login-popup-box" hidden="true" style="flex: 2 1 0%; min-height: 0; border-top:3px solid #a00;"/>
   </vbox>
 </window>

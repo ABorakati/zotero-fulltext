@@ -23,9 +23,11 @@ pref("extensions.zotero-fulltext.inst.enabled", true);
 pref("extensions.zotero-fulltext.inst.try_direct", true);
 pref("extensions.zotero-fulltext.inst.use_openathens", true);
 pref("extensions.zotero-fulltext.inst.use_ezproxy", true);
+pref("extensions.zotero-fulltext.inst.use_saml", true);
 pref("extensions.zotero-fulltext.inst.check_alma", true);
 pref("extensions.zotero-fulltext.inst.login_mode", "window");
 pref("extensions.zotero-fulltext.inst.auto_open_login", true);
+pref("extensions.zotero-fulltext.inst.keep_session", true);
 pref("extensions.zotero-fulltext.inst.login_timeout_sec", 300);
 pref("extensions.zotero-fulltext.inst.group_libraries", "ask");
 pref("extensions.zotero-fulltext.inst.confirm_above", 10);
@@ -41,7 +43,8 @@ pref("extensions.zotero-fulltext.run.item_concurrency", 4);
 pref("extensions.zotero-fulltext.run.hedge", true);
 pref("extensions.zotero-fulltext.run.pdf_max_mb", 100);
 
-// --- institution (EngineConfig.institution): King's College London
+// --- institution (EngineConfig.institution): King's College London by default; institution.preset is the picker choice
+pref("extensions.zotero-fulltext.institution.preset", "kcl");
 pref("extensions.zotero-fulltext.institution.name", "King's College London");
 pref("extensions.zotero-fulltext.institution.openathens_domain", "kcl.ac.uk");
 pref("extensions.zotero-fulltext.institution.ezproxy_login_host", "login.kcl.idm.oclc.org");
@@ -54,6 +57,8 @@ pref("extensions.zotero-fulltext.institution.idp_hosts", "login.microsoftonline.
 pref("extensions.zotero-fulltext.institution.entra_tenant", "8370cf14-16f3-4c16-b83c-724071654356");
 pref("extensions.zotero-fulltext.institution.passthrough_hosts", "journals.lww.com");
 pref("extensions.zotero-fulltext.institution.warmup_url", "");
+pref("extensions.zotero-fulltext.institution.saml_entity_id", "https://kclidp.kcl.ac.uk/idp/shibboleth");
+pref("extensions.zotero-fulltext.institution.ezproxy_all_hosts", false);
 
 // --- plugin-only
 pref("extensions.zotero-fulltext.debug.trace", false);

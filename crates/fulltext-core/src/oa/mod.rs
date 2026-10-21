@@ -59,7 +59,8 @@ pub fn parse(source: Source, resp: &RespMeta, body: &[u8], requested: &Ids) -> A
         | Source::Translator
         | Source::Extractor
         | Source::Redirector
-        | Source::Ezproxy => unparsed(source, "source is not an HTTP API"),
+        | Source::Ezproxy
+        | Source::Saml => unparsed(source, "source is not an HTTP API"),
     }
 }
 

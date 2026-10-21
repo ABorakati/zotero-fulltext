@@ -8,6 +8,7 @@
 //! Target of the links: `https://doi.org/<doi>` when the item has a DOI; otherwise the publisher page the
 //! route reached (`handoff_with_landing`), otherwise the item's own URL. With none of these the hand-off is
 //! empty and the row simply offers no browser buttons.
+use crate::pipeline::pure;
 use crate::proto::Institution;
 use fulltext_core::model::*;
 use fulltext_core::urls::{self, HandoffConf, ProxyConf};
@@ -27,11 +28,16 @@ pub(crate) fn handoff_with_landing(
 ) -> Handoff {
     let conf = HandoffConf {
         openathens_domain: &inst.openathens_domain,
-        ezproxy: inst.ezproxy.as_ref().map(|e| ProxyConf {
-            login_host: &e.login_host,
-            suffix: &e.suffix,
-        }),
+        ezproxy: inst
+            .ezproxy
+            .as_ref()
+            .filter(|e| !e.login_host.trim().is_empty())
+            .map(|e| ProxyConf {
+                login_host: &e.login_host,
+                suffix: &e.suffix,
+            }),
         libkey_library_id: inst.libkey_library_id,
+        saml_entity_id: pure::saml_entity(inst),
     };
     urls::handoff(&conf, ids, landing)
 }
@@ -50,6 +56,8 @@ mod tests {
                 suffix: "kcl.idm.oclc.org".into(),
             }),
             ezproxy_hosts: vec![],
+            ezproxy_all_hosts: false,
+            saml_entity_id: None,
             alma: None,
             libkey_library_id: Some(286),
             idp_hosts: vec![],

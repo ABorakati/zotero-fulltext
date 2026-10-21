@@ -178,7 +178,7 @@ test('full shutdown tears down in the documented order and is safe to repeat', a
   await ZFT.plugin.shutdown(REASON.ADDON_DISABLE);
   const order = callNames(env.calls).filter((n) => !['registerMenu'].includes(n));
   assert.deepEqual(order, [
-    'runs.shutdown',
+    'login.persistSession', 'runs.shutdown',
     'unregisterMenu', 'unregisterMenu',
     'PreferencePanes.unregister',
     'removeFTL',
@@ -214,12 +214,12 @@ test('APP_SHUTDOWN only flushes through runs.shutdown: nothing is unregistered o
   await ZFT.plugin.startup(INFO, 1);
   env.calls.length = 0;
   await ZFT.plugin.shutdown(REASON.APP_SHUTDOWN);
-  assert.deepEqual(callNames(env.calls), ['runs.shutdown']);
+  assert.deepEqual(callNames(env.calls), ['login.persistSession', 'runs.shutdown']);
   assert.equal(win.ftlLinks.length, 1, 'the window keeps its FTL link');
   assert.strictEqual(env.zotero.ZoteroFullText, ZFT, 'the app is quitting; nothing else is torn down');
   assert.equal(ZFT.plugin.started, false);
   await ZFT.plugin.shutdown(REASON.APP_SHUTDOWN);
-  assert.deepEqual(callNames(env.calls), ['runs.shutdown'], 'idempotent');
+  assert.deepEqual(callNames(env.calls), ['login.persistSession', 'runs.shutdown'], 'idempotent');
 });
 
 test('APP_SHUTDOWN with a failing runs.shutdown still resolves', async () => {
@@ -237,6 +237,7 @@ test('a throwing teardown step does not stop the later steps', async () => {
   const { ZFT } = env;
   await ZFT.plugin.startup(INFO, 1);
   env.calls.length = 0;
+  ZFT.login.persistSession = () => { env.calls.push(['login.persistSession', []]); throw new Error('cookies exploded'); };
   ZFT.runs.shutdown = async () => { env.calls.push(['runs.shutdown', []]); throw new Error('runs exploded'); };
   ZFT.menu.unregister = () => { env.calls.push(['menu.unregister', []]); throw new Error('menu exploded'); };
   env.zotero.PreferencePanes.unregister = () => { env.calls.push(['PreferencePanes.unregister', []]); throw new Error('pane exploded'); };
@@ -244,12 +245,12 @@ test('a throwing teardown step does not stop the later steps', async () => {
   ZFT.wasmHost.shutdown = async () => { env.calls.push(['wasmHost.shutdown', []]); throw new Error('wasm exploded'); };
   await ZFT.plugin.shutdown(REASON.ADDON_DISABLE);
   assert.deepEqual(callNames(env.calls), [
-    'runs.shutdown', 'menu.unregister', 'PreferencePanes.unregister', 'removeFTL', 'login.closeAll', 'progress.closeAll',
+    'login.persistSession', 'runs.shutdown', 'menu.unregister', 'PreferencePanes.unregister', 'removeFTL', 'login.closeAll', 'progress.closeAll',
     'wasmHost.shutdown', 'l10n.reset', 'notifyObservers',
   ]);
   assert.equal(win.ftlLinks.length, 0);
   assert.equal(ZFT.plugin.started, false);
-  for (const what of ['runs exploded', 'menu exploded', 'pane exploded', 'login exploded', 'wasm exploded']) {
+  for (const what of ['cookies exploded', 'runs exploded', 'menu exploded', 'pane exploded', 'login exploded', 'wasm exploded']) {
     assert.ok(env.zotero.debugLog.some(([, m]) => m.includes(what)), what);
   }
 });

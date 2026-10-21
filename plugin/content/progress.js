@@ -70,6 +70,7 @@
   /** model.rs Handoff field -> button label message, in display order. */
   const HANDOFF_FIELDS = [
     ['redirector_url', 'zotero-fulltext-action-open-redirector'],
+    ['wayfless_url', 'zotero-fulltext-action-open-wayfless'],
     ['ezproxy_url', 'zotero-fulltext-action-open-ezproxy'],
     ['libkey_url', 'zotero-fulltext-action-open-libkey'],
     ['doi_url', 'zotero-fulltext-action-open-doi'],
@@ -183,6 +184,7 @@
       this._info = new Map();
       this._order = [];
       this._groups = null;
+      this._signIn = null;
       this._counts = {};
       for (const s of ROW_STATES) this._counts[s] = 0;
       for (const it of items || []) {
@@ -243,6 +245,22 @@
       }
       this._groups = null;
       this._notify(null);
+    }
+
+    /**
+     * A sign-in window is open and the run waits for it: the progress window shows a "Sign-in needed" banner with a button that
+     * brings that window to the front. @param {({show: function, waiting?: number}|null)} info null clears the banner
+     */
+    setSignIn(info) {
+      const next = info && typeof info.show === 'function' ? { show: info.show, waiting: Number(info.waiting) || 0 } : null;
+      if (!next && !this._signIn) return;
+      this._signIn = next;
+      this._notify(null);
+    }
+
+    /** @returns {{show: function, waiting: number}|null} the open sign-in window's banner data */
+    signIn() {
+      return this._signIn || null;
     }
 
     /** @returns {Array<object>} rows in selection order */
@@ -470,6 +488,25 @@
     }
   }
 
+  /**
+   * Show (info = {show, waiting}) or clear (null) the "Sign-in needed" banner of the progress window of `run`. A sign-in window
+   * belongs to the run that triggered it but serves every waiting item, so when `run` is unknown the banner goes to every run that
+   * has not finished. The taskbar button of an open progress window is flashed too (it is the window the user is most likely looking at).
+   * @param {(number|null)} run @param {({show: function, waiting?: number}|null)} info
+   */
+  function setSignIn(run, info) {
+    const targets = [];
+    const own = run == null ? null : entries.get(run);
+    if (own) targets.push(own);
+    else for (const e of entries.values()) if (!e.model.report) targets.push(e);
+    for (const entry of targets) {
+      entry.model.setSignIn(info);
+      if (info && isOpen(entry.win)) {
+        try { if (typeof entry.win.getAttention === 'function') entry.win.getAttention(); } catch (e) { /* best effort */ }
+      }
+    }
+  }
+
   /** Bring the window of `run` (default: the most recent run) to the front, reopening it if closed. @returns {boolean} false if no run is known */
   function show(run) {
     const entry = entries.get(run == null ? lastRun : run);
@@ -532,6 +569,6 @@
   ZFT.progress = {
     WINDOW_URL, WINDOW_TYPE, ROW_STATES, ProgressModel,
     GROUP_ORDER, GROUP_L10N, ACTION_L10N,
-    open, update, finish, show, modelFor, handleAction, redactUrl, closeAll,
+    open, update, finish, show, setSignIn, modelFor, handleAction, redactUrl, closeAll,
   };
 })(this);

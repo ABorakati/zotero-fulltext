@@ -406,3 +406,204 @@ fn f26_the_batch_cap_defers_the_items_beyond_the_first_twenty() {
     assert_eq!(deferred, 4, "{:?}", outcomes(&host, 1));
     assert_eq!(report(&host, 1).counts.saved, 20);
 }
+
+// ------------------------------------------------------------------------------ SAML and EZproxy-only institutions
+
+const OX_IDP: &str = "https://registry.shibboleth.ox.ac.uk/idp";
+const SHIB_IDP: &str =
+    "https://idp.shibboleth.ox.ac.uk/idp/profile/SAML2/Redirect/SSO?execution=e1s1";
+
+fn shib_class() -> PageClass {
+    PageClass::IdpLogin {
+        idp: Idp::Other,
+        ca_error: None,
+    }
+}
+
+/// DOIs of publishers whose article URL (and so WAYFless link) follows from the DOI alone.
+fn saml_dois() -> Vec<String> {
+    [
+        "10.1038/saml.1",
+        "10.1007/saml.2",
+        "10.1002/saml.3",
+        "10.1080/saml.4",
+        "10.1177/saml.5",
+        "10.1056/saml.6",
+    ]
+    .iter()
+    .map(|d| (*d).to_owned())
+    .collect()
+}
+
+/// While nobody has signed in, every hidden load of the publisher's sign-in ends on the institution's own
+/// Shibboleth IdP page.
+fn shibboleth_bounce(world: World) -> World {
+    let session = Rc::clone(&world.session);
+    world.hook(move |op, _| match &op.effect {
+        Effect::BrowserLoad { .. } if !session.get() => Some(Reply::ok(
+            800,
+            crate::sim::fixtures::browser_ok(
+                SHIB_IDP,
+                &page_inspection_of(shib_class()),
+                None,
+                None,
+            ),
+        )),
+        _ => None,
+    })
+}
+
+fn effect_urls(host: &SimHost) -> Vec<String> {
+    host.effects()
+        .filter_map(|e| crate::sim::fixtures::effect_url(e).map(str::to_owned))
+        .collect()
+}
+
+fn source_of(o: &Outcome) -> Option<&str> {
+    match o {
+        Outcome::Saved { source, .. } => Some(source.as_str()),
+        _ => None,
+    }
+}
+
+fn login_windows(host: &SimHost) -> Vec<LoginReq> {
+    host.effects()
+        .filter_map(|e| match e {
+            Effect::LoginWindow { req, .. } => Some(req.clone()),
+            _ => None,
+        })
+        .collect()
+}
+
+#[test]
+fn saml_only_institution_signs_six_publishers_in_through_one_window() {
+    let d = saml_dois();
+    let world = shibboleth_bounce(World::inst_only(&d));
+    let mut cfg = test_config();
+    cfg.institution.openathens_domain = String::new();
+    cfg.institution.ezproxy = None;
+    cfg.institution.ezproxy_hosts.clear();
+    cfg.institution.alma = None;
+    cfg.institution.passthrough_hosts.clear();
+    cfg.institution.saml_entity_id = Some(OX_IDP.into());
+    cfg.inst.check_alma = false;
+    let mut host = run_scenario_with(cfg, Persisted::default(), world);
+    start(&mut host, 1, Mode::Full, true, items(&d));
+    settle(&mut host);
+    for item in 1..=6 {
+        let o = outcome(&host, 1, item);
+        assert!(is_saved(&o, Route::Inst), "item {item}: {o:?}");
+        assert_eq!(source_of(&o), Some("saml"), "item {item}");
+    }
+    let windows = login_windows(&host);
+    assert_eq!(windows.len(), 1, "ONE window for six items");
+    assert_eq!(windows[0].realm, Realm::Saml);
+    assert!(
+        windows[0]
+            .entry_url
+            .contains("idp=https%3A%2F%2Fregistry.shibboleth.ox.ac.uk%2Fidp")
+            || windows[0]
+                .entry_url
+                .contains("entityId=https%3A%2F%2Fregistry.shibboleth.ox.ac.uk%2Fidp"),
+        "{}",
+        windows[0].entry_url
+    );
+    assert_eq!(ledger_counts(&host), (6, 0));
+    assert_eq!(report(&host, 1).counts.saved, 6);
+    for url in effect_urls(&host) {
+        assert!(
+            !url.contains("openathens") && !url.contains("qurl="),
+            "a route that is not configured was used: {url}"
+        );
+    }
+}
+
+#[test]
+fn ezproxy_for_every_host_works_without_an_openathens_domain() {
+    let d = dois("ezall", 4);
+    let world = World::inst_only(&d);
+    let mut cfg = test_config();
+    cfg.institution.openathens_domain = String::new();
+    cfg.institution.ezproxy_hosts.clear();
+    cfg.institution.ezproxy_all_hosts = true;
+    cfg.institution.alma = None;
+    cfg.institution.passthrough_hosts.clear();
+    cfg.inst.check_alma = false;
+    let mut host = run_scenario_with(cfg, Persisted::default(), world);
+    start(&mut host, 1, Mode::Full, true, items(&d));
+    settle(&mut host);
+    for item in 1..=4 {
+        let o = outcome(&host, 1, item);
+        assert!(is_saved(&o, Route::Inst), "item {item}: {o:?}");
+        assert_eq!(source_of(&o), Some("ezproxy"), "item {item}");
+    }
+    let windows = login_windows(&host);
+    assert_eq!(windows.len(), 1, "one EZproxy sign-in for the batch");
+    assert_eq!(windows[0].realm, Realm::Ezproxy);
+    assert!(
+        windows[0]
+            .entry_url
+            .starts_with("https://login.kcl.idm.oclc.org/login?qurl=https%3A%2F%2Fdoi.org%2F"),
+        "{}",
+        windows[0].entry_url
+    );
+    assert_eq!(ledger_counts(&host), (4, 0));
+    for url in effect_urls(&host) {
+        assert!(!url.contains("openathens"), "no redirector URL: {url}");
+    }
+}
+
+#[test]
+fn openathens_falls_back_to_the_publisher_login_when_it_does_not_know_the_publisher() {
+    let d = saml_dois();
+    let world = World::inst_only(&d);
+    let session = Rc::clone(&world.session);
+    let world = world.hook(move |op, _| match &op.effect {
+        // The redirector has never heard of the publisher ...
+        Effect::BrowserLoad { req, .. } if req.url.contains("go.openathens.net") => {
+            Some(Reply::ok(
+                300,
+                crate::sim::fixtures::browser_ok(
+                    "https://go.openathens.net/unknown",
+                    &page_inspection_of(PageClass::OpenathensUnknownResource),
+                    None,
+                    None,
+                ),
+            ))
+        }
+        // ... and the publisher's own login bounces to the IdP until a window was answered.
+        Effect::BrowserLoad { .. } if !session.get() => Some(Reply::ok(
+            800,
+            crate::sim::fixtures::browser_ok(
+                SHIB_IDP,
+                &page_inspection_of(shib_class()),
+                None,
+                None,
+            ),
+        )),
+        _ => None,
+    });
+    let mut cfg = test_config();
+    cfg.institution.saml_entity_id = Some(OX_IDP.into());
+    cfg.inst.use_ezproxy = false;
+    cfg.inst.check_alma = false;
+    let mut host = run_scenario_with(cfg, Persisted::default(), world);
+    start(&mut host, 1, Mode::Full, true, items(&d));
+    settle(&mut host);
+    for item in 1..=6 {
+        let o = outcome(&host, 1, item);
+        assert_eq!(source_of(&o), Some("saml"), "item {item}: {o:?}");
+    }
+    let windows = login_windows(&host);
+    assert_eq!(windows.len(), 1, "one window, in the SAML realm");
+    assert_eq!(windows[0].realm, Realm::Saml);
+    assert_eq!(
+        count(
+            &host,
+            |e| matches!(e, Effect::BrowserLoad { req, .. } if req.url.contains("go.openathens.net"))
+        ),
+        6,
+        "OpenAthens was asked once per item before the fallback"
+    );
+    assert_eq!(ledger_counts(&host), (6, 0));
+}
