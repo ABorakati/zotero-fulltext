@@ -314,3 +314,7 @@ zotero-fulltext-prefs-institution-preset-southampton = University of Southampton
 zotero-fulltext-prefs-institution-preset-standrews = University of St Andrews
 zotero-fulltext-prefs-institution-preset-sussex = University of Sussex
 zotero-fulltext-prefs-institution-preset-york = University of York
+
+## Login window reuse
+
+zotero-fulltext-login-standby = Checking access{ "\u2026" }

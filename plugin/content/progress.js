@@ -344,6 +344,7 @@
       } else {
         for (const row of this.rows()) lines.push([clean(row.key), `(${row.state})`, clean(row.l10n), '-'].join(' | '));
       }
+      lines.push(...windowJournalLines());
       return lines.join('\n');
     }
 
@@ -404,9 +405,73 @@
     try { return typeof Services !== 'undefined' && !!Services.startup && Services.startup.shuttingDown === true; } catch (e) { return false; }
   }
 
+  // Window journal for diagnostics: every top-level window opened in this Zotero while the plugin runs (ours or not),
+  // with what it showed once loaded and the code that opened it. Only chrome file names and host/path, never content.
+  const JOURNAL_MAX = 30;
+  const windowJournal = [];
+  let journalObserver = null;
+
+  function openerOf(stack) {
+    return String(stack || '').split('\n').slice(1)
+      .map((f) => (f.match(/(?:chrome|resource):\/\/[^\s)]*?([\w.-]+\.m?js):(\d+)/) || []).slice(1).join(':'))
+      .filter(Boolean).slice(0, 4).join(' < ') || '(no script frame)';
+  }
+
+  function startWindowJournal() {
+    if (journalObserver || typeof Services === 'undefined' || !Services.ww) return;
+    journalObserver = {
+      observe(subject, topic) {
+        if (topic !== 'domwindowopened') return;
+        const rec = { at: new Date().toISOString().slice(11, 19), opener: openerOf(new Error().stack), uri: '(not loaded)', title: '', size: '', ref: new WeakRef(subject) };
+        windowJournal.push(rec);
+        if (windowJournal.length > JOURNAL_MAX) windowJournal.shift();
+        try {
+          subject.addEventListener('load', () => {
+            try {
+              const d = subject.document;
+              rec.uri = /^https?:/.test(String(d.documentURI)) ? redactUrl(d.documentURI) : String(d.documentURI).slice(0, 120);
+              rec.title = clean(String(d.title || '(no title)').slice(0, 60));
+              rec.size = `${subject.innerWidth}x${subject.innerHeight}`;
+              const b = d.querySelector('browser');
+              if (b && b.currentURI) rec.browser = redactUrl(b.currentURI.spec);
+            } catch (e) { rec.uri = '(unreadable: ' + ZFT.util.errText(e).slice(0, 60) + ')'; }
+          }, { once: true });
+        } catch (e) { /* window already gone */ }
+      },
+    };
+    try { Services.ww.registerNotification(journalObserver); } catch (e) { journalObserver = null; }
+  }
+
+  function stopWindowJournal() {
+    if (!journalObserver) return;
+    try { Services.ww.unregisterNotification(journalObserver); } catch (e) { /* already gone */ }
+    journalObserver = null;
+  }
+
+  /** @returns {string[]} one diagnostics line per journalled window, oldest first */
+  function windowJournalLines() {
+    return windowJournal.map((r) => {
+      // Still open: re-read what it shows now (titles and pages change after load).
+      let state = 'closed';
+      try {
+        const w = r.ref && r.ref.deref();
+        if (w && !w.closed) {
+          state = 'open';
+          const d = w.document;
+          r.title = clean(String(d.title || '(no title)').slice(0, 60));
+          r.size = `${w.innerWidth}x${w.innerHeight}`;
+          const b = d.querySelector('browser');
+          if (b && b.currentURI) r.browser = redactUrl(b.currentURI.spec);
+        }
+      } catch (e) { state = 'unreadable'; }
+      return `window ${r.at} [${state}] ${r.uri} "${r.title}" ${r.size}${r.browser ? ' browser=' + r.browser : ''} opened-by ${r.opener}`;
+    });
+  }
+
   /** Open (or reopen) the window of one run. @returns {boolean} false if it could not be opened */
   function openWindowFor(entry, lowered) {
     if (quitting() || typeof Services === 'undefined' || !Services.ww) return false;
+    startWindowJournal();
     const args = {
       model: entry.model,
       onAction: (item, action) => {
@@ -561,6 +626,7 @@
 
   /** Close all progress windows (plugin shutdown). Late rows and reports for the forgotten runs are ignored. */
   function closeAll() {
+    stopWindowJournal();
     for (const entry of Array.from(entries.values())) closeWindow(entry.win);
     entries.clear();
     lastRun = null;
@@ -569,6 +635,6 @@
   ZFT.progress = {
     WINDOW_URL, WINDOW_TYPE, ROW_STATES, ProgressModel,
     GROUP_ORDER, GROUP_L10N, ACTION_L10N,
-    open, update, finish, show, setSignIn, modelFor, handleAction, redactUrl, closeAll,
+    open, update, finish, show, setSignIn, modelFor, handleAction, redactUrl, closeAll, windowJournalLines,
   };
 })(this);

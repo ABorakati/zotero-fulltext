@@ -1560,77 +1560,120 @@ fn alma_data(name: &str) -> Vec<u8> {
     std::fs::read(&path).unwrap_or_else(|e| panic!("{}: {e}", path.display()))
 }
 
+/// Real unauthenticated KCL (44KCL_INST) CTO captures: file, requested DOI, expected `oa_status` and the
+/// `alma:<package>` signals in the order the parser must emit them (current coverage only, paid before free).
+#[rustfmt::skip]
+const ALMA_TABLE: &[(&str, &str, Option<&str>, &[&str])] = &[
+    ("alma-wiley.xml", "10.1111/nep.13250", None, &[
+        "alma:Wiley journals current",
+        "alma:Wiley Read and Publish Open Access 2026-2028 Reading List: Jisc",
+    ]),
+    ("alma-lww.xml", "10.1097/sla.0000000000005603", Some("free"), &[
+        "alma:Journals@Ovid LWW Total Access Collection 2024 version with Neurology (LTOT-24-Y",
+        "alma:Wolters Kluwer:Jisc Collections:Wolters Kluwer Transitional OA agreement (pilot",
+        "alma:Canadian Libraries",
+    ]),
+    ("alma-lancet.xml", "10.1016/s0140-6736(20)30183-5", None, &[
+        "alma:Elsevier Journals King\u{2019}s College London Perpetual Access",
+        "alma:Elsevier ScienceDirect Journals",
+        "alma:ProQuest Central UK/Ireland",
+    ]),
+    ("alma-oup.xml", "10.1093/bjs/znab385", None, &[
+        "alma:Oxford University Press:Jisc Collections:OUP Read and Publish 2024-2025 (2025 co",
+    ]),
+    ("alma-nature.xml", "10.1038/s41586-020-2649-2", None, &[
+        "alma:Nature",
+        "alma:Springer Nature JISC Nature TA 2024",
+    ]),
+    ("alma-springer-not-held.xml", "10.1007/s00464-021-08777-9", None, &[]),
+    ("alma-unknown-doi.xml", "10.9999/notheld.12345", None, &[]),
+];
+
 #[test]
-fn alma_held_item_has_one_landing_candidate_per_full_text_service() {
-    let a = oa::parse(
-        Alma,
-        &resp(200),
-        &alma_data("alma-held.xml"),
-        &want_doi(GREEN),
-    );
-    assert_eq!((a.status, a.oa_status.as_deref()), (Found, None));
-    assert_eq!(
-        a.candidates.len(),
-        2,
-        "the getHoldings service is not a full-text service"
-    );
-    for c in &a.candidates {
-        assert_eq!(
-            (c.kind, c.source, c.record_doi.clone(), c.needs_browser),
-            (CandKind::Landing, Alma, None, false)
-        );
-        assert!(c.url.starts_with("https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&package_service_id="), "{}", c.url);
-        assert!(
-            c.url.contains("&institutionId=6881&customerId=6880"),
-            "entities are decoded: {}",
-            c.url
-        );
+fn alma_real_captures_yield_browser_candidates_in_the_pinned_shape() {
+    for (file, doi, oa_status, signals) in ALMA_TABLE {
+        let a = oa::parse(Alma, &resp(200), &alma_data(file), &want_doi(doi));
+        assert_eq!(a.source, Alma, "{file}");
+        assert_eq!(a.oa_status.as_deref(), *oa_status, "{file}");
+        let got: Vec<&str> = a
+            .candidates
+            .iter()
+            .map(|c| c.signal.as_deref().unwrap())
+            .collect();
+        assert_eq!(&got, signals, "{file}");
+        if signals.is_empty() {
+            assert_eq!(
+                (a.status, a.note.as_deref()),
+                (Empty, Some("not_held")),
+                "{file}"
+            );
+            continue;
+        }
+        assert_eq!(a.status, Found, "{file}");
+        assert_candidate_invariants(file, &a);
+        for c in &a.candidates {
+            assert_eq!(
+                (
+                    c.kind,
+                    c.version,
+                    c.host_kind,
+                    c.needs_browser,
+                    c.record_doi.as_deref(),
+                    c.landing_url.as_deref()
+                ),
+                (
+                    CandKind::Landing,
+                    Version::Published,
+                    HostKind::Publisher,
+                    true,
+                    Some(*doi),
+                    None
+                ),
+                "{file}: {}",
+                c.url
+            );
+            assert!(
+                c.url.starts_with("https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&package_service_id=")
+                    && c.url.ends_with("&institutionId=6881&customerId=6880"),
+                "{file}: entities decoded, redirector kept as is: {}",
+                c.url
+            );
+            assert!(c.signal.as_deref().unwrap().chars().count() <= "alma:".len() + 80);
+        }
     }
-    assert_eq!(a.candidates[0].signal.as_deref(), Some("alma:Nature"));
-    assert_eq!(
-        a.candidates[1].signal.as_deref(),
-        Some("alma:ProQuest Central UK/Ireland")
-    );
 }
 
 #[test]
-fn alma_free_and_not_held() {
-    let free = oa::parse(
+fn alma_lapsed_coverage_is_dropped_and_free_packages_come_last() {
+    // Nature lists ProQuest (embargoed) and two free archives with current_access=false.
+    let a = oa::parse(
         Alma,
         &resp(200),
-        &alma_data("alma-free.xml"),
+        &alma_data("alma-nature.xml"),
         &Ids::default(),
-    );
-    assert_eq!(
-        (
-            free.status,
-            free.oa_status.as_deref(),
-            free.candidates.len()
-        ),
-        (Found, Some("free"), 1)
-    );
-    assert_eq!(
-        free.candidates[0].signal.as_deref(),
-        Some("alma:Free E-journals & open archives")
     );
     assert!(
-        free.candidates[0]
-            .url
-            .contains("package_service_id=61300000010006881"),
-        "resolution_url given as a <key>"
+        a.candidates
+            .iter()
+            .all(|c| !c.signal.as_deref().unwrap().contains("ProQuest"))
     );
-
-    let none = oa::parse(
+    assert_eq!(a.oa_status, None, "the dropped free archives do not count");
+    // LWW: the only free package left is the current one, ranked after the paid ones.
+    let a = oa::parse(
         Alma,
         &resp(200),
-        &alma_data("alma-not-held.xml"),
+        &alma_data("alma-lww.xml"),
         &Ids::default(),
     );
     assert_eq!(
-        (none.status, none.note.as_deref(), none.candidates.len()),
-        (Empty, Some("not_held"), 0)
+        a.candidates.last().unwrap().signal.as_deref(),
+        Some("alma:Canadian Libraries")
     );
+    assert_eq!(a.candidates[0].record_doi, None, "no requested DOI");
+}
 
+#[test]
+fn alma_login_page_is_not_alma() {
     let login = oa::parse(
         Alma,
         &resp(200),
@@ -1641,6 +1684,21 @@ fn alma_free_and_not_held() {
         (login.status, login.note.as_deref()),
         (Unparseable, Some("not_alma"))
     );
+}
+
+#[test]
+fn alma_captures_survive_truncation_and_corruption() {
+    for (file, ..) in ALMA_TABLE {
+        let body = alma_data(file);
+        for cut in (0..body.len()).step_by(61) {
+            let _ = oa::parse(Alma, &resp(200), &body[..cut], &Ids::default());
+        }
+        let mut mutated = body.clone();
+        for i in (0..mutated.len()).step_by(53) {
+            mutated[i] ^= 0x5a;
+        }
+        let _ = oa::parse(Alma, &resp(200), &mutated, &Ids::default());
+    }
 }
 
 // ---------------------------------------------------------------------------------------------------- Zotero OA

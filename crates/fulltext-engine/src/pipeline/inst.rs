@@ -10,7 +10,22 @@
 //!    consent here, before the first licence reservation.
 //! 2. **Direct** (`prefs.try_direct`): `https://doi.org/<doi>` through `attempt::fetch_candidate` with
 //!    `FetchPolicy::inst(InstKey::for_doi(doi))` (campus IP or an existing publisher session). A page that says
-//!    "no access" is remembered (`direct_denied`) and never retried.
+//!    "no access" is remembered (`direct_denied`) and never retried. When a sign-in route follows, the walk over
+//!    the page's PDF links stops at `DIRECT_BUDGET` fetches and "no usable PDF link" / "denied" from it are
+//!    forgotten: PDF links that answer HTML without a session mean "not entitled without a session" (Wiley), and
+//!    the item goes on to OpenAthens / SAML / EZproxy. Only with no sign-in route is that answer the verdict.
+//!    2b. **Alma links** (`prefs.check_alma`, only when Alma's answer carried full-text candidates, `Source::Alma`
+//!    with `signal = "alma:<package>"`): the links King's Library Search itself follows. The Alma CTO answer is
+//!    asked for again even when "held" is cached (the cache keeps the verdict, not the links). The first link
+//!    also becomes `Handoff.redirector_url`. Each of the first `ALMA_TRIED` (2) links goes through the same hidden
+//!    load / session gate / landing-extraction / PDF walk as the sign-in routes (`Hop`, `session_route`), with
+//!    `hold_while` every kind of SSO hop; the realm is OpenAthens for a redirector link, EZproxy for a proxy link,
+//!    SAML otherwise (`alma_realm`). A PDF saved this way has `source = "alma"` and the file's own address as URL.
+//!    Budget: a link is started only while it and what follows fit (after the first link one fetch stays free
+//!    for the sign-in routes, after the second two), the PDF walk stops one fetch short of `BUDGET`, and the
+//!    load that bounced to the identity provider is refunded once the user has signed in (the retry replaces
+//!    it). When a sign-in route follows, what the links learnt ("no PDF link", "denied", "not known", other) is
+//!    forgotten; only a bot check, a timeout or a network error carries over to the verdict.
 //! 3. **OpenAthens** (`prefs.use_openathens`): `cx.session_admit(Openathens)`; then hidden `browser_load` of
 //!    `pure::redirector_url(inst, target)` with `Ua::Plain`, `capture_pdf`, `hold_while [OpenathensRedirector]`,
 //!    `barrier: true`, under `acquire_inst(key, Page)` + `acquire_browser()` and a licence reservation (rolled
@@ -98,6 +113,14 @@ use std::pin::Pin;
 
 /// Fetch budget of one item on this route.
 const BUDGET: u32 = policy::INST_FETCH_BUDGET_PER_ITEM;
+/// Fetches the direct attempt may spend when a sign-in route follows it (the landing page and one PDF link).
+/// Off campus the publisher answers every PDF link with HTML (Wiley's no-access behaviour); walking them all
+/// would use the whole budget before the OpenAthens / SAML / EZproxy step could load anything.
+const DIRECT_BUDGET: u32 = BUDGET / 2;
+/// Alma full-text links kept from one answer (the resolver lists one per package; the first two are tried).
+const ALMA_KEPT: usize = 5;
+/// Alma links tried per item. A dead link costs a hidden load, so two is the most the budget can afford.
+const ALMA_TRIED: usize = 2;
 /// Upper bound for the Alma CTO answer (about 20 KB in practice).
 const ALMA_MAX_BYTES: u64 = 1024 * 1024;
 /// The URL must be stable this long for a hidden load to count as settled.
@@ -166,6 +189,42 @@ enum Loaded {
     Pdf(PdfBlob),
     Page(Landed),
     Failed,
+}
+
+/// One entry into a session realm: what to load, which realm's gate serves it, and how its hops are recognised.
+struct Hop {
+    realm: Realm,
+    entry: String,
+    /// The `Saved.source` of a PDF this hop leads to.
+    via: Source,
+    /// URL classes that are only a hop on the way (the load does not settle on them).
+    hold: Vec<UrlClassKind>,
+    /// Trace label.
+    src: &'static str,
+    from_alma: bool,
+}
+
+impl Hop {
+    /// The route of a realm itself: the OpenAthens redirector link, the EZproxy login link, the WAYFless link.
+    fn session(realm: Realm, entry: String) -> Self {
+        let (via, hold, src) = match realm {
+            Realm::Openathens => (
+                Source::Redirector,
+                UrlClassKind::OpenathensRedirector,
+                "redirector",
+            ),
+            Realm::Ezproxy => (Source::Ezproxy, UrlClassKind::EzproxyLogin, "ezproxy"),
+            Realm::Saml => (Source::Saml, UrlClassKind::PublisherSsoHop, "saml"),
+        };
+        Self {
+            realm,
+            entry,
+            via,
+            hold: vec![hold],
+            src,
+            from_alma: false,
+        }
+    }
 }
 
 /// A page the hidden browser settled on.
@@ -244,6 +303,40 @@ fn alma_answer(i: &Inspection) -> Option<bool> {
     }
 }
 
+/// The full-text links of an Alma answer: its own http(s) candidates, de-duplicated, in the resolver's order.
+fn alma_links(i: &Inspection) -> Vec<Candidate> {
+    let Inspection::Api(a) = i else {
+        return Vec::new();
+    };
+    if a.source != Source::Alma || a.status != ApiStatus::Found {
+        return Vec::new();
+    }
+    let mut seen = BTreeSet::new();
+    a.candidates
+        .iter()
+        .filter(|c| c.source == Source::Alma)
+        .filter(|c| {
+            let u = c.url.trim();
+            (u.starts_with("https://") || u.starts_with("http://"))
+                && pure::host_of(u).is_some()
+                && seen.insert(u.to_owned())
+        })
+        .take(ALMA_KEPT)
+        .cloned()
+        .collect()
+}
+
+/// The realm that serves an Alma link: OpenAthens when the link is a redirector URL, the EZproxy when it is on the
+/// proxy, otherwise the publisher's own SAML / Shibboleth sign-in.
+fn alma_realm(inst: &Institution, url: &str) -> Realm {
+    match pure::url_class(inst, url) {
+        UrlClassKind::OpenathensRedirector => Realm::Openathens,
+        UrlClassKind::EzproxyLogin => Realm::Ezproxy,
+        _ if pure::is_ezproxy_url(inst, url) => Realm::Ezproxy,
+        _ => Realm::Saml,
+    }
+}
+
 /// The CTO request: `{base}/view/uresolver/{inst}/openurl?...&rft_id=info:doi/{doi}&svc_dat=CTO`.
 fn alma_cto_url(alma: &Alma, doi: &str) -> String {
     let base = alma.base.trim_end_matches('/');
@@ -308,9 +401,13 @@ fn same_host(a: &str, b: &str) -> bool {
 /// existing publisher session), or a sign-in route that is switched on AND has its settings (OpenAthens domain,
 /// SAML `entityID`, EZproxy login host and suffix).
 fn has_usable_route(cfg: &EngineConfig) -> bool {
+    cfg.inst.try_direct || has_sign_in_route(cfg)
+}
+
+/// Whether a route that can establish a session (OpenAthens, SAML, EZproxy) is switched on and configured.
+fn has_sign_in_route(cfg: &EngineConfig) -> bool {
     let (prefs, inst) = (&cfg.inst, &cfg.institution);
-    prefs.try_direct
-        || (prefs.use_openathens && pure::has_openathens(inst))
+    (prefs.use_openathens && pure::has_openathens(inst))
         || (prefs.use_saml && pure::saml_entity(inst).is_some())
         || (prefs.use_ezproxy && pure::has_ezproxy(inst))
 }
@@ -470,6 +567,11 @@ struct Inst<'a> {
     handoff: Handoff,
     spent: u32,
     direct_denied: bool,
+    /// While the direct attempt or the Alma links run ahead of a sign-in route: the `spent` level at which they
+    /// stop walking PDF links, so the sign-in routes keep a fetch.
+    soft_cap: Option<u32>,
+    /// Full-text links Alma's link resolver offered (up to `ALMA_KEPT`), tried in order before the sign-in routes.
+    alma_links: Vec<Candidate>,
     /// First publisher page reached (un-proxied URL).
     landing: Option<String>,
     /// The host the EZproxy route assumed configured.
@@ -530,6 +632,8 @@ impl<'a> Inst<'a> {
             handoff: hand,
             spent: 0,
             direct_denied: false,
+            soft_cap: None,
+            alma_links: Vec::new(),
             landing: None,
             ezproxy_host: None,
             challenged: BTreeSet::new(),
@@ -549,6 +653,7 @@ impl<'a> Inst<'a> {
         self.entitlement().await?;
         self.group_gate().await?;
         self.direct().await?;
+        self.alma_route().await?;
         self.openathens().await?;
         self.saml().await?;
         self.ezproxy().await
@@ -710,20 +815,28 @@ impl<'a> Inst<'a> {
         if !cx.cfg.inst.check_alma {
             return Continue(());
         }
-        let held = match cx.alma_known(doi) {
-            Some(held) => Some(held),
-            None => self.ask_alma(doi, alma).await,
+        // "Not held" is cached and settles the item. "Held" is cached too, but the links are not: they are asked
+        // for again (one cheap catalogue request) so the Alma route has something to open.
+        let (held, links) = match cx.alma_known(doi) {
+            Some(false) => (Some(false), Vec::new()),
+            _ => self.ask_alma(doi, alma).await,
         };
         if held == Some(false) {
             return Break(Outcome::NotEntitled {
                 handoff: self.handoff.clone(),
             });
         }
+        if let Some(first) = links.first() {
+            // The link King's Library Search itself uses is the best thing to hand the user.
+            self.handoff.redirector_url = Some(first.url.clone());
+        }
+        self.alma_links = links;
         Continue(())
     }
 
-    /// One CTO request. `None` = unknown (error, timeout, throttled, unparseable): the route goes on.
-    async fn ask_alma(&self, doi: &str, alma: &Alma) -> Option<bool> {
+    /// One CTO request. `None` = unknown (error, timeout, throttled, unparseable): the route goes on. The links
+    /// are the answer's full-text candidates (empty unless the item is held).
+    async fn ask_alma(&self, doi: &str, alma: &Alma) -> (Option<bool>, Vec<Candidate>) {
         let cx = self.cx;
         let url = alma_cto_url(alma, doi);
         let host = pure::host_of(&alma.base).unwrap_or_default();
@@ -731,7 +844,9 @@ impl<'a> Inst<'a> {
         let mut req = requests::get(&url, Ua::Default, ms, ALMA_MAX_BYTES);
         req.headers
             .insert("Accept".into(), "text/xml, application/xml;q=0.9".into());
-        let mut permit = cx.acquire_api(Source::Alma).await.ok()?;
+        let Ok(mut permit) = cx.acquire_api(Source::Alma).await else {
+            return (None, Vec::new());
+        };
         let started = cx.now();
         let spec = InspectSpec::Api {
             source: Source::Alma,
@@ -743,15 +858,19 @@ impl<'a> Inst<'a> {
                 cx.http(Route::Inst, false, req, Retain::None, spec),
             )
             .await;
-        let (held, throttled) = match &answer {
+        let (held, throttled, links) = match &answer {
             Ok(Ok(resp)) => {
                 let throttled = match &resp.inspect {
                     Inspection::Api(a) if a.status == ApiStatus::Throttled => Some(a.retry_after_s),
                     _ => None,
                 };
-                (alma_answer(&resp.inspect), throttled)
+                (
+                    alma_answer(&resp.inspect),
+                    throttled,
+                    alma_links(&resp.inspect),
+                )
             }
-            _ => (None, None),
+            _ => (None, None, Vec::new()),
         };
         permit.report(held.is_some());
         drop(permit);
@@ -770,7 +889,7 @@ impl<'a> Inst<'a> {
         if let Some(held) = held {
             cx.learn_alma(doi, held);
         }
-        held
+        (held, links)
     }
 
     /// Group libraries: the institutional licence may not cover them, so the user decides once per run.
@@ -812,8 +931,7 @@ impl<'a> Inst<'a> {
                 }
                 let mut pdfs = h.pdfs;
                 pdfs.extend(self.crossref.iter().cloned());
-                self.try_pdfs(pdfs, Source::Doi).await?;
-                Continue(())
+                self.direct_walk(pdfs).await
             }
             Got::Denied => {
                 self.direct_denied = true;
@@ -821,6 +939,25 @@ impl<'a> Inst<'a> {
             }
             Got::Bounce | Got::Miss => Continue(()),
         }
+    }
+
+    /// The PDF links of the page the direct attempt reached. Without a session the publisher answers them with
+    /// HTML or "no access": when a sign-in route follows, that is "not entitled without a session", not the item's
+    /// verdict. The walk is capped so the budget keeps room for that route, and what it learns about the page
+    /// (no usable link, denied) is forgotten; a bot check, a timeout or a network error still counts.
+    async fn direct_walk(&mut self, pdfs: Vec<Candidate>) -> Flow {
+        let signs_in = has_sign_in_route(&self.cx.cfg);
+        if signs_in {
+            self.soft_cap = Some(DIRECT_BUDGET);
+        }
+        let before = self.miss;
+        let walked = self.try_pdfs(pdfs, Source::Doi).await;
+        self.soft_cap = None;
+        walked?;
+        if signs_in && matches!(self.miss, Miss::NoPdfLink | Miss::Denied) {
+            self.miss = before;
+        }
+        Continue(())
     }
 
     // ------------------------------------------------------------------------------------------ fetch plumbing
@@ -959,6 +1096,9 @@ impl<'a> Inst<'a> {
             if self.visits.was_tried(&cand.url) {
                 continue;
             }
+            if self.soft_cap.is_some_and(|cap| self.spent >= cap) {
+                break;
+            }
             let end = self.fetch(&cand).await?;
             match self.settle(end, &cand).await? {
                 Got::Pdf(blob) => self.finish_blob(blob, via).await?,
@@ -1083,6 +1223,62 @@ impl<'a> Inst<'a> {
         })
     }
 
+    // ------------------------------------------------------------------------------------------ 2b. Alma links
+
+    /// The full-text links of King's Library Search (module docs, step 2b). Each link is opened in the user's
+    /// own session like the OpenAthens entry. Misses of this step are forgotten when a sign-in route follows, except
+    /// the ones that say the publisher (or the network) was not in a state to answer: bot check, timeout, network.
+    async fn alma_route(&mut self) -> Flow {
+        self.check_halt()?;
+        if self.alma_links.is_empty() {
+            return Continue(());
+        }
+        let links = std::mem::take(&mut self.alma_links);
+        let signs_in = has_sign_in_route(&self.cx.cfg);
+        let before = std::mem::take(&mut self.miss);
+        // The links may walk PDF links up to the last fetch but one: the next route keeps a load.
+        self.soft_cap = signs_in.then_some(BUDGET - 1);
+        for (n, cand) in links.into_iter().take(ALMA_TRIED).enumerate() {
+            // Starting a link needs room for it and for what follows: one fetch after the first, two after the
+            // second (a load and a PDF), so a dead link never starves the OpenAthens / SAML / EZproxy routes.
+            let reserve = if signs_in { 1 + u32::from(n > 0) } else { 0 };
+            if self.spent + 1 + reserve > BUDGET {
+                break;
+            }
+            let hop = self.alma_hop(&cand);
+            if let Break(outcome) = self.session_route(hop).await {
+                self.soft_cap = None;
+                return Break(outcome);
+            }
+        }
+        self.soft_cap = None;
+        let found = self.miss;
+        let carries = matches!(found, Miss::Challenge | Miss::Timeout | Miss::Network);
+        self.miss = if signs_in && !carries {
+            before
+        } else {
+            before.max(found)
+        };
+        Continue(())
+    }
+
+    /// The session hop for an Alma link: the realm follows the link (OpenAthens redirector, the EZproxy, else the
+    /// publisher's own SAML sign-in), and every kind of intermediate sign-in hop is held.
+    fn alma_hop(&self, cand: &Candidate) -> Hop {
+        Hop {
+            realm: alma_realm(&self.cx.cfg.institution, &cand.url),
+            entry: cand.url.clone(),
+            via: Source::Alma,
+            hold: vec![
+                UrlClassKind::OpenathensRedirector,
+                UrlClassKind::EzproxyLogin,
+                UrlClassKind::PublisherSsoHop,
+            ],
+            src: "alma",
+            from_alma: true,
+        }
+    }
+
     // --------------------------------------------------------------------------- 3. / 4. the sign-in routes
 
     async fn openathens(&mut self) -> Flow {
@@ -1099,7 +1295,8 @@ impl<'a> Inst<'a> {
             self.note(Miss::NotKnown);
             return Continue(());
         }
-        self.session_route(Realm::Openathens, entry).await
+        self.session_route(Hop::session(Realm::Openathens, entry))
+            .await
     }
 
     /// The publisher's own SAML / Shibboleth sign-in through a WAYFless link (module docs, step 4).
@@ -1118,7 +1315,7 @@ impl<'a> Inst<'a> {
             self.note(Miss::NotKnown);
             return Continue(());
         };
-        self.session_route(Realm::Saml, entry).await
+        self.session_route(Hop::session(Realm::Saml, entry)).await
     }
 
     /// The WAYFless sign-in URL for this item: the first publisher page reached, else the item's own URL, else the
@@ -1153,7 +1350,8 @@ impl<'a> Inst<'a> {
             return Continue(());
         };
         self.ezproxy_host = Some(host);
-        self.session_route(Realm::Ezproxy, entry).await
+        self.session_route(Hop::session(Realm::Ezproxy, entry))
+            .await
     }
 
     /// Is `host` configured in the institution's EZproxy? Cached answers (7 days) and listed hosts need no
@@ -1216,18 +1414,16 @@ impl<'a> Inst<'a> {
 
     /// Wait for the realm's session gate, load the entry URL in a hidden browser and act on what settles. The
     /// first caller probes alone; callers that find a sign-in window open wait without holding their item slot.
-    async fn session_route(&mut self, realm: Realm, entry: String) -> Flow {
+    async fn session_route(&mut self, hop: Hop) -> Flow {
         let cx = self.cx;
-        let via = match realm {
-            Realm::Openathens => Source::Redirector,
-            Realm::Ezproxy => Source::Ezproxy,
-            Realm::Saml => Source::Saml,
-        };
+        let realm = hop.realm;
+        let via = hop.via;
+        let entry = hop.entry.clone();
         let (mut attempt, mut waited) = (0u8, false);
         loop {
             let epoch = self.admit(realm).await?;
             let probe = Probe::new(cx, realm, epoch);
-            let landed = match self.hidden_load(realm, &entry).await? {
+            let landed = match self.hidden_load(&hop).await? {
                 Loaded::Pdf(blob) => {
                     probe.report(ProbeResult::LoggedIn);
                     return self.finish_blob(blob, via).await;
@@ -1261,7 +1457,8 @@ impl<'a> Inst<'a> {
                 Seen::NeedsLogin => probe.report(ProbeResult::NeedsLogin),
                 Seen::Wait => {
                     probe.report(ProbeResult::Failed);
-                    if waited {
+                    // The poll is a HEAD of the redirector entry; an Alma link is not one.
+                    if waited || hop.from_alma {
                         self.note(Miss::Timeout);
                         return Continue(());
                     }
@@ -1352,6 +1549,11 @@ impl<'a> Inst<'a> {
                 }
             }
             self.sign_in(realm, epoch, &entry, attempt).await?;
+            if hop.from_alma && attempt == 0 {
+                // The load that bounced to the identity provider fetched nothing from the publisher: once the
+                // user has signed in, the retry replaces it instead of costing a second fetch of the share.
+                self.spent = self.spent.saturating_sub(1);
+            }
             attempt += 1;
         }
     }
@@ -1484,7 +1686,8 @@ impl<'a> Inst<'a> {
     /// One hidden-browser load of `entry` on the institutional gates: family slot, browser slot, licence
     /// reservation (persisted before the `barrier` load leaves). The reservation is rolled back unless the load
     /// captured a PDF.
-    async fn hidden_load(&mut self, realm: Realm, entry: &str) -> Flow<Loaded> {
+    async fn hidden_load(&mut self, hop: &Hop) -> Flow<Loaded> {
+        let entry = hop.entry.as_str();
         self.check_halt()?;
         self.spend()?;
         let cx = self.cx;
@@ -1502,11 +1705,6 @@ impl<'a> Inst<'a> {
         let ms = cx.timeout_for(FetchClass::BrowserLoad, host);
         // Do not settle on a page that is only a hop on the way: the redirector's "Please wait", the EZproxy
         // login page (it auto-posts to the IdP), a publisher SSO start page (SAML: the WAYFless link itself).
-        let hold = match realm {
-            Realm::Openathens => UrlClassKind::OpenathensRedirector,
-            Realm::Ezproxy => UrlClassKind::EzproxyLogin,
-            Realm::Saml => UrlClassKind::PublisherSsoHop,
-        };
         let req = BrowserReq {
             url: entry.to_owned(),
             ua: Ua::Plain,
@@ -1514,17 +1712,13 @@ impl<'a> Inst<'a> {
             want_page: true,
             settle_ms: SETTLE_MS,
             timeout_ms: ms,
-            hold_while: vec![hold],
+            hold_while: hop.hold.clone(),
         };
         let spec = InspectSpec::Page {
             requested: self.ids.clone(),
             route: Route::Inst,
         };
-        let src = match realm {
-            Realm::Openathens => "redirector",
-            Realm::Ezproxy => "ezproxy",
-            Realm::Saml => "saml",
-        };
+        let src = hop.src;
         let started = cx.now();
         // From here on a cancelled item still counts the reservation: the request may have reached the publisher.
         ticket.mark_sent();
@@ -1573,7 +1767,12 @@ impl<'a> Inst<'a> {
                 Loaded::Pdf(PdfBlob {
                     body,
                     verdict,
-                    url: entry.to_owned(),
+                    // An Alma resolution URL is not a place to store; the file's own address is.
+                    url: if hop.from_alma {
+                        final_url.clone()
+                    } else {
+                        entry.to_owned()
+                    },
                     final_url,
                     landing_url: None,
                     source: Source::Redirector,
@@ -1684,6 +1883,15 @@ mod tests {
 
     fn snap() -> ItemSnapshot {
         fixtures::item(1, DOI)
+    }
+
+    /// Campus access only: the direct attempt owns the whole fetch budget (no sign-in route follows it).
+    fn direct_only() -> EngineConfig {
+        let mut c = cfg();
+        c.inst.use_openathens = false;
+        c.inst.use_ezproxy = false;
+        c.inst.use_saml = false;
+        c
     }
 
     fn ids_of(doi: &str) -> Ids {
@@ -2491,6 +2699,438 @@ mod tests {
 
     // ------------------------------------------------------------------------------------------------ 2. direct
 
+    // ------------------------------------------------------------------------------------------- 2a. Alma links
+
+    const ALMA_LINK: &str = "https://www.bmj.com/lookup/doi/10.1136/bmj.n71";
+    const ALMA_LINK_2: &str = "https://www.bmj.com/lookup/doi/10.1136/bmj.n71?pkg=2";
+    const ALMA_LINK_3: &str = "https://www.bmj.com/lookup/doi/10.1136/bmj.n71?pkg=3";
+
+    /// A full-text link as the Alma parser emits it.
+    fn alma_link(url: &str) -> Candidate {
+        let mut c = candidate(url, CandKind::Landing, Source::Alma, 0);
+        c.signal = Some("alma:BMJ Journals".to_owned());
+        c.needs_browser = true;
+        c.record_doi = Some(DOI.to_owned());
+        c
+    }
+
+    /// The Alma CTO answer "held", with these full-text links.
+    fn alma_reply(links: Vec<Candidate>) -> Reply {
+        let insp = Inspection::Api(ApiInspection {
+            source: Source::Alma,
+            status: ApiStatus::Found,
+            learned: LearnedIds::default(),
+            candidates: links,
+            oa_status: None,
+            note: None,
+            retry_after_s: None,
+        });
+        Reply::ok(
+            60,
+            http_ok(
+                200,
+                "https://librarysearch.kcl.ac.uk/view/uresolver/44KCL_INST/openurl",
+                &insp,
+                None,
+            ),
+        )
+    }
+
+    /// KCL holds the article, offers these links, saving works, and doi.org says "no access" (off campus).
+    fn alma_site(links: Vec<Candidate>) -> ScriptResponder {
+        script()
+            .on(url_has(ALMA_HOST), alma_reply(links))
+            .on(is_type("save_pdf"), Reply::ok(100, save_ok(SAVED_KEY)))
+            .on(
+                url_has("https://doi.org/"),
+                page(80, ARTICLE, PageClass::AccessDenied),
+            )
+    }
+
+    fn signed_in_article() -> Reply {
+        browser_landing(900, ARTICLE, AccessHint::Unknown, vec![pdf_cand(PDF)], 5)
+    }
+
+    fn browser_urls(rig: &Rig) -> Vec<String> {
+        loads(rig).into_iter().map(|l| l.url).collect()
+    }
+
+    #[test]
+    fn inst_alma_link_lands_signed_in_and_its_pdf_is_saved_as_alma() {
+        let s = alma_site(vec![alma_link(ALMA_LINK)])
+            .on(url_has(ALMA_LINK), signed_in_article())
+            .on(url_has("full.pdf"), pdf(400, PDF, 6));
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, snap());
+        match &outcome {
+            Outcome::Saved {
+                route, source, url, ..
+            } => assert_eq!(
+                (*route, source.as_str(), url.as_str()),
+                (Route::Inst, "alma", PDF)
+            ),
+            other => panic!("{other:?}"),
+        }
+        assert_eq!(
+            request_urls(&rig),
+            vec![DOI_URL.to_owned(), ALMA_LINK.to_owned(), PDF.to_owned()],
+            "direct, the Alma link, the PDF: the redirector is never needed"
+        );
+        let want = BrowserReq {
+            url: ALMA_LINK.to_owned(),
+            ua: Ua::Plain,
+            capture_pdf: true,
+            want_page: true,
+            settle_ms: 3_000,
+            timeout_ms: 60_000,
+            hold_while: vec![
+                UrlClassKind::OpenathensRedirector,
+                UrlClassKind::EzproxyLogin,
+                UrlClassKind::PublisherSsoHop,
+            ],
+        };
+        assert_eq!(loads(&rig), vec![want]);
+        assert_eq!(
+            windows(&rig).len(),
+            0,
+            "a working session never opens a window"
+        );
+        assert_eq!(
+            session(&rig, Realm::Saml),
+            SessionState::SignedIn { verified: true }
+        );
+        assert_eq!(ledger(&rig), (1, 0));
+        assert_persist_before_barrier(&rig);
+        assert!(rig.host.pending.is_empty());
+    }
+
+    #[test]
+    fn inst_alma_link_that_ends_on_a_pdf_stores_the_files_address_not_the_resolver_url() {
+        let s =
+            alma_site(vec![alma_link(ALMA_LINK)]).on(url_has(ALMA_LINK), browser_pdf(900, PDF, 7));
+        let mut rig = Rig::new(s);
+        match run_one(&mut rig, snap()) {
+            Outcome::Saved { source, url, .. } => {
+                assert_eq!((source.as_str(), url.as_str()), ("alma", PDF))
+            }
+            other => panic!("{other:?}"),
+        }
+        assert_eq!(browser_urls(&rig), vec![ALMA_LINK.to_owned()]);
+    }
+
+    #[test]
+    fn inst_alma_link_that_bounces_to_the_idp_shares_one_window_and_is_retried() {
+        let s = alma_site(vec![alma_link(ALMA_LINK)])
+            .on_seq(
+                // Not `url_has`: the login window's entry URL is the same link.
+                |e| matches!(e, Effect::BrowserLoad { .. }) && url_has(ALMA_LINK)(e),
+                vec![browser_page(500, IDP, idp()), signed_in_article()],
+            )
+            .on(url_has("full.pdf"), pdf(400, PDF, 6))
+            .on(
+                is_type("login_window"),
+                Reply::ok(2_000, window_ok(LoginResult::Landed)),
+            );
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, snap());
+        assert_eq!(saved_source(&outcome), Some("alma"), "{outcome:?}");
+        let shown = windows(&rig);
+        assert_eq!(shown.len(), 1);
+        assert_eq!(
+            (shown[0].realm, shown[0].kind, shown[0].entry_url.as_str()),
+            (Realm::Saml, LoginKind::Login, ALMA_LINK),
+            "the window opens on the Alma link itself, in the SAML realm"
+        );
+        assert!(shown[0].capture_pdf);
+        assert_eq!(browser_urls(&rig), vec![ALMA_LINK.to_owned(); 2]);
+        assert_eq!(
+            session(&rig, Realm::Saml),
+            SessionState::SignedIn { verified: true }
+        );
+        assert_eq!(session(&rig, Realm::Openathens), SessionState::SignedOut);
+        assert_eq!(
+            requests(&rig).len(),
+            4,
+            "direct, the bounce, the retry, the PDF: exactly the item's budget, no OpenAthens load"
+        );
+        assert_eq!(ledger(&rig), (1, 0));
+        assert_persist_before_barrier(&rig);
+    }
+
+    #[test]
+    fn inst_an_alma_link_on_the_redirector_signs_in_through_the_openathens_realm() {
+        let s = alma_site(vec![alma_link(&redirector())])
+            .on_seq(
+                is_type("browser_load"),
+                vec![browser_page(500, IDP, idp()), browser_pdf(900, PDF, 7)],
+            )
+            .on(
+                is_type("login_window"),
+                Reply::ok(2_000, window_ok(LoginResult::Landed)),
+            );
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, snap());
+        assert_eq!(saved_source(&outcome), Some("alma"), "{outcome:?}");
+        assert_eq!(windows(&rig).len(), 1);
+        assert_eq!(windows(&rig)[0].realm, Realm::Openathens);
+        assert_eq!(
+            session(&rig, Realm::Openathens),
+            SessionState::SignedIn { verified: true }
+        );
+        assert_eq!(session(&rig, Realm::Saml), SessionState::SignedOut);
+    }
+
+    #[test]
+    fn inst_the_realm_of_an_alma_link_follows_the_link() {
+        let inst = cfg().institution;
+        let proxied = pure::proxify(&inst, "https://www.bmj.com/x").expect("KCL has an EZproxy");
+        let login = pure::ezproxy_login_url(&inst, "https://www.bmj.com/x").expect("login link");
+        for (url, realm) in [
+            (redirector(), Realm::Openathens),
+            (proxied, Realm::Ezproxy),
+            (login, Realm::Ezproxy),
+            (ALMA_LINK.to_owned(), Realm::Saml),
+            (
+                "https://librarysearch.kcl.ac.uk/view/uresolver/44KCL_INST/openurl?x=1".to_owned(),
+                Realm::Saml,
+            ),
+        ] {
+            assert_eq!(alma_realm(&inst, &url), realm, "{url}");
+        }
+    }
+
+    /// Items whose Alma links all bounce to the identity provider until one window has been answered.
+    struct AlmaWeb {
+        session: Rc<Cell<bool>>,
+        handles: u32,
+    }
+
+    impl Responder for AlmaWeb {
+        fn respond(&mut self, op: &PendingOp, _now: u64, _wall: u64) -> Reply {
+            self.handles += 1;
+            let handle = self.handles;
+            match &op.effect {
+                Effect::Http { req, .. } if req.url.contains(ALMA_HOST) => {
+                    let doi = req
+                        .url
+                        .split("rft_id=info:doi/")
+                        .nth(1)
+                        .and_then(|r| r.split('&').next())
+                        .unwrap_or_default();
+                    alma_reply(vec![alma_link(&format!(
+                        "https://www.bmj.com/lookup/doi/{doi}"
+                    ))])
+                }
+                Effect::Http { req, .. } if req.url.starts_with("https://doi.org/") => {
+                    page(80, &req.url, PageClass::AccessDenied)
+                }
+                Effect::BrowserLoad { req, .. } => {
+                    if self.session.get() {
+                        browser_pdf(800, &req.url, handle)
+                    } else {
+                        browser_page(800, IDP, idp())
+                    }
+                }
+                Effect::LoginWindow { .. } => {
+                    self.session.set(true);
+                    Reply::ok(3_000, window_ok(LoginResult::Landed))
+                }
+                Effect::SavePdf { req, .. } => {
+                    Reply::ok(100, save_ok(&format!("1/K{:04}", req.item)))
+                }
+                _ => Reply::err(10, OpErrKind::Network),
+            }
+        }
+    }
+
+    #[test]
+    fn inst_alma_links_of_many_items_share_one_login_window() {
+        let session = Rc::new(Cell::new(false));
+        let mut farm = Farm::new(
+            cfg(),
+            AlmaWeb {
+                session: Rc::clone(&session),
+                handles: 0,
+            },
+        );
+        for n in 1..=6 {
+            farm.spawn(fixtures::item(n, &format!("10.1136/alma.{n}")), true);
+        }
+        assert_eq!(farm.rig.run(), SimEnd::Idle);
+        for n in 1..=6 {
+            let outcome = farm.outcome(n).expect("every item ends");
+            assert_eq!(
+                saved_source(&outcome),
+                Some("alma"),
+                "item {n}: {outcome:?}"
+            );
+        }
+        assert_eq!(windows(&farm.rig).len(), 1, "ONE window for six items");
+        assert_eq!(windows(&farm.rig)[0].realm, Realm::Saml);
+        assert!(
+            loads(&farm.rig)
+                .iter()
+                .all(|l| l.url.contains("/lookup/doi/")),
+            "only Alma links were opened, never the redirector"
+        );
+        assert_eq!(ledger(&farm.rig), (6, 0));
+        assert!(farm.rig.host.pending.is_empty());
+        assert_persist_before_barrier(&farm.rig);
+    }
+
+    #[test]
+    fn inst_a_dead_alma_link_falls_through_to_openathens() {
+        let s = alma_site(vec![alma_link(ALMA_LINK)])
+            .on(
+                url_has(ALMA_LINK),
+                browser_page(500, ALMA_LINK, PageClass::NotFound),
+            )
+            .on(url_has("go.openathens.net"), browser_pdf(900, PDF, 7));
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, snap());
+        assert_eq!(saved_source(&outcome), Some("redirector"), "{outcome:?}");
+        assert_eq!(browser_urls(&rig), vec![ALMA_LINK.to_owned(), redirector()]);
+        assert_eq!(
+            ledger(&rig),
+            (1, 0),
+            "the dead link's reservation was given back"
+        );
+        assert_persist_before_barrier(&rig);
+    }
+
+    #[test]
+    fn inst_an_alma_page_without_a_pdf_link_does_not_use_up_the_later_routes() {
+        let s = alma_site(vec![alma_link(ALMA_LINK)])
+            .on(
+                url_has(ALMA_LINK),
+                browser_landing(900, ARTICLE, AccessHint::Unknown, Vec::new(), 5),
+            )
+            .on(
+                is_type("run_translators"),
+                Reply::ok(100, translators_ok(None)),
+            )
+            .on(url_has("go.openathens.net"), browser_pdf(900, PDF, 7));
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, snap());
+        assert_eq!(saved_source(&outcome), Some("redirector"), "{outcome:?}");
+        assert_eq!(browser_urls(&rig), vec![ALMA_LINK.to_owned(), redirector()]);
+    }
+
+    #[test]
+    fn inst_alma_tries_two_links_at_most_and_leaves_the_later_routes_a_load() {
+        let three = vec![
+            alma_link(ALMA_LINK),
+            alma_link(ALMA_LINK_2),
+            alma_link(ALMA_LINK_3),
+        ];
+        let dead = |s: ScriptResponder| {
+            s.on(
+                url_has("lookup/doi"),
+                browser_page(500, ALMA_LINK, PageClass::NotFound),
+            )
+            .on(url_has("go.openathens.net"), browser_pdf(900, PDF, 7))
+        };
+        // Direct access answered "no access" (1 fetch): room for one link and the redirector's load and PDF.
+        let mut rig = Rig::new(dead(alma_site(three.clone())));
+        let outcome = run_one(&mut rig, snap());
+        assert_eq!(saved_source(&outcome), Some("redirector"), "{outcome:?}");
+        assert_eq!(browser_urls(&rig), vec![ALMA_LINK.to_owned(), redirector()]);
+        assert!(requests(&rig).len() <= BUDGET as usize);
+
+        // Without the direct attempt there is room for the second link, never for a third.
+        let mut config = cfg();
+        config.inst.try_direct = false;
+        let mut rig = Rig::with_config(config, dead(alma_site(three)));
+        let outcome = run_one(&mut rig, snap());
+        assert_eq!(saved_source(&outcome), Some("redirector"), "{outcome:?}");
+        assert_eq!(
+            browser_urls(&rig),
+            vec![ALMA_LINK.to_owned(), ALMA_LINK_2.to_owned(), redirector()]
+        );
+        assert!(requests(&rig).len() <= BUDGET as usize);
+    }
+
+    #[test]
+    fn inst_a_bot_check_on_an_alma_link_still_counts_but_a_plain_miss_does_not() {
+        let challenge = PageClass::Challenge {
+            vendor: Vendor::Cloudflare,
+            interactive: false,
+        };
+        let s = alma_site(vec![alma_link(ALMA_LINK)])
+            .on(url_has(ALMA_LINK), browser_page(500, ALMA_LINK, challenge))
+            .on(
+                url_has("go.openathens.net"),
+                browser_page(500, redirector().as_str(), PageClass::NotFound),
+            );
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, snap());
+        assert!(
+            matches!(
+                outcome,
+                Outcome::NeedsUser {
+                    why: NeedsWhy::Challenge,
+                    ..
+                }
+            ),
+            "{outcome:?}"
+        );
+    }
+
+    #[test]
+    fn inst_the_first_alma_link_is_a_hand_off_link_on_every_failure() {
+        let s = alma_site(vec![alma_link(ALMA_LINK), alma_link(ALMA_LINK_2)]).on(
+            is_type("browser_load"),
+            browser_page(500, ALMA_LINK, PageClass::NotFound),
+        );
+        let mut rig = Rig::new(s);
+        let handoff = match run_one(&mut rig, snap()) {
+            Outcome::NeedsUser { handoff, .. } | Outcome::NotEntitled { handoff } => handoff,
+            other => panic!("{other:?}"),
+        };
+        assert_eq!(handoff.redirector_url.as_deref(), Some(ALMA_LINK));
+        assert_eq!(
+            handoff.doi_url,
+            hand().doi_url,
+            "the other links are untouched"
+        );
+        assert_eq!(handoff.libkey_url, hand().libkey_url);
+    }
+
+    #[test]
+    fn inst_no_alma_links_leave_the_route_as_it_was() {
+        let s = off_campus().on(is_type("browser_load"), browser_pdf(900, PDF, 7));
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, snap());
+        assert_eq!(saved_source(&outcome), Some("redirector"), "{outcome:?}");
+        assert_eq!(request_urls(&rig), vec![DOI_URL.to_owned(), redirector()]);
+        // Links that are not Alma's, or not web addresses, are not followed either.
+        let mut stray = alma_link("ftp://example.org/x.pdf");
+        stray.source = Source::Doi;
+        let junk = vec![stray, alma_link("javascript:alert(1)"), alma_link("")];
+        let s = alma_site(junk).on(is_type("browser_load"), browser_pdf(900, PDF, 7));
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, snap());
+        assert_eq!(saved_source(&outcome), Some("redirector"), "{outcome:?}");
+        assert_eq!(browser_urls(&rig), vec![redirector()]);
+    }
+
+    #[test]
+    fn inst_a_held_answer_is_asked_again_for_its_links_but_not_held_is_not() {
+        let s =
+            alma_site(vec![alma_link(ALMA_LINK)]).on(url_has(ALMA_LINK), browser_pdf(900, PDF, 7));
+        let mut rig = Rig::new(s);
+        for n in 1..=2 {
+            let outcome = run_one(&mut rig, fixtures::item(n, DOI));
+            assert_eq!(saved_source(&outcome), Some("alma"), "{outcome:?}");
+        }
+        let asked = rig
+            .http()
+            .iter()
+            .filter(|(u, _, _)| u.contains(ALMA_HOST))
+            .count();
+        assert_eq!(asked, 2, "the cached 'held' does not carry the links");
+    }
+
     #[test]
     fn inst_direct_pdf_on_campus_is_saved_and_counted() {
         // doi.org lands straight on a PDF: no reservation was made by the page fetch, the route counts it anyway.
@@ -2594,7 +3234,7 @@ mod tests {
                 Reply::ok(100, translators_ok(None)),
             )
             .on(url_has("full.pdf"), pdf(400, PDF, 4));
-        let mut rig = Rig::new(s);
+        let mut rig = Rig::with_config(direct_only(), s);
         let outcome = run_with_extra(&mut rig, snap(), vec![crossref]);
         assert_eq!(saved_source(&outcome), Some("doi"), "{outcome:?}");
         assert_eq!(rig.count(|e| matches!(e, Effect::RunTranslators { .. })), 1);
@@ -2616,7 +3256,7 @@ mod tests {
                 landing(80, ARTICLE, AccessHint::Unknown, cands, 3),
             )
             .on(url_has("full"), page(50, ARTICLE, PageClass::NotFound));
-        let mut rig = Rig::new(s);
+        let mut rig = Rig::with_config(direct_only(), s);
         let outcome = run_one(&mut rig, snap());
         assert_eq!(
             outcome,
@@ -2649,7 +3289,7 @@ mod tests {
             )
             .on(is_type("run_translators"), Reply::ok(100, hit))
             .on(url_has("dead"), page(50, ARTICLE, PageClass::NotFound));
-        let mut rig = Rig::new(s);
+        let mut rig = Rig::with_config(direct_only(), s);
         let mut crossref = candidate(
             "https://www.bmj.com/dead2.pdf",
             CandKind::Pdf,
@@ -2678,6 +3318,119 @@ mod tests {
             "landing + two links; the translators took the other unit: {:?}",
             request_urls(&rig)
         );
+    }
+
+    // Wiley off campus (research: nep.13250): the abstract page loads, every PDF link answers with HTML.
+    const NEP_DOI: &str = "10.1111/nep.13250";
+    const NEP_DOI_URL: &str = "https://doi.org/10.1111/nep.13250";
+    const NEP_ARTICLE: &str = "https://onlinelibrary.wiley.com/doi/10.1111/nep.13250";
+    const NEP_PDF: &str = "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1111/nep.13250";
+
+    fn nep_cands() -> Vec<Candidate> {
+        [
+            "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1111/nep.13250",
+            "https://onlinelibrary.wiley.com/doi/pdf/10.1111/nep.13250",
+            "https://onlinelibrary.wiley.com/doi/epdf/10.1111/nep.13250",
+            "https://onlinelibrary.wiley.com/doi/full-xml/10.1111/nep.13250",
+        ]
+        .into_iter()
+        .map(|u| {
+            let mut c = candidate(u, CandKind::Pdf, Source::Extractor, 0);
+            c.record_doi = Some(NEP_DOI.to_owned());
+            c
+        })
+        .collect()
+    }
+
+    /// KCL holds it; the direct route (no session) reaches the abstract page, and each PDF link is HTML again.
+    fn nep_no_session() -> ScriptResponder {
+        kcl()
+            .on(
+                url_has("https://doi.org/"),
+                landing(1_858, NEP_ARTICLE, AccessHint::Unknown, nep_cands(), 3),
+            )
+            .on(
+                is_type("run_translators"),
+                Reply::ok(100, translators_ok(None)),
+            )
+            .on(
+                url_has("/doi/pdf"),
+                landing(3_000, NEP_ARTICLE, AccessHint::Unknown, Vec::new(), 4),
+            )
+            .on(
+                url_has("/doi/epdf"),
+                landing(3_000, NEP_ARTICLE, AccessHint::Unknown, Vec::new(), 5),
+            )
+    }
+
+    fn nep_redirector() -> String {
+        pure::redirector_url(&cfg().institution, NEP_DOI_URL).expect("KCL has an OpenAthens domain")
+    }
+
+    #[test]
+    fn inst_direct_pdf_links_that_answer_html_do_not_end_the_route_before_the_redirector() {
+        let s = nep_no_session().on(is_type("browser_load"), browser_pdf(900, NEP_PDF, 7));
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NEP_DOI));
+        assert_eq!(saved_source(&outcome), Some("redirector"), "{outcome:?}");
+        let urls = request_urls(&rig);
+        assert_eq!(
+            urls.last(),
+            Some(&nep_redirector()),
+            "the redirector follows the direct attempt: {urls:?}"
+        );
+        assert!(
+            urls.len() <= BUDGET as usize,
+            "the item stays inside its budget: {urls:?}"
+        );
+    }
+
+    #[test]
+    fn inst_direct_pdf_links_that_answer_html_still_reach_the_sign_in_window() {
+        let s = nep_no_session()
+            .on(is_type("browser_load"), browser_page(500, IDP, idp()))
+            .on(
+                is_type("login_window"),
+                Reply::ok(1_000, window_ok(LoginResult::ClosedByUser)),
+            );
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NEP_DOI));
+        assert_eq!(
+            outcome,
+            Outcome::NeedsUser {
+                why: NeedsWhy::LoginDeclined,
+                handoff: hand_for(NEP_DOI)
+            },
+            "{:?}",
+            request_urls(&rig)
+        );
+        assert_eq!(
+            (windows(&rig).len(), loads(&rig).len()),
+            (1, 1),
+            "one silent load, then exactly one window"
+        );
+        assert_eq!(loads(&rig)[0].url, nep_redirector());
+    }
+
+    #[test]
+    fn inst_a_signed_in_page_without_a_pdf_link_is_still_no_pdf_link() {
+        // The same Wiley page, but now reached through the redirector: nothing left to try, so NoPdfLink.
+        let s = nep_no_session().on(
+            is_type("browser_load"),
+            browser_landing(900, NEP_ARTICLE, AccessHint::Unknown, Vec::new(), 8),
+        );
+        let mut rig = Rig::new(s);
+        let outcome = run_one(&mut rig, fixtures::item(1, NEP_DOI));
+        assert_eq!(
+            outcome,
+            Outcome::NeedsUser {
+                why: NeedsWhy::NoPdfLink,
+                handoff: hand_for(NEP_DOI)
+            },
+            "{:?}",
+            request_urls(&rig)
+        );
+        assert_eq!(loads(&rig).len(), 1, "the redirector did run");
     }
 
     // ------------------------------------------------------------------------------------ 3. OpenAthens
@@ -3894,7 +4647,7 @@ mod tests {
 
     #[test]
     fn inst_a_second_challenge_on_one_host_halts_the_route() {
-        let mut rig = Rig::new(behind_a_bot_check(&[PDF1, PDF2], false));
+        let mut rig = Rig::with_config(direct_only(), behind_a_bot_check(&[PDF1, PDF2], false));
         let outcome = run_one(&mut rig, snap());
         assert_eq!(outcome, Outcome::Halted { handoff: hand() });
         assert_handed_off(&outcome, DOI);

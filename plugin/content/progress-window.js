@@ -76,12 +76,14 @@
   // ------------------------------------------------------------------------------------------ rows
 
   function createRowNode(item) {
-    const root = html('div', 'display:flex;gap:8px;align-items:center;padding:3px 0;border-bottom:1px solid rgba(128,128,128,0.2);');
+    // Title and status share the first line; hand-off buttons get their own wrapping line underneath, so long button
+    // labels can never squeeze the title and status to zero width.
+    const root = html('div', 'display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(128,128,128,0.2);');
     root.setAttribute('role', 'listitem');
     root.setAttribute('data-item', String(item));
-    const title = html('div', 'flex:1 1 45%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;');
-    const status = html('span', 'flex:1 1 35%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;');
-    const actions = html('span', 'flex:none;display:flex;gap:4px;');
+    const title = html('div', 'flex:1 1 45%;min-width:12em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;');
+    const status = html('span', 'flex:1 1 35%;min-width:10em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;');
+    const actions = html('span', 'flex:1 1 100%;display:none;flex-wrap:wrap;gap:4px;');
     root.appendChild(title);
     root.appendChild(status);
     root.appendChild(actions);
@@ -137,6 +139,7 @@
       for (const action of list) {
         node.actions.appendChild(buildActionButton(item, action));
       }
+      node.actions.style.display = list.length ? 'flex' : 'none';
     }
   }
 

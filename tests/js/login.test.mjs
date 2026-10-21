@@ -258,8 +258,11 @@ test('landed: window opened, plain UA, capture armed, polling until the inspecto
     },
     len: bytes,
   });
-  assert.equal(win.closed, true, 'window closed at the end');
+  assert.equal(win.closed, false, 'a landed window waits in standby for the next route');
+  assert.deepEqual(plain(win.lastLabels.hint), { id: 'zotero-fulltext-login-standby' });
   assert.equal(env.captureState.disposed, 1, 'capture disposed');
+  await advance(timers, ZFT.login.STANDBY_MS + 600);
+  assert.equal(win.closed, true, 'window closed after the grace period');
   assert.equal(timers.pendingCount(), 0, 'no timer left behind');
   // the poll passed url + html to the wasm login state
   assert.ok(rec.states.some(([u, n]) => u === PUBLISHER && n === PUBLISHER_HTML.length));
@@ -327,8 +330,10 @@ test('pdf: a captured PDF wins; stored through bodies, inspected with the staged
     resp: { status: 200, final_url: 'https://journals.lww.com/doi/pdf/10.1/x.pdf?download=1', headers: { 'content-type': 'application/pdf' }, body_len: 1234, head_len: 4096, truncated: false },
   });
   assert.equal(rec.inspect[0].len, 6150);
-  assert.equal(win.closed, true);
+  assert.equal(win.closed, false, 'standby after a captured PDF');
   assert.equal(env.captureState.disposed, 1);
+  env.ZFT.login.closeAll();
+  assert.equal(win.closed, true);
 });
 
 test('pdf: a captured PDF that cannot be stored becomes an io error, not a silent loss', async () => {
@@ -340,7 +345,7 @@ test('pdf: a captured PDF that cannot be stored becomes an io error, not a silen
   await advance(env.timers, 500);
   assert.equal(p.settled, true);
   assert.equal(p.error && p.error.kind, 'io');
-  assert.equal(env.win().closed, true);
+  assert.equal(env.win().closed, true, 'a failed hand-over does not leave the window up');
 });
 
 test('capture is armed only when the request asks for it', async () => {
@@ -1227,4 +1232,191 @@ test('a finished sign-in (landed) keeps the session; a skipped one does not', as
   await advance(env2.timers, 100);
   assert.equal(q.value.result, 'closed_by_user');
   assert.equal(skipped.length, 0);
+});
+
+// ------------------------------------------------------------------------------------------ one window per run (standby / reuse)
+
+const SAML_ENTRY = 'https://onlinelibrary.wiley.com/action/ssostart?idp=https%3A%2F%2Fidp.kcl.ac.uk&redirectUri=%2Fdoi%2F10.1111%2Fnep.13250';
+const landedAt = (url) => (url === PUBLISHER ? { state: 'landed' } : { state: 'pending' });
+
+/** Open a sign-in and land it on PUBLISHER; returns the settled watch. */
+async function landFirst(env, req = LOGIN_REQ, op = 1) {
+  const w = watch(env.ZFT.login.open({ op, run: 7, item: 1, req }, env.ctxFor()));
+  await advance(env.timers, 0);
+  env.win().browser.navigate(PUBLISHER, PUBLISHER_HTML);
+  await advance(env.timers, 500);
+  assert.equal(w.value && w.value.result, 'landed');
+  return w;
+}
+
+test('standby: the window of a landed route is reused for the next LoginWindow (any realm): same window, new entry_url, new session', async () => {
+  const env = setup({ states: landedAt });
+  const { ZFT, timers, rec } = env;
+  await landFirst(env);
+  const win = env.win();
+  assert.equal(win.closed, false);
+  assert.equal(ZFT.login.hasStandby(), true);
+  await advance(timers, 10000);
+  win.args.marker = 'same holder';
+  const second = watch(ZFT.login.open({ op: 2, run: 7, item: 1, req: { ...LOGIN_REQ, realm: 'saml', entry_url: SAML_ENTRY, waiting: 2, item_title: 'Next', timeout_ms: 300000 } }, env.ctxFor()));
+  await advance(timers, 0);
+  assert.equal(rec.windows.length, 1, 'no second window');
+  assert.equal(ZFT.login.hasStandby(), false);
+  assert.equal(win.args.marker, 'same holder');
+  assert.deepEqual(plain({ e: win.args.entryUrl, r: win.args.realm, w: win.args.waiting, t: win.args.itemTitle }), { e: SAML_ENTRY, r: 'saml', w: 2, t: 'Next' });
+  assert.deepEqual(plain(win.browser.loaded.map((l) => l[0])), [ENTRY, SAML_ENTRY]);
+  assert.equal(rec.captures.length, 2, 'a PDF capture per session, on the same browser');
+  assert.equal(rec.captures[1], win.browser);
+  assert.equal(win.lastLabels.hint, '', 'the Checking access line is gone');
+  assert.equal(win.lastLabels.waiting, 2);
+  assert.equal(win.lastLabels.showKeepWaiting, false);
+  // the grace timer of the first route is gone: the window outlives it (the fake browser does not navigate by itself)
+  await advance(timers, 3000);
+  assert.equal(second.settled, false, 'the previous route\'s page is not taken for the new one');
+  win.browser.navigate(SAML_ENTRY);
+  await advance(timers, 17000);
+  assert.equal(win.closed, false);
+  assert.equal(second.settled, false);
+  // the new session behaves like any other: Skip finishes it and closes the window
+  win.event({ type: 'skip' });
+  await advance(timers, 0);
+  assert.equal(second.value.result, 'closed_by_user');
+  assert.equal(win.closed, true);
+  assert.equal(timers.pendingCount(), 0);
+});
+
+test('standby: a reused window lands again and parks again; a challenge-kind route shows its hint and hides the tip', async () => {
+  const env = setup({ states: landedAt });
+  const { ZFT, timers } = env;
+  await landFirst(env);
+  const win = env.win();
+  const second = watch(ZFT.login.open({ op: 2, run: 7, item: 1, req: { ...LOGIN_REQ, kind: 'challenge', realm: 'publisher' } }, env.ctxFor()));
+  await advance(timers, 0);
+  assert.equal(win.args.kind, 'challenge');
+  assert.notEqual(win.lastLabels.hint, '', 'the human-check hint is shown');
+  assert.equal(win.lastLabels.showTip, false);
+  win.browser.navigate(IDP);
+  await advance(timers, 500);
+  win.browser.navigate(PUBLISHER, PUBLISHER_HTML);
+  await advance(timers, 500);
+  assert.equal(second.value.result, 'landed');
+  assert.equal(win.closed, false);
+  assert.equal(ZFT.login.hasStandby(), true);
+  assert.equal(env.rec.windows.length, 1);
+  ZFT.login.closeAll();
+});
+
+test('standby: the window closes after the grace period when nothing follows, and a later route opens a fresh one', async () => {
+  const env = setup({ states: landedAt });
+  const { ZFT, timers } = env;
+  await landFirst(env);
+  const win = env.win();
+  await advance(timers, ZFT.login.STANDBY_MS - 1000);
+  assert.equal(win.closed, false);
+  await advance(timers, 1600);
+  assert.equal(win.closed, true);
+  assert.equal(ZFT.login.hasStandby(), false);
+  ZFT.login.open({ op: 2, run: 7, item: 1, req: LOGIN_REQ }, env.ctxFor());
+  await advance(timers, 0);
+  assert.equal(env.rec.windows.length, 2);
+  ZFT.login.closeAll();
+});
+
+test('standby: closeAll closes the parked window and leaves no timers', async () => {
+  const env = setup({ states: landedAt });
+  await landFirst(env);
+  const win = env.win();
+  assert.equal(win.closed, false);
+  env.ZFT.login.closeAll();
+  assert.equal(win.closed, true);
+  assert.equal(env.ZFT.login.hasStandby(), false);
+  await advance(env.timers, 0);
+  assert.equal(env.timers.pendingCount(), 0);
+  assert.doesNotThrow(() => env.ZFT.login.closeAll());
+});
+
+test('standby: the user pressing Skip or closing the parked window ends it; a later route opens a new window', async () => {
+  for (const ev of ['skip', 'closed']) {
+    const env = setup({ states: landedAt });
+    await landFirst(env);
+    const win = env.win();
+    if (ev === 'skip') win.event({ type: 'skip' });
+    else win.close();
+    assert.equal(win.closed, true, ev);
+    assert.equal(env.ZFT.login.hasStandby(), false);
+    await advance(env.timers, 0);
+    assert.equal(env.timers.pendingCount(), 0);
+    env.ZFT.login.open({ op: 9, run: 7, item: 1, req: LOGIN_REQ }, env.ctxFor());
+    await advance(env.timers, 0);
+    assert.equal(env.rec.windows.length, 2, ev);
+    env.ZFT.login.closeAll();
+  }
+});
+
+test('standby: a finished run (its progress model has a report) closes the parked window at once', async () => {
+  const env = setup({ states: landedAt });
+  const model = { report: null };
+  env.ZFT.progress.modelFor = (run) => (run === 7 ? model : null);
+  await landFirst(env);
+  const win = env.win();
+  await advance(env.timers, 2000);
+  assert.equal(win.closed, false);
+  model.report = { done: true };
+  await advance(env.timers, 600);
+  assert.equal(win.closed, true);
+  assert.equal(env.timers.pendingCount(), 0);
+});
+
+test('standby: a route that ends any other way (ca_blocked, cancellation) closes its window and parks nothing', async () => {
+  const env = setup({ states: (url) => (url === IDP ? { state: 'refused', code: 'AADSTS53000' } : { state: 'pending' }) });
+  const { ZFT, timers } = env;
+  const blocked = watch(ZFT.login.open({ op: 1, run: 7, item: 1, req: LOGIN_REQ }, env.ctxFor()));
+  await advance(timers, 0);
+  env.win().browser.navigate(IDP);
+  await advance(timers, 500 + ZFT.login.LINGER_MS + 100);
+  assert.equal(blocked.value.result, 'ca_blocked');
+  assert.equal(env.win().closed, true);
+  assert.equal(ZFT.login.hasStandby(), false);
+  const scope = new ZFT.util.CancelScope();
+  const cancelled = watch(ZFT.login.open({ op: 2, run: 7, item: 1, req: LOGIN_REQ }, env.ctxFor(scope)));
+  await advance(timers, 0);
+  scope.cancel('run_cancelled');
+  await advance(timers, 0);
+  assert.equal(cancelled.error && cancelled.error.kind, 'cancelled');
+  assert.equal(env.win().closed, true);
+  assert.equal(ZFT.login.hasStandby(), false);
+  assert.equal(timers.pendingCount(), 0);
+});
+
+test('standby: cancelling the scope of the reusing route closes the shared window', async () => {
+  const env = setup({ states: landedAt });
+  const { ZFT, timers } = env;
+  await landFirst(env);
+  const scope = new ZFT.util.CancelScope();
+  const second = watch(ZFT.login.open({ op: 2, run: 7, item: 1, req: { ...LOGIN_REQ, entry_url: SAML_ENTRY } }, env.ctxFor(scope)));
+  await advance(timers, 0);
+  assert.equal(env.rec.windows.length, 1);
+  scope.cancel('run_cancelled');
+  await advance(timers, 0);
+  assert.equal(second.error && second.error.kind, 'cancelled');
+  assert.equal(env.win().closed, true);
+  assert.equal(timers.pendingCount(), 0);
+});
+
+test('standby: a warm-up window is never parked', async () => {
+  const env = setup({ states: landedAt });
+  const p = watch(env.ZFT.login.warmUp(WARM_CONFIG));
+  await advance(env.timers, 0);
+  env.win().browser.navigate(PUBLISHER, PUBLISHER_HTML);
+  await advance(env.timers, 500 + env.ZFT.login.LINGER_MS + 100);
+  assert.equal(p.settled, true);
+  assert.equal(env.win().closed, true);
+  assert.equal(env.ZFT.login.hasStandby(), false);
+});
+
+test('login.xhtml has a non-empty default title before login.js runs, and the standby message exists in the en-US catalogue', () => {
+  const xhtml = fs.readFileSync(path.join(CONTENT, 'login.xhtml'), 'utf8');
+  assert.match(xhtml, /<window[^>]*\stitle="[^"]+"/);
+  const ftl = fs.readFileSync(path.join(CONTENT, '..', 'locale', 'en-US', 'zotero-fulltext.ftl'), 'utf8');
+  assert.match(ftl, /^zotero-fulltext-login-standby = Checking access/m);
 });

@@ -178,7 +178,22 @@ OpenAthens redirector in a hidden browser (plain UA, `barrier`) -> publisher SAM
 login gate -> extract -> PDF -> EZproxy -> hand-off links on every failure. Limits: 4 fetches per item, no retries
 except the single post-login retry, stop signals halt the route.
 
-*Route order and the new institutions* (SAML / EZproxy-for-every-host work). Direct/campus -> OpenAthens (`use_openathens`
+*Alma links* (first sign-in route). Order is now direct -> **Alma links** -> OpenAthens -> SAML -> EZproxy -> hand-off.
+When `check_alma` is on and Alma's answer (`Source::Alma`) carries full-text candidates (kind `Landing` / `Pdf`,
+`signal = "alma:<package>"`, up to 5), the engine opens the first two in the user's own session, exactly as King's
+Library Search would: silent hidden load (plain UA, default jar, `capture_pdf`, `barrier`, `hold_while` the three
+SSO-hop classes), then the landing extractor / PDF walk on what it lands on. A load that ends on an IdP or EZproxy
+login goes through the same single-flight gate (one window for every waiting item); the realm is OpenAthens for a
+redirector link, EZproxy for a link on the proxy, SAML otherwise. Saves record `source = "alma"`; a PDF the load
+itself captured is stored under its own address, never the resolver URL. A cached "held" answer does not carry
+links, so it is re-asked (one catalogue request, no publisher traffic); "not held" stays cached. Budget (4 fetches
+per item): a link starts only if it and the later routes fit (one fetch left free after the first link, two after
+the second), its PDF walk stops one fetch short of the budget, and a load that only bounced to the IdP is refunded
+once the user signed in. Misses of the Alma step are forgotten when a sign-in route follows, except bot check /
+timeout / network (same rule as the direct step). The first Alma link is the hand-off `redirector_url` (no new
+field). Licence caps, scheduler rules and the one-window gate apply unchanged.
+
+*Route order and the new institutions* (SAML / EZproxy-for-every-host work). Direct/campus -> Alma links -> OpenAthens (`use_openathens`
 and a non-blank `openathens_domain`; a blank domain never builds a redirector URL: `pure::redirector_url` returns
 `None`) -> **SAML WAYFless** (`use_saml`, a well-formed `Institution.saml_entity_id`) -> EZproxy -> hand-off.
 * The SAML entry is `pure::wayfless_url`: the first page the item reached, else its own URL, else the article its DOI

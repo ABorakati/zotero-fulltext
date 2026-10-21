@@ -1,0 +1,14 @@
+<uresolver_content xmlns="http://com/exlibris/urm/uresolver/xmlbeans/u" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <context_object>
+    <keys>
+      <key id="rft_id">info:doi/10.9999/notheld.12345</key>
+      <key id="available_services">getit</key>
+      <key id="rft.genre">book</key>
+      <key id="institution">6881</key>
+      <key id="full_text_indicator">false</key>
+      <key id="rft.doi">10.9999/notheld.12345</key>
+      <key id="customer">6880</key>
+    </keys>
+  </context_object>
+  <context_services/>
+</uresolver_content>

@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "zotero-fulltext harness: remote unlock",
+  "version": "0.1.0",
+  "description": "THROWAWAY-PROFILE ONLY. Fires the Firefox startup topic that Marionette / WebDriver BiDi wait for, so they can open a session in Zotero.",
+  "applications": {
+    "zotero": {
+      "id": "remote-unlock@zotero-fulltext.local",
+      "update_url": "https://example.invalid/updates.json",
+      "strict_min_version": "10.0",
+      "strict_max_version": "10.*"
+    }
+  }
+}

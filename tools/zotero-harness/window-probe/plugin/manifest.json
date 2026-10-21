@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "zotero-fulltext window probe",
+  "version": "0.1.0",
+  "description": "Throwaway driver that records EVERY window a 'Get Full Text' run opens (type, URI, title, size, opener stack, PNG). Only for tools/zotero-harness/window-probe.ps1, never for a real profile.",
+  "author": "zotero-fulltext",
+  "applications": {
+    "zotero": {
+      "id": "window-probe@zotero-fulltext.local",
+      "update_url": "https://127.0.0.1/zotero-fulltext-window-probe/never-used.json",
+      "strict_min_version": "6.999",
+      "strict_max_version": "10.*"
+    }
+  }
+}

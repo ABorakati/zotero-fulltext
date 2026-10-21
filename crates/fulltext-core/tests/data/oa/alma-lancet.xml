@@ -1,0 +1,86 @@
+<uresolver_content xmlns="http://com/exlibris/urm/uresolver/xmlbeans/u" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <context_object>
+    <keys>
+      <key id="available_services">viewit</key>
+      <key id="available_services">getit</key>
+      <key id="rft.genre">article</key>
+      <key id="institution">6881</key>
+      <key id="rft.doi">10.1016/S0140-6736(20)30183-5</key>
+      <key id="rft_id">info:doi/10.1016/S0140-6736(20)30183-5</key>
+      <key id="full_text_indicator">true</key>
+      <key id="rft.jtitle">The Lancet.</key>
+      <key id="rft.issn">0140-6736</key>
+      <key id="customer">6880</key>
+    </keys>
+  </context_object>
+  <context_services>
+    <context_service service_type="getFullTxt" context_service_id="22448263720006881">
+      <keys>
+        <key id="package_name">Elsevier ScienceDirect</key>
+        <key id="package_public_name">Elsevier Journals King’s College London Perpetual Access</key>
+        <key id="interface_name">Elsevier ScienceDirect</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53270930850006881</key>
+        <key id="Availability">Available from 2010.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">ELSEVIER::SCIENCE_DIRECT</key>
+        <key id="public_note"/>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">true</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263720006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448263740006881">
+      <keys>
+        <key id="package_name">Elsevier ScienceDirect</key>
+        <key id="package_public_name">Elsevier ScienceDirect Journals</key>
+        <key id="interface_name">Elsevier ScienceDirect</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53122595380006881</key>
+        <key id="Availability">Available from 05/10/1823 volume: 1 issue: 1.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">ELSEVIER::SCIENCE_DIRECT</key>
+        <key id="public_note">King’s username and password for access off campus&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">true</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263740006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448263730006881">
+      <keys>
+        <key id="package_name">ProQuest</key>
+        <key id="package_public_name">ProQuest Central UK/Ireland</key>
+        <key id="interface_name">ProQuest</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53259668460006881</key>
+        <key id="Availability">Available from 04/01/1992 volume: 339.&lt;br>Most recent 3 month(s) not available.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">PROQUEST::open</key>
+        <key id="public_note">King's username and password for access off campus&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">true</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263730006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448263710006881">
+      <keys>
+        <key id="package_name">EBSCOhost</key>
+        <key id="package_public_name">EBSCOhost Business Source Ultimate</key>
+        <key id="interface_name">EBSCOhost</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53288852530006881</key>
+        <key id="Availability">Available from 05/01/1991 until 24/12/2006.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">EBSCO_HOST::Journals</key>
+        <key id="public_note">King's username and password for access off campus&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">false</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263710006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+  </context_services>
+</uresolver_content>

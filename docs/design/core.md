@@ -181,6 +181,44 @@ from `HandoffConf.saml_entity_id` (reached page, else item URL, else DOI). Contr
 `Source::Saml`, `Handoff.wayfless_url`, and in the engine protocol `Institution.saml_entity_id`,
 `Institution.ezproxy_all_hosts`, `InstPrefs.use_saml` (see `engine.md` section 8).
 
+### 3.5 Alma link resolver (`oa::alma`): full-text links, not only "held"
+
+Live captures (2026-10-21, unauthenticated GET, no login) of
+`https://librarysearch.kcl.ac.uk/view/uresolver/44KCL_INST/openurl?ctx_ver=Z39.88-2004&url_ver=Z39.88-2004&rft_id=info:doi/<DOI>&svc_dat=CTO`
+are in `tests/data/oa/alma-{wiley,lww,lancet,oup,nature,springer-not-held,unknown-doi}.xml` (trimmed: context keys and
+service keys reduced, `performance_counters` dropped, long `Availability` cut). The service target is **always** an
+Alma redirector, never the publisher URL itself and never EZproxy- or OpenAthens-wrapped (`proxy_enabled` is `false`
+everywhere):
+
+`<resolution_url>` = `https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&package_service_id=<id>&institutionId=6881&customerId=6880`
+(an element after `<keys>`; the key form is also tolerated). Unauthenticated GET gives a 302 to the platform; the
+hop depends on the package parser (`parser_program`):
+
+| DOI | service package | first 302 target |
+|---|---|---|
+| 10.1111/nep.13250 | Wiley journals current | `https://onlinelibrary.wiley.com/doi/full/10.1111/nep.13250` (article-level; then 403, bot wall) |
+| 10.1093/bjs/znab385 | OUP Read and Publish | `https://academic.oup.com/bjs/article-lookup/doi/10.1093/bjs/znab385` (article-level; then 403) |
+| 10.1038/s41586-020-2649-2 | Nature | `https://www.nature.com/openurl?id=doi:...&genre=article`, then 303 to `idp.nature.com/authorize` (login, stopped there) |
+| 10.1016/S0140-6736(20)30183-5 | Elsevier ScienceDirect | `https://www.sciencedirect.com/science?_ob=GatewayURL&_origin=SFX&_method=citationSearch&_volkey=...` (journal/issue-level gateway, not the article; then 403) |
+| 10.1097/SLA.0000000000005603 | Journals@Ovid LWW | `https://ovidsp.ovid.com/athens/ovidweb.cgi?CSC=Y&...&PAGE=fulltext` (article search by ISSN/volume/page/DOI, Athens entry; 403) |
+| same | Wolters Kluwer transitional OA | `https://ovidsp.ovid.com/ovidweb.cgi?T=JS&...&PAGE=toc` (journal TOC only) |
+| same | PubMed Central (current_access=false) | `https://www.ncbi.nlm.nih.gov/pmc/ivip/0003-4932/276/4/579` -> 404 (coverage ended 2007) |
+| same | Canadian Libraries (Is_free=1, `Bulk::BULK`) | `http://www.archive.org/details/annalsofsurgery571philuoft` (a 1913 volume: wrong for this article) |
+
+So a candidate URL must be opened **in the user's browser session** (`needs_browser`): the redirector needs no cookie
+itself, but the publisher it lands on does (OpenAthens/Shibboleth, or the publisher cookie), and several targets are
+only journal/issue-level. A 5-service Nature response is about 6 KB; an unknown or not-held DOI returns
+`<context_services/>` and `full_text_indicator=false` (`Empty`, note `not_held`).
+
+Output contract (pinned for the engine): per `getFullTxt` service with an http(s) target one `Candidate`
+`{ url: resolution_url, kind: Pdf if the URL is evidently a file else Landing, source: Alma, version: Published,
+host_kind: Publisher, record_doi: requested DOI, landing_url: None, signal: "alma:<package_public_name>" (80 chars at
+most), score: 0, tier: 0, needs_browser: true }`. `Found` when at least one exists. Extra rules, all derived from the
+captures: services with `current_access=false` (coverage window ended before the article, e.g. PubMed Central 1885-2007
+for a 2022 paper) are dropped when any service is current, and kept only when nothing is current (so the "held" signal
+survives); remaining services are ordered paid before free (the free `Bulk` archives rarely hold the article), then in
+document order, de-duplicated by URL, at most 5. `oa_status = "free"` when a retained service has `Is_free` 1.
+
 ## 4. fulltext-wasm ABI v1
 
 Exports (all `u32`, UTF-8 JSON, results `(ptr << 32) | len` as BigInt in JS, JS frees every result with `fx_free`):

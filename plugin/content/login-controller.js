@@ -27,7 +27,13 @@
  *       timeout       timeoutMs elapsed (one "Keep waiting" extension of timeoutMs is allowed, offered at 75 %)
  *       ca_blocked    state refused{code} (Entra Conditional Access, e.g. AADSTS53000): ca_error = code
  *     A challenge page (state challenge_shown) keeps the window open and shows the hint; the user solves it.
- *  6. ALWAYS (finally): dispose capture, remove timers, close the window if still open, forget the op.
+ *  6. ALWAYS (finally): dispose capture, remove timers, forget the op, and release the window: a window that ended by
+ *     landed / pdf is NOT closed but parked in STANDBY (below); every other ending closes it.
+ * ONE WINDOW PER RUN (standby): sign-in routes follow each other (OpenAthens, then the publisher's SAML start, ...), each its own
+ * LoginWindow effect. A window that landed or captured a PDF therefore stays open for STANDBY_MS with "Checking access..." in
+ * its banner; a LoginWindow effect that arrives in that time (any realm) takes the SAME window (new session, new entry_url,
+ * re-focus only if it is not the active window) instead of opening a second one. After the grace period, when its run has a
+ * report, when the user presses Skip / closes it, or on closeAll(), it is closed. At most one window is parked.
  * Security UI (login.js): a bar with the real origin (browser.currentURI.prePath) and TLS state, because the user types
  * credentials into this window; popups opened by SSO pages (window.open / target=_blank) appear in a visible pane
  * (nsIBrowserDOMWindow implementation from the spike), never hidden. Zotero's ExternalLinkHandler actor must NOT attach
@@ -73,9 +79,18 @@
   const KEEP_SESSION_PREF = 'extensions.zotero-fulltext.inst.keep_session';
   const LOAD_FAILED_L10N = 'zotero-fulltext-login-load-failed';
   const LOAD_ERROR_L10N = 'zotero-fulltext-login-load-error-page';
+  /** A finished sign-in window waits this long for the next route of the same run before it closes. It closes at once
+   * when the run's report arrives, so this only bounds the gap between routes (hidden loads take 10-30 s between them). */
+  const STANDBY_MS = 120000;
+  const STANDBY_POLL_MS = 500;
+  /** A reused window's old page is ignored by the classifier for at most this long after the new load started. */
+  const STALE_URL_MS = 20000;
+  const STANDBY_L10N = 'zotero-fulltext-login-standby';
 
   /** op (or WARM_KEY) -> live session. */
   const sessions = new Map();
+  /** The parked window of a finished sign-in: {win, browser, holder, run, scope, done, closed} or null. */
+  let standby = null;
 
   // ------------------------------------------------------------------------------------------ pure decision
 
@@ -234,13 +249,17 @@
    * "Sign-in needed - Show sign-in window" banner in the progress window of the run. The window can still end up behind other
    * windows (the OS may refuse to move focus to a background application), which is why the taskbar flash, the toast and the banner exist.
    */
-  function announce(session) {
+  function announce(session, reused) {
     const win = session.win;
-    bringToFront(win);
-    flashWindow(win);
+    // A reused window that is already the active one is where the user is looking: no raise, flash or toast.
+    const loud = !reused || !isActive(win);
+    if (loud) {
+      bringToFront(win);
+      flashWindow(win);
+    }
     session.lastNudge = ZFT.util.monoNow();
     if (session.warm) return; // the user asked for this window from the Tools menu: they are already looking for it
-    notifyUser(session);
+    if (loud) notifyUser(session);
     try {
       if (ZFT.progress && typeof ZFT.progress.setSignIn === 'function') {
         ZFT.progress.setSignIn(session.run, { show: () => { if (isOpen(session.win)) { bringToFront(session.win); flashWindow(session.win); } }, waiting: session.waiting });
@@ -344,6 +363,10 @@
       waiting: Number(params.req.waiting) || 0,
       win: null,
       browser: null,
+      holder: null,
+      reuse: null,
+      parked: null,
+      staleUrl: '',
       capture: null,
       over: false,
       aborted: false,
@@ -381,51 +404,79 @@
    */
   async function openAndLoad(session) {
     const req = session.req;
-    const holder = {
+    const kind = req.kind === 'challenge' ? 'challenge' : 'login';
+    const fields = {
       entryUrl: req.entry_url,
       itemTitle: String(req.item_title || ''),
       waiting: session.waiting,
-      kind: req.kind === 'challenge' ? 'challenge' : 'login',
+      kind,
       realm: session.realm,
       timeoutMs: session.timeoutMs,
-      onEvent: (ev) => onWindowEvent(session, ev),
-      format: (id, args) => ZFT.l10n.format(id, args),
     };
-    holder.wrappedJSObject = holder;
-    if (quitting()) return false;
-    try {
-      session.win = Services.ww.openWindow(null, WINDOW_URL, '_blank', 'chrome,centerscreen,resizable,dialog=no', holder);
-    } catch (e) {
-      ZFT.util.log('error', 'login: window could not be opened: ' + ZFT.util.errText(e));
-      return false;
-    }
-    const win = session.win;
-    if (!win) return false;
-    // closeAll() may have run while openWindow was spinning: it beats us.
-    if (session.over) return false;
-    try {
-      win.addEventListener('load', () => { if (session.wake) session.wake(); }, { once: true });
-    } catch (e) { /* the readiness poll below covers it */ }
-
-    let waited = 0;
-    while (!windowReady(win)) {
-      if (session.over || session.scope.cancelled || !isOpen(win) || session.windowClosed) return false;
-      if (waited >= LOAD_WAIT_MS) {
-        ZFT.util.log('error', 'login: window did not finish loading');
+    let win;
+    let browser;
+    const reused = !!session.reuse;
+    if (reused) {
+      // The window of the previous route: same <browser>, same cookie jar, new session.
+      const st = session.reuse;
+      session.reuse = null;
+      win = st.win;
+      session.win = win;
+      if (!isOpen(win) || st.closed) return false;
+      const holder = st.holder;
+      Object.assign(holder, fields);
+      holder.session = session;
+      holder.standby = null;
+      session.holder = holder;
+      browser = st.browser;
+      session.browser = browser;
+      try {
+        if (win.zftLogin && typeof win.zftLogin.reset === 'function') win.zftLogin.reset();
+      } catch (e) { /* cosmetic */ }
+    } else {
+      const holder = Object.assign({
+        session,
+        standby: null,
+        onEvent: (ev) => routeEvent(holder, ev),
+        format: (id, args) => ZFT.l10n.format(id, args),
+      }, fields);
+      holder.wrappedJSObject = holder;
+      session.holder = holder;
+      if (quitting()) return false;
+      try {
+        session.win = Services.ww.openWindow(null, WINDOW_URL, '_blank', 'chrome,centerscreen,resizable,dialog=no', holder);
+      } catch (e) {
+        ZFT.util.log('error', 'login: window could not be opened: ' + ZFT.util.errText(e));
         return false;
       }
-      await waitFor(session, LOAD_POLL_MS);
-      waited += LOAD_POLL_MS;
+      win = session.win;
+      if (!win) return false;
+      // closeAll() may have run while openWindow was spinning: it beats us.
+      if (session.over) return false;
+      try {
+        win.addEventListener('load', () => { if (session.wake) session.wake(); }, { once: true });
+      } catch (e) { /* the readiness poll below covers it */ }
+
+      let waited = 0;
+      while (!windowReady(win)) {
+        if (session.over || session.scope.cancelled || !isOpen(win) || session.windowClosed) return false;
+        if (waited >= LOAD_WAIT_MS) {
+          ZFT.util.log('error', 'login: window did not finish loading');
+          return false;
+        }
+        await waitFor(session, LOAD_POLL_MS);
+        waited += LOAD_POLL_MS;
+      }
+
+      browser = win.document.getElementById('zft-login-browser');
+      if (!browser) {
+        ZFT.util.log('error', 'login: window has no browser element');
+        return false;
+      }
+      session.browser = browser;
     }
     if (session.over || session.windowClosed) return false;
-
-    const browser = win.document.getElementById('zft-login-browser');
-    if (!browser) {
-      ZFT.util.log('error', 'login: window has no browser element');
-      return false;
-    }
-    session.browser = browser;
-    announce(session);
+    announce(session, reused);
 
     try {
       browser.browsingContext.customUserAgent = Zotero.VersionHeader.getPlainFirefoxUA();
@@ -438,6 +489,13 @@
       labels.hint = ZFT.l10n.format('zotero-fulltext-login-challenge-hint');
       session.lastLabels.hint = labels.hint;
     }
+    if (reused) {
+      // Wipe what the previous route left in the banner ("Checking access...", a load problem, the Keep waiting button).
+      if (!('hint' in labels)) labels.hint = '';
+      labels.error = '';
+      labels.showKeepWaiting = false;
+      labels.showTip = kind !== 'challenge';
+    }
     setLabels(session, labels);
 
     // The capture is installed before the first navigation so no PDF can slip past it.
@@ -448,9 +506,90 @@
         ZFT.util.log('warn', 'login: PDF capture unavailable: ' + ZFT.util.errText(e));
       }
     }
+    // The previous route's page is still showing until the new navigation commits: it must not be classified as this route's page.
+    if (reused) {
+      const shown = currentSpec(browser);
+      session.staleUrl = shown && shown !== 'about:blank' ? shown : '';
+    }
     startLoad(session);
-    ZFT.util.log('info', `login: window open at ${redact(req.entry_url)} (realm ${session.realm}, ${req.kind})`);
+    ZFT.util.log('info', `login: window ${reused ? 'reused' : 'open'} at ${redact(req.entry_url)} (realm ${session.realm}, ${req.kind})`);
     return true;
+  }
+
+  // ------------------------------------------------------------------------------------------ standby (one window per run)
+
+  /** Events of a window whose session is over (parked): Skip and closing end the standby; nothing else matters. */
+  function routeEvent(holder, ev) {
+    if (holder.session) {
+      onWindowEvent(holder.session, ev);
+      return;
+    }
+    const st = holder.standby;
+    if (st && ev && (ev.type === 'closed' || ev.type === 'skip')) {
+      if (ev.type === 'closed') st.closed = true;
+      endStandby(st, ev.type);
+    }
+  }
+
+  /** Close the parked window (unless it was taken over) and stop its watcher. Idempotent. */
+  function endStandby(st, why) {
+    if (!st || st.done) return;
+    st.done = true;
+    if (standby === st) standby = null;
+    if (st.holder) st.holder.standby = null;
+    try { st.scope.cancel(why || 'ended'); } catch (e) { /* idempotent */ }
+    closeWindow(st.win);
+  }
+
+  /** Has the progress window of this run received its final report? Unknown runs (no progress entry) count as running. */
+  function runFinished(run) {
+    try {
+      if (run == null || !ZFT.progress || typeof ZFT.progress.modelFor !== 'function') return false;
+      const model = ZFT.progress.modelFor(run);
+      return !!(model && model.report);
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function watchStandby(st) {
+    const t0 = ZFT.util.monoNow();
+    try {
+      while (!st.done && ZFT.util.monoNow() - t0 < STANDBY_MS && isOpen(st.win) && !st.closed && !runFinished(st.run)) {
+        await ZFT.util.sleep(STANDBY_POLL_MS, st.scope);
+      }
+    } catch (e) {
+      /* cancelled: taken over or closed by closeAll */
+    }
+    endStandby(st, 'grace');
+  }
+
+  /** Keep a finished session's window open, waiting for the next route. Replaces (closes) an older parked window. */
+  function parkWindow(session) {
+    endStandby(standby, 'replaced');
+    const holder = session.holder;
+    const st = { win: session.win, browser: session.browser, holder, run: session.run, scope: new ZFT.util.CancelScope(), done: false, closed: false };
+    holder.session = null;
+    holder.standby = st;
+    standby = st;
+    session.parked = st;
+    setLabels(st, { hint: { id: STANDBY_L10N }, showKeepWaiting: false, error: '', waiting: 0 });
+    ZFT.util.log('info', `login: window parked for up to ${STANDBY_MS} ms (run ${session.run})`);
+    watchStandby(st).catch(() => {});
+  }
+
+  /** The parked window, taken over by a new sign-in (null when none or it is gone). */
+  function takeStandby() {
+    const st = standby;
+    if (!st) return null;
+    standby = null;
+    st.done = true;
+    try { st.scope.cancel('adopted'); } catch (e) { /* idempotent */ }
+    if (!isOpen(st.win) || st.closed) {
+      closeWindow(st.win);
+      return null;
+    }
+    return st;
   }
 
   /**
@@ -552,9 +691,12 @@
       const problem = loadProblem({ spec: url, docSpec: documentSpec(session.browser), elapsedMs: ZFT.util.monoNow() - session.loadAt, loadFailed: session.loadFailed });
       pushError(session, problem);
       nudge(session);
+      // A reused window still shows the previous route's page until the new load commits: not classified (for at most STALE_URL_MS).
+      if (session.staleUrl && (url !== session.staleUrl || ZFT.util.monoNow() - session.loadAt >= STALE_URL_MS)) session.staleUrl = '';
       // A Gecko error page is never classified: its address is the page that failed, which the classifier would call "landed".
-      const html = problem === 'error_page' ? '' : await readHtml(session);
-      const state = problem === 'error_page' ? { state: 'pending' } : await readState(session, url, html);
+      const skipClassify = problem === 'error_page' || !!session.staleUrl;
+      const html = skipClassify ? '' : await readHtml(session);
+      const state = skipClassify ? { state: 'pending' } : await readState(session, url, html);
       if (session.over) break;
       if (state.state && state.state !== 'pending') session.sawState = true;
 
@@ -583,6 +725,7 @@
    */
   async function drive(session, lingerOn) {
     let offCancel = () => {};
+    let park = false;
     const cancelled = new Promise((resolve, reject) => {
       offCancel = session.scope.onCancel((reason) => reject(new ZFT.util.OpError('cancelled', String(reason))));
     });
@@ -612,6 +755,9 @@
         await Promise.race([waitFor(session, LINGER_MS), session.forced.promise]);
         session.scope.throwIfCancelled();
       }
+      // A finished route keeps its window for the next one (see STANDBY above); every other ending closes it.
+      park = !session.warm && (outcome.result === 'landed' || outcome.result === 'pdf') && !session.aborted
+        && !session.windowClosed && !!session.holder && !quitting();
       return outcome;
     } finally {
       session.over = true;
@@ -621,7 +767,8 @@
       if (session.capture) {
         try { session.capture.dispose(); } catch (e) { /* idempotent */ }
       }
-      closeWindow(session.win);
+      if (park && !session.aborted && !session.scope.cancelled && isOpen(session.win)) parkWindow(session);
+      else closeWindow(session.win);
       session.scope.dispose();
       if (sessions.get(session.key) === session) sessions.delete(session.key);
     }
@@ -767,6 +914,7 @@
     const session = createSession(eff.op, { op: eff.op, run: eff.run, req, ctx, warm: false });
     sessions.set(session.key, session);
     let outcome;
+    if (isHttpUrl(req.entry_url)) session.reuse = takeStandby();
     if (!isHttpUrl(req.entry_url)) {
       // The sign-in page must be a web address; anything else never reaches a browser.
       ZFT.util.log('error', 'login: entry URL is not http(s), nothing opened');
@@ -778,7 +926,12 @@
       outcome = await drive(session, new Set(['ca_blocked']));
       if (outcome.result === 'landed' || outcome.result === 'pdf') persistSession();
     }
-    return buildLoginOk(session, outcome);
+    try {
+      return await buildLoginOk(session, outcome);
+    } catch (e) {
+      endStandby(session.parked, 'failed');
+      throw e;
+    }
   }
 
   /** Effect::LoginUpdate: change the "N items waiting" count of the window opened by op. No-op if it is gone. */
@@ -841,6 +994,7 @@
 
   /** Close every login window (plugin shutdown) and settle their promises as closed_by_user. */
   function closeAll() {
+    endStandby(standby, 'closeAll');
     for (const session of Array.from(sessions.values())) {
       if (session.over) continue;
       session.aborted = true;
@@ -852,6 +1006,7 @@
 
   ZFT.login = {
     WINDOW_URL, WINDOW_TYPE, POLL_MS, KEEP_WAITING_AT, LINGER_MS, BLANK_AFTER_MS, SESSION_COOKIE_MAX_MS,
+    STANDBY_MS, hasStandby: () => !!standby,
     decide, loadProblem, planCookieRewrites, persistSession, open, update, warmUp, closeAll,
   };
 })(this);

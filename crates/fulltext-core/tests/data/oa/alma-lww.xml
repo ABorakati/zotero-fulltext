@@ -1,0 +1,120 @@
+<uresolver_content xmlns="http://com/exlibris/urm/uresolver/xmlbeans/u" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <context_object>
+    <keys>
+      <key id="available_services">viewit</key>
+      <key id="available_services">getit</key>
+      <key id="rft.genre">article</key>
+      <key id="institution">6881</key>
+      <key id="rft.doi">10.1097/SLA.0000000000005603</key>
+      <key id="rft_id">info:doi/10.1097/SLA.0000000000005603</key>
+      <key id="full_text_indicator">true</key>
+      <key id="rft.jtitle">Annals of surgery.</key>
+      <key id="rft.issn">0003-4932</key>
+      <key id="customer">6880</key>
+    </keys>
+  </context_object>
+  <context_services>
+    <context_service service_type="getFullTxt" context_service_id="22448263800006881">
+      <keys>
+        <key id="package_name">Internet Archive</key>
+        <key id="package_public_name">Canadian Libraries</key>
+        <key id="interface_name">Internet Archive</key>
+        <key id="Is_free">1</key>
+        <key id="portfolio_PID">53126533100006881</key>
+        <key id="Availability"/>
+        <key id="static_url">false</key>
+        <key id="parser_program">Bulk::BULK</key>
+        <key id="public_note">Free ejournals and ebooks - access not guaranteed. To view some of the full-text content users need to register for a free account.&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">true</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263800006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448263750006881">
+      <keys>
+        <key id="package_name">Ovid</key>
+        <key id="package_public_name">Journals@Ovid LWW Total Access Collection 2024 version with Neurology (LTOT-24-YR1)</key>
+        <key id="interface_name">Ovid</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53242368950006881</key>
+        <key id="Availability">Available from 01/01/1996 volume: 223 issue: 1.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">OVID::Journals</key>
+        <key id="public_note">King's username and password for access off campus&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">true</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263750006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448263760006881">
+      <keys>
+        <key id="package_name">JISC</key>
+        <key id="package_public_name">Wolters Kluwer:Jisc Collections:Wolters Kluwer Transitional OA agreement (pilot 2022 to 2024) (pre 2018 subscribers) 2022-2024 (Reading List)</key>
+        <key id="interface_name">JISC</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53197177570006881</key>
+        <key id="Availability">Available from 31/01/1996 volume: 223 issue: 1.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">Bulk::BULK</key>
+        <key id="public_note"/>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">true</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263760006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448263790006881">
+      <keys>
+        <key id="package_name">Free Medical Journals</key>
+        <key id="package_public_name">Free Medical Journals</key>
+        <key id="interface_name">Free Medical Journals</key>
+        <key id="Is_free">1</key>
+        <key id="portfolio_PID">53126533110006881</key>
+        <key id="Availability">Available from 1885 until 2007.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">Bulk::BULKdoi</key>
+        <key id="public_note">Free ejournal - access not guaranteed&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">false</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263790006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448263780006881">
+      <keys>
+        <key id="package_name">Ovid</key>
+        <key id="package_public_name">Ovid Lippincott Williams &amp; Wilkins Journal Definitive Archive</key>
+        <key id="interface_name">Ovid</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53126533130006881</key>
+        <key id="Availability">Available from 1885 volume: 1 issue: 0 until 2003 volume: 238 issue: 6.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">OVID::Journals</key>
+        <key id="public_note">King's username and password for access off campus&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">false</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263780006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448263770006881">
+      <keys>
+        <key id="package_name">PubMed Central</key>
+        <key id="package_public_name">PubMed Central</key>
+        <key id="interface_name">PubMed Central</key>
+        <key id="Is_free">1</key>
+        <key id="portfolio_PID">53126533140006881</key>
+        <key id="Availability">Available from 1885 volume: 1 issue: 1 until 2007 volume: 246 issue: 3.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">PubMed::central</key>
+        <key id="public_note">Partially open access - please note that only some articles in this journal are freely available&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">false</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448263770006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+  </context_services>
+</uresolver_content>

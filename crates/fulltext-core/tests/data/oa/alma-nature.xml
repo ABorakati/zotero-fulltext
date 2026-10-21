@@ -1,0 +1,103 @@
+<uresolver_content xmlns="http://com/exlibris/urm/uresolver/xmlbeans/u" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <context_object>
+    <keys>
+      <key id="available_services">viewit</key>
+      <key id="available_services">getit</key>
+      <key id="rft.genre">article</key>
+      <key id="institution">6881</key>
+      <key id="rft.doi">10.1038/s41586-020-2649-2</key>
+      <key id="rft_id">info:doi/10.1038/s41586-020-2649-2</key>
+      <key id="full_text_indicator">true</key>
+      <key id="rft.jtitle">Nature</key>
+      <key id="rft.issn">0028-0836</key>
+      <key id="customer">6880</key>
+    </keys>
+  </context_object>
+  <context_services>
+    <context_service service_type="getFullTxt" context_service_id="22448983680006881">
+      <keys>
+        <key id="package_name">Nature</key>
+        <key id="package_public_name">Nature</key>
+        <key id="interface_name">Nature</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53136631750006881</key>
+        <key id="Availability">Available from 1950.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">NATURE::NATURE</key>
+        <key id="public_note">King's username and password for access off campus&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">true</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448983680006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448983670006881">
+      <keys>
+        <key id="package_name">ProQuest</key>
+        <key id="package_public_name">ProQuest Central UK/Ireland</key>
+        <key id="interface_name">ProQuest</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53136631760006881</key>
+        <key id="Availability">Available from 07/01/1988 volume: 331.&lt;br>Most recent 1 year(s) not available.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">PROQUEST::open</key>
+        <key id="public_note">King's username and password for access off campus&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">false</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448983670006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448983650006881">
+      <keys>
+        <key id="package_name">SpringerNature</key>
+        <key id="package_public_name">Springer Nature JISC Nature TA 2024</key>
+        <key id="interface_name">SpringerNature</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53262157980006881</key>
+        <key id="Availability">Available from 02/01/1997 volume: 385.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">NATURE::NATURE</key>
+        <key id="public_note">King's username and password for access off campus&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">true</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448983650006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448983660006881">
+      <keys>
+        <key id="package_name">Free E- Journals</key>
+        <key id="package_public_name">Free E-journals</key>
+        <key id="interface_name">Free E- Journals</key>
+        <key id="Is_free">1</key>
+        <key id="portfolio_PID">53232460190006881</key>
+        <key id="Availability">Available from 1869 volume: 1 issue: 1 until 1875 volume: 12 issue: 313.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">Bulk::BULK</key>
+        <key id="public_note">Free ejournal - access not guaranteed&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">false</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448983660006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22448983640006881">
+      <keys>
+        <key id="package_name">Biodiversity Heritage Library</key>
+        <key id="package_public_name">Biodiversity Heritage Library</key>
+        <key id="interface_name">Biodiversity Heritage Library</key>
+        <key id="Is_free">1</key>
+        <key id="portfolio_PID">53269707360006881</key>
+        <key id="Availability"><![CDATA[Available from 1909 volume: 80 until 1909 volume: 80.<br>Available from 1909 volume: 81 until 1909 v]]></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">Bulk::BULK</key>
+        <key id="public_note">Free ejournal - access not guaranteed&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">false</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22448983640006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+  </context_services>
+</uresolver_content>

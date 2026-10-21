@@ -135,6 +135,18 @@
       }
       applyLabels(labels);
     },
+    /** Called by ZFT.login when the window is reused for the next sign-in route: drop the popup pane of the previous one. */
+    reset() {
+      popupCount = 0;
+      const box = el('zft-login-popup-box');
+      if (box) {
+        while (box.firstChild) {
+          try { box.removeChild(box.firstChild); } catch (e) { break; }
+        }
+        box.hidden = true;
+      }
+      setMessage(el('zft-login-popups'), '');
+    },
   };
 
   /** Origin / TLS bar and window title. */

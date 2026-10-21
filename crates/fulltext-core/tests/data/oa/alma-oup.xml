@@ -1,0 +1,52 @@
+<uresolver_content xmlns="http://com/exlibris/urm/uresolver/xmlbeans/u" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <context_object>
+    <keys>
+      <key id="available_services">viewit</key>
+      <key id="available_services">getit</key>
+      <key id="rft.genre">article</key>
+      <key id="institution">6881</key>
+      <key id="rft.doi">10.1093/bjs/znab385</key>
+      <key id="rft_id">info:doi/10.1093/bjs/znab385</key>
+      <key id="full_text_indicator">true</key>
+      <key id="rft.jtitle">BJS: British journal of surgery</key>
+      <key id="rft.issn">0007-1323</key>
+      <key id="customer">6880</key>
+    </keys>
+  </context_object>
+  <context_services>
+    <context_service service_type="getFullTxt" context_service_id="22449478400006881">
+      <keys>
+        <key id="package_name">JISC</key>
+        <key id="package_public_name">Oxford University Press:Jisc Collections:OUP Read and Publish 2024-2025 (2025 collection) (Reading list)</key>
+        <key id="interface_name">JISC</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53279683840006881</key>
+        <key id="Availability">Available from 01/01/1996 volume: 83 issue: 1.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">OUP::OUP</key>
+        <key id="public_note">King's username and password for access off campus&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">true</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22449478400006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+    <context_service service_type="getFullTxt" context_service_id="22449478410006881">
+      <keys>
+        <key id="package_name">Wiley Online Library</key>
+        <key id="package_public_name">Wiley Online Library Backfile</key>
+        <key id="interface_name">Wiley Online Library</key>
+        <key id="Is_free">0</key>
+        <key id="portfolio_PID">53140131070006881</key>
+        <key id="Availability">Available from 1913 volume: 1 issue: 1 until 1997 volume: 89 issue: 1.&lt;br></key>
+        <key id="static_url">false</key>
+        <key id="parser_program">Wiley::WILEY</key>
+        <key id="public_note">King’s username and password for access off campus. Note: type "King's" with the apostrophe to bring up the correct entry for King's College London. Ignore entries with Athens at the end&lt;br/></key>
+        <key id="proxy_enabled">false</key>
+        <key id="proxy_selected">DEFAULT</key>
+        <key id="current_access">false</key>
+      </keys>
+      <resolution_url>https://kcl.alma.exlibrisgroup.com/view/action/uresolver.do?operation=resolveService&amp;package_service_id=22449478410006881&amp;institutionId=6881&amp;customerId=6880</resolution_url>
+    </context_service>
+  </context_services>
+</uresolver_content>
