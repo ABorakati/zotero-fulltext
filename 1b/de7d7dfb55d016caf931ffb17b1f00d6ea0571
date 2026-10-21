@@ -1,0 +1,185 @@
+plugin/content/login-controller.js
+  s_3ae4ed00856a4b::t_de59a23706aa4a 1009
+  s_3ae4ed00856a4b::t_9d2bd8277a8a28 252,254-259,262
+  s_3ae4ed00856a4b::t_9df296240e02da 770-771
+  s_3ae4ed00856a4b::t_c28ed4a441d624 30-36
+  s_3ae4ed00856a4b::t_f95105325b3b93 85,88
+  s_3ae4ed00856a4b::t_84e6d0b0d99ef1 509-513
+  s_3ae4ed00856a4b::t_c16e914cb75c8a 515,519-593
+  s_3ae4ed00856a4b::t_8f4be8a6642950 997
+  s_3ae4ed00856a4b::t_8e19cf0ed4efd8 917
+  s_3ae4ed00856a4b::t_bbf2df7201da67 407-408,412,416-449,452-469,471-476,478-479
+  s_3ae4ed00856a4b::t_11bbb994072149 82-84
+  s_3ae4ed00856a4b::t_ef3e510ee27398 369
+  s_3ae4ed00856a4b::t_c36fa4f722d856 92-93
+  s_3ae4ed00856a4b::t_1f1feb44773daf 929-934
+  s_3ae4ed00856a4b::t_3c0eb3c58a2b5b 694-695,697-699
+  s_3ae4ed00856a4b::t_480d4ecc06e615 758-760
+  s_3ae4ed00856a4b::t_3af970bab18ba9 492-498
+  s_3ae4ed00856a4b::t_b9434dcfe881b3 366-368
+  s_3ae4ed00856a4b::t_45ae0b37da1a7d 728
+  s_3ae4ed00856a4b::t_de86c6e1f1db88 86-87
+  s_3ae4ed00856a4b::t_e9eb541fbc1fdf 594
+crates/fulltext-core/tests/oa_fixtures.rs
+  s_3ae4ed00856a4b::t_4006a7a458d22e 1563-1591,1593-1642,1647-1649,1652,1656-1658,1660-1662,1665,1669-1670,1672-1673,1675-1676,1689-1702
+  s_3ae4ed00856a4b::t_4ace6ccd0e4d8c 1703
+tools/zotero-harness/mn-scripts/paywalled-windows.js
+  s_3ae4ed00856a4b::t_a20636dcf8ed70 1-65
+plugin/content/progress-window.js
+  s_3ae4ed00856a4b::t_df0f8d80be7cf9 79-81,84-86
+  s_3ae4ed00856a4b::t_9c5605ef50b463 142
+crates/fulltext-core/tests/data/oa/alma-lancet.xml
+  s_3ae4ed00856a4b::t_40c7b503486072 1-86
+docs/design/core.md
+  s_3ae4ed00856a4b::t_61ee2696f49a3b 184-221
+tools/zotero-harness/bidi-probe.ps1
+  s_3ae4ed00856a4b::t_aa40b96b3c76c5 22,35
+  s_3ae4ed00856a4b::t_370b39b0fe4f81 1-5,7-21,27-34,36-46
+  s_3ae4ed00856a4b::t_9aa9975e28c6f6 24-25
+  s_3ae4ed00856a4b::t_51dc1d95e997eb 6,23,26
+plugin/content/progress.js
+  s_3ae4ed00856a4b::t_c34dc36b9fd80e 425
+  s_3ae4ed00856a4b::t_0b338c3bd05af0 453-468
+  s_3ae4ed00856a4b::t_9a5757b0fe364b 347
+  s_3ae4ed00856a4b::t_eb5abb98270ede 408-424,426-452,469-470,474
+  s_3ae4ed00856a4b::t_12f73270de82d6 629
+  s_3ae4ed00856a4b::t_dd265d0d670366 638
+crates/fulltext-core/tests/data/oa/alma-lww.xml
+  s_3ae4ed00856a4b::t_40c7b503486072 1-120
+tools/zotero-harness/mn-scripts/login-reuse.js
+  s_3ae4ed00856a4b::t_d67d016bd833de 1-5,8-48
+  s_3ae4ed00856a4b::t_09c2ce9ed5193e 6-7
+crates/fulltext-core/tests/data/oa/alma-oup.xml
+  s_3ae4ed00856a4b::t_40c7b503486072 1-52
+tools/zotero-harness/window-probe.ps1
+  s_3ae4ed00856a4b::t_d40ab8e2c3600c 1-13,20-33,36-79,83-145,147-156
+  s_3ae4ed00856a4b::t_aa1dcc809bbbe7 82
+  s_3ae4ed00856a4b::t_aa03e201d94582 81
+  s_3ae4ed00856a4b::t_d726db4c593e36 34-35
+  s_3ae4ed00856a4b::t_9755ed47c9c572 80
+  s_3ae4ed00856a4b::t_4f66786aa96f7b 14
+  s_3ae4ed00856a4b::t_ec479d0c5d01ff 15-19
+  s_3ae4ed00856a4b::t_239401c805b946 146
+tests/js/login.test.mjs
+  s_3ae4ed00856a4b::t_7f2181bca15d88 1274-1275,1277
+  s_3ae4ed00856a4b::t_f47540fab4d6e3 261-262,264-265
+  s_3ae4ed00856a4b::t_416e482697c409 348
+  s_3ae4ed00856a4b::t_a9d1fe106c02e6 1298-1299,1301
+  s_3ae4ed00856a4b::t_4c2325e243d2d0 1261
+  s_3ae4ed00856a4b::t_f1f6451a46aedf 333,335-336,1284,1317,1330-1331,1366
+  s_3ae4ed00856a4b::t_4d0cfadbf5d1f0 1273,1276
+  s_3ae4ed00856a4b::t_a4432bae9a3604 1236-1260,1262-1272,1278-1283,1285-1297,1300,1302-1316,1318-1329,1332-1365,1367-1422
+plugin/content/login.js
+  s_3ae4ed00856a4b::t_1cc42fdcecc8a6 138-149
+plugin/locale/en-US/zotero-fulltext.ftl
+  s_3ae4ed00856a4b::t_73590d739808f2 317-320
+tools/zotero-harness/mn-scripts/login-timeline.js
+  s_3ae4ed00856a4b::t_7fc8ce3eeab8d6 21,24
+  s_3ae4ed00856a4b::t_26e5da08abed54 3
+  s_3ae4ed00856a4b::t_039a6cf938660f 29,31-33
+  s_3ae4ed00856a4b::t_c0b4eb1ce7ae68 1-2,4-20,22-23,25-28,30,34-39
+tools/zotero-harness/mn-scripts/disable-midrun.js
+  s_3ae4ed00856a4b::t_9f26fc07cf1e8b 1-38
+tools/zotero-harness/window-probe/plugin/bootstrap.js
+  s_3ae4ed00856a4b::t_1f0320e482c6e4 357,360,362-366
+  s_3ae4ed00856a4b::t_a0c7dcbf338de9 1-299,311-312,317-320,323-325,328-356,367,374-419,421-454
+  s_3ae4ed00856a4b::t_c69b5988af57c4 305-309
+  s_3ae4ed00856a4b::t_88ab2d0f8163e2 358-359,361
+  s_3ae4ed00856a4b::t_05646de8fb6b7c 300-302,310
+  s_3ae4ed00856a4b::t_2f54afa21767df 303-304
+  s_3ae4ed00856a4b::t_ba5a063977dbe8 313-316
+  s_3ae4ed00856a4b::t_0f952eff6bce87 326-327
+  s_3ae4ed00856a4b::t_7b4fba8a02cfe5 368-373
+  s_3ae4ed00856a4b::t_682823886dbc79 420
+  s_3ae4ed00856a4b::t_35eb410256a95c 321-322
+tools/zotero-harness/mn.mjs
+  s_3ae4ed00856a4b::t_f056cd61619398 1-61
+tools/zotero-harness/mn-scripts/reinstall-midrun.js
+  s_3ae4ed00856a4b::t_4040e490b9d1a4 1-3,5-37
+  s_3ae4ed00856a4b::t_35e50c80b804f9 4
+crates/fulltext-core/tests/data/oa/alma-wiley.xml
+  s_3ae4ed00856a4b::t_40c7b503486072 1-52
+crates/fulltext-core/tests/data/oa/alma-unknown-doi.xml
+  s_3ae4ed00856a4b::t_40c7b503486072 1-14
+crates/fulltext-engine/src/pipeline/inst.rs
+  s_3ae4ed00856a4b::t_0e36198ca5f922 892
+  s_3ae4ed00856a4b::t_c502b66cb7d690 2825-2826
+  s_3ae4ed00856a4b::t_6eaf0274d7c639 1770-1775
+  s_3ae4ed00856a4b::t_90d77cac3718f2 123
+  s_3ae4ed00856a4b::t_13e77f902249ee 572,635,951,955,1099
+  s_3ae4ed00856a4b::t_d5d9a093d6498c 329-339
+  s_3ae4ed00856a4b::t_6fa4fcc88ff909 1269
+  s_3ae4ed00856a4b::t_2c87591e9b1f59 1552-1556
+  s_3ae4ed00856a4b::t_f5bbcae939554b 570-571,573-574
+  s_3ae4ed00856a4b::t_e7b8986d3160de 120-122
+  s_3ae4ed00856a4b::t_e827923f049291 404-408,410
+  s_3ae4ed00856a4b::t_26a3f1a2b467ed 818-822,829-833,837-839
+  s_3ae4ed00856a4b::t_2efecba521afaa 944-950,952-954,956-962
+  s_3ae4ed00856a4b::t_a5f10493aef2a4 1353-1354
+  s_3ae4ed00856a4b::t_c27fc1e0eff355 1715,1721
+  s_3ae4ed00856a4b::t_fdfa83d0857a95 1298-1299
+  s_3ae4ed00856a4b::t_17b3306a4d4f0e 934
+  s_3ae4ed00856a4b::t_d034d33c6dc659 1226-1240,1242-1243,1245-1268,1270-1281
+  s_3ae4ed00856a4b::t_d1d7fd8eed8bbf 847-849
+  s_3ae4ed00856a4b::t_89c36920866850 1318
+  s_3ae4ed00856a4b::t_a9596eac8da290 3259
+  s_3ae4ed00856a4b::t_a51520fed4394f 3237
+  s_3ae4ed00856a4b::t_9e967317136876 1460-1461
+  s_3ae4ed00856a4b::t_58cbe9ed86f737 1241,1244
+  s_3ae4ed00856a4b::t_20288755e28f94 17
+  s_3ae4ed00856a4b::t_73c7a3a5b2098a 306-328
+  s_3ae4ed00856a4b::t_359222dd428b60 4650
+  s_3ae4ed00856a4b::t_b2c0c124c53647 2797-2798,3323-3366,3368-3435
+  s_3ae4ed00856a4b::t_33a0e2602c989e 1417,1419-1421,1426
+  s_3ae4ed00856a4b::t_92dc83c4de3141 13-16
+  s_3ae4ed00856a4b::t_93b3b348d08ed1 656
+  s_3ae4ed00856a4b::t_2047bfc479737a 1689-1690
+  s_3ae4ed00856a4b::t_1c2d2ece77fcff 18-28
+  s_3ae4ed00856a4b::t_f125b098679a12 636
+  s_3ae4ed00856a4b::t_1afb44709ec182 194-229
+  s_3ae4ed00856a4b::t_9de8aa20756358 1888-1896
+  s_3ae4ed00856a4b::t_e751632628d9a3 3292
+  s_3ae4ed00856a4b::t_8166045fd5b6e3 861,867-871,873
+  s_3ae4ed00856a4b::t_11e8cf98123e79 1100-1101
+  s_3ae4ed00856a4b::t_2a8a69dda4973f 3367
+  s_3ae4ed00856a4b::t_52bef3da24c152 116-119
+  s_3ae4ed00856a4b::t_4b41ddb4d3fa40 2702-2793,2799-2812,2814-2824,2827-3133
+  s_3ae4ed00856a4b::t_42b962fe431bdb 2794-2796
+  s_3ae4ed00856a4b::t_4581ff82aecf23 2813
+docs/design/engine.md
+  s_3ae4ed00856a4b::t_9e5074e10e21e4 181-196
+crates/fulltext-core/src/oa/alma.rs
+  s_3ae4ed00856a4b::t_5ac7683ec0a0e1 17
+  s_3ae4ed00856a4b::t_a8818f2c757be4 76
+  s_3ae4ed00856a4b::t_2c98c0f5fe78aa 1,3,6-16,18,21-22,26-31,47-49,54-55,58-75,77-79,84-85,89,95-115,137-157,159,167,172-174,176-182,184-186,189,191-192,196-299
+tools/zotero-harness/window-probe/plugin/manifest.json
+  s_3ae4ed00856a4b::t_0d2d2ca3f7f9fd 1-15
+plugin/content/login.xhtml
+  s_3ae4ed00856a4b::t_d90db71879a946 16
+tools/zotero-harness/remote-unlock/bootstrap.js
+  s_3ae4ed00856a4b::t_7f5fa0671153b8 1-16
+tools/zotero-harness/bidi-client.mjs
+  s_3ae4ed00856a4b::t_d12655426270a8 1-42
+tools/zotero-harness/remote-unlock/manifest.json
+  s_3ae4ed00856a4b::t_7d73e90b0501ac 1-14
+crates/fulltext-core/tests/data/oa/alma-springer-not-held.xml
+  s_3ae4ed00856a4b::t_40c7b503486072 1-14
+crates/fulltext-core/tests/data/oa/alma-nature.xml
+  s_3ae4ed00856a4b::t_40c7b503486072 1-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1bde7d7dfb55d016caf931ffb17b1f00d6ea0571",
+  "prompts": {},
+  "sessions": {
+    "s_3ae4ed00856a4b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2eda52fb-3ac9-4e03-a64a-b8dd07a22a35",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ABorakati <ABorakati@users.noreply.github.com>"
+    }
+  }
+}
