@@ -793,13 +793,13 @@ test('nothing sensitive is logged: no query strings, no cookies', async () => {
 
 const WARM_CONFIG = { institution: { openathens_domain: 'kcl.ac.uk', warmup_url: '' }, inst: { login_timeout_sec: 120 } };
 
-test('warmUp: opens the redirector for doi.org without capture or item, and resolves 1.5 s after landing', async () => {
+test('warmUp: opens the redirector for a subscription site (nature.com, not doi.org) without capture or item, and resolves 1.5 s after landing', async () => {
   const states = (url) => (url === PUBLISHER ? { state: 'landed' } : { state: 'pending' });
   const env = setup({ states });
   const p = watch(env.ZFT.login.warmUp(WARM_CONFIG));
   await advance(env.timers, 100);
   const win = env.win();
-  assert.equal(win.args.entryUrl, 'https://go.openathens.net/redirector/kcl.ac.uk?url=https%3A%2F%2Fdoi.org%2F');
+  assert.equal(win.args.entryUrl, 'https://go.openathens.net/redirector/kcl.ac.uk?url=https%3A%2F%2Fwww.nature.com%2F');
   assert.equal(win.args.itemTitle, '');
   assert.equal(win.args.waiting, 0);
   assert.equal(win.args.timeoutMs, 120000);
@@ -840,15 +840,25 @@ test('warmUp: with no OpenAthens domain the library proxy login page is the star
     institution: { openathens_domain: '', warmup_url: '', ezproxy: { login_host: 'login.eux.idm.oclc.org', suffix: 'eux.idm.oclc.org' } }, inst: {},
   }));
   await advance(env.timers, 100);
-  assert.equal(env.win().args.entryUrl, 'https://login.eux.idm.oclc.org/login?url=https%3A%2F%2Fdoi.org%2F');
+  assert.equal(env.win().args.entryUrl, 'https://login.eux.idm.oclc.org/login?url=https%3A%2F%2Fwww.nature.com%2F');
   assert.equal(env.win().args.realm, 'ezproxy');
   env.win().close();
   await advance(env.timers, 0);
   assert.equal(p.settled, true);
-  // A Shibboleth-only institution has no generic start address: still a no-op.
+  // A Shibboleth-only institution signs in through Nature's WAYFless login for its IdP.
   const e2 = setup();
-  await e2.ZFT.login.warmUp({ institution: { openathens_domain: '', warmup_url: '', ezproxy: null, saml_entity_id: 'https://idp.example.ac.uk/shibboleth' }, inst: {} });
-  assert.equal(e2.rec.windows.length, 0);
+  const q = watch(e2.ZFT.login.warmUp({ institution: { openathens_domain: '', warmup_url: '', ezproxy: null, saml_entity_id: 'https://idp.example.ac.uk/shibboleth' }, inst: {} }));
+  await advance(e2.timers, 100);
+  assert.equal(e2.win().args.entryUrl,
+    'https://sp.nature.com/saml/login?idp=https%3A%2F%2Fidp.example.ac.uk%2Fshibboleth&targetUrl=https%3A%2F%2Fwww.nature.com%2F');
+  assert.equal(e2.win().args.realm, 'saml');
+  e2.win().close();
+  await advance(e2.timers, 0);
+  assert.equal(q.settled, true);
+  // Nothing configured at all: still a no-op.
+  const e3 = setup();
+  await e3.ZFT.login.warmUp({ institution: { openathens_domain: '', warmup_url: '', ezproxy: null, saml_entity_id: '' }, inst: {} });
+  assert.equal(e3.rec.windows.length, 0);
 });
 
 test('warmUp: a second call while the window is open reuses it', async () => {
@@ -1142,7 +1152,9 @@ test('notification trouble is contained: a missing or throwing Services.alerts n
 
 // ------------------------------------------------------------------------------------------ stay signed in: institution session cookies
 
-const NOW = Date.parse('2026-10-21T10:00:00Z');
+// The plugin code runs in its own vm context and reads the real clock, so fixtures must be relative to the real time
+// (a fixed date made these tests expire 12 h after they were written).
+const NOW = Date.now();
 const HOUR = 3600 * 1000;
 const cookie = (host, over = {}) => ({
   host, path: '/', name: 'sess', value: 'VALUE-' + host, isSecure: true, isHttpOnly: true, isSession: true, expiry: 0,

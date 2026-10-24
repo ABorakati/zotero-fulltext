@@ -83,6 +83,8 @@
    * when the run's report arrives, so this only bounds the gap between routes (hidden loads take 10-30 s between them). */
   const STANDBY_MS = 120000;
   const STANDBY_POLL_MS = 500;
+  /** Warm-up destination: a subscription site whose OpenAthens / WAYFless chain reaches the IdP (verified 2026-10-24). */
+  const WARM_TARGET = 'https://www.nature.com/';
   /** A reused window's old page is ignored by the classifier for at most this long after the new load started. */
   const STALE_URL_MS = 20000;
   const STANDBY_L10N = 'zotero-fulltext-login-standby';
@@ -944,8 +946,10 @@
 
   /**
    * Tools menu "Sign in to King's...": open the same window at institution.warmup_url, or at
-   * https://go.openathens.net/redirector/<openathens_domain>?url=<encoded https://doi.org/> when empty, else (no OpenAthens
-   * domain, e.g. a Shibboleth + library-proxy institution) at https://<ezproxy login host>/login?url=<encoded https://doi.org/>,
+   * https://go.openathens.net/redirector/<openathens_domain>?url=<encoded WARM_TARGET> when empty, else (Shibboleth only)
+   * at Nature's WAYFless login for saml_entity_id, else (library proxy only) at https://<ezproxy login host>/login?url=...
+   * WARM_TARGET must be a subscription site: OpenAthens passes non-protected targets such as doi.org straight through, so
+   * the window used to land on doi.org without any sign-in and close after ~2 s (seen 2026-10-24 as a blank window).
    * with no capture and no item; resolves when the user closes the window or the page lands. Cookies stay in the default jar
    * for the batches that follow. @param {object} config EngineConfig @returns {Promise<void>}
    */
@@ -960,11 +964,16 @@
     let realm = 'openathens';
     if (!url) {
       const domain = String(inst.openathens_domain || '').trim();
+      const entityId = String(inst.saml_entity_id || '').trim();
       const proxyHost = inst.ezproxy && inst.ezproxy.login_host ? String(inst.ezproxy.login_host).trim() : '';
-      if (domain) url = 'https://go.openathens.net/redirector/' + encodeURIComponent(domain) + '?url=' + encodeURIComponent('https://doi.org/');
+      // The proxy login page signs in at the IdP AND sets the proxy session, so it beats Shibboleth when both exist.
+      if (domain) url = 'https://go.openathens.net/redirector/' + encodeURIComponent(domain) + '?url=' + encodeURIComponent(WARM_TARGET);
       else if (proxyHost) {
-        url = 'https://' + proxyHost + '/login?url=' + encodeURIComponent('https://doi.org/');
+        url = 'https://' + proxyHost + '/login?url=' + encodeURIComponent(WARM_TARGET);
         realm = 'ezproxy';
+      } else if (entityId) {
+        url = 'https://sp.nature.com/saml/login?idp=' + encodeURIComponent(entityId) + '&targetUrl=' + encodeURIComponent(WARM_TARGET);
+        realm = 'saml';
       }
     }
     if (!isHttpUrl(url)) {
