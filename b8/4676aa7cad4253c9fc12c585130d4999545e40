@@ -1,0 +1,28 @@
+tests/js/login.test.mjs
+  s_3ae4ed00856a4b::t_c8938315471ac0 848,850-861
+  s_3ae4ed00856a4b::t_8b26548ce5c634 796,802,843
+  s_3ae4ed00856a4b::t_d5e797dff69987 1155-1157
+plugin/content/login-controller.js
+  s_3ae4ed00856a4b::t_4fd39c5454e653 86-87
+  s_3ae4ed00856a4b::t_3cef5427acec53 949-952
+  s_3ae4ed00856a4b::t_62cbb5f6acddfe 967,970,972
+  s_3ae4ed00856a4b::t_f130896c22cd78 969,974-976
+debug.log
+  s_3ae4ed00856a4b::t_c868990a51f73d 1-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b84676aa7cad4253c9fc12c585130d4999545e40",
+  "prompts": {},
+  "sessions": {
+    "s_3ae4ed00856a4b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "2eda52fb-3ac9-4e03-a64a-b8dd07a22a35",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "ABorakati <ABorakati@users.noreply.github.com>"
+    }
+  }
+}
